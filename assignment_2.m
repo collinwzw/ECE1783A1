@@ -1,9 +1,8 @@
-  
 clc; 
 clear; 
 close all;
 % Set the video information
-videoSequence = 'Z:\Semester 3\Design tradeoff\akiyo_cif.yuv';
+videoSequence = 'C:\Users\ASUS\Matlab-worksapce\ECE1783A1\akiyo_cif.yuv';
 width  = 352;
 height = 288;
 nFrame = 300;
