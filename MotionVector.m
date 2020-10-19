@@ -12,6 +12,7 @@ classdef MotionVector
         function r = getL1Norm(obj)
             r = abs(obj.x) + abs(obj.y); 
         end
+        
     end
     
 end
