@@ -1,4 +1,5 @@
 classdef MotionEstimationFrames
+
     properties (GetAccess='public', SetAccess='public')
         r;
         block_width;
@@ -26,11 +27,16 @@ classdef MotionEstimationFrames
         end
         
         function obj = truncateBlock(obj)
+            %This function truncate the frame and reference to blocks.
+            %from each truncated block in current frame, it gets the best
+            % matched block from reference frame according to given r
+            %then it gets the residualBlock from best matched block minus
+            %current block. 
                 for i=1:obj.block_height:height(obj.currentFrame)
                     for j=1:obj.block_width:width(obj.currentFrame)
                         currentBlock = Block(obj.currentFrame, j,i, obj.block_width, obj.block_height, MotionVector(0,0) );
                         referenceBlockList = obj.getAllBlocks( i, j  );
-                        bestMatchBlock = obj.findBestPredictedBlockSAD(referenceBlockList,currentBlock.getBlockSumValue())
+                        bestMatchBlock = obj.findBestPredictedBlockSAD(referenceBlockList,currentBlock.getBlockSumValue());
                         residualBlock =  bestMatchBlock.data - currentBlock.data;
                         r = obj.roundBlock(residualBlock);
                         obj.predictedFrame(i:i+obj.block_height - 1, j:j+obj.block_width -1 ) = (obj.referenceFrame( bestMatchBlock.top_height_index: bestMatchBlock.top_height_index + obj.block_height - 1, bestMatchBlock.left_width_index: bestMatchBlock.left_width_index + obj.block_width -1));
@@ -40,6 +46,13 @@ classdef MotionEstimationFrames
                 end        
                 obj.predictedFrame = uint8(obj.predictedFrame);
                 obj.residualFrame = uint8(obj.residualFrame);
+                
+                subplot(1,5,1), imshow(obj.currentFrame(:,:,1))
+                subplot(1,5,2), imshow(obj.referenceFrame(:,:,1))
+                subplot(1,5,3), imshow(obj.predictedFrame(:,:,1))
+                subplot(1,5,4), imshow(obj.residualFrame(:,:,1))
+                reconstructed = obj.predictedFrame(:,:,1) + obj.residualFrame(:,:,1);
+                subplot(1,5,5), imshow(reconstructed(:,:,1))                
         end
         
         function r = roundBlock(obj,residualBlock)
