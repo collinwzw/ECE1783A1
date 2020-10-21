@@ -6,6 +6,7 @@ classdef Block
         block_height;
         MotionVector;
         BlockSumValue;
+        data;
     end
     methods(Access = 'public')
         function obj = Block(frame, left_width_index,top_height_index, block_width, block_height,MotionVector )
@@ -14,6 +15,7 @@ classdef Block
             obj.block_width = block_width;
             obj.block_height = block_height;
             obj.MotionVector = MotionVector;
+            obj.data = frame( obj.top_height_index: obj.top_height_index + obj.block_height -1, obj.left_width_index: obj.left_width_index + obj.block_width -1);
             obj = obj.calculateBlockSumValue(frame);
         end
         function obj = calculateBlockSumValue(obj, frame)
