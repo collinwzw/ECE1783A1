@@ -13,7 +13,7 @@ classdef MotionEstimationFrames
     
     methods(Access = 'public')
         function obj = MotionEstimationFrames(r,currentFrame, referenceFrame, block_width, block_height)
-            if ( width(currentFrame) ~= width(referenceFrame) || height(currentFrame) ~= height(referenceFrame) )
+            if ( size(currentFrame,2) ~= size(referenceFrame,2) || size(currentFrame,1) ~= size(referenceFrame,1) )
                     ME = MException('input currentframe size is not equal to referenceFrame size');
                     throw(ME)
             end
@@ -32,12 +32,13 @@ classdef MotionEstimationFrames
             % matched block from reference frame according to given r
             %then it gets the residualBlock from best matched block minus
             %current block. 
-                for i=1:obj.block_height:height(obj.currentFrame)
-                    for j=1:obj.block_width:width(obj.currentFrame)
+                for i=1:obj.block_height:size(obj.currentFrame,1)
+                    for j=1:obj.block_width:size(obj.currentFrame,2)
                         currentBlock = Block(obj.currentFrame, j,i, obj.block_width, obj.block_height, MotionVector(0,0) );
                         referenceBlockList = obj.getAllBlocks( i, j  );
                         bestMatchBlock = obj.findBestPredictedBlockSAD(referenceBlockList,currentBlock.getBlockSumValue());
-                        residualBlock =  bestMatchBlock.data - currentBlock.data;
+                        residualBlock =  int32(bestMatchBlock.data) - int32(currentBlock.data);
+                        residualBlock = uint8( abs(residualBlock));
                         r = obj.roundBlock(residualBlock);
                         obj.predictedFrame(i:i+obj.block_height - 1, j:j+obj.block_width -1 ) = (obj.referenceFrame( bestMatchBlock.top_height_index: bestMatchBlock.top_height_index + obj.block_height - 1, bestMatchBlock.left_width_index: bestMatchBlock.left_width_index + obj.block_width -1));
                         obj.residualFrame(i:i+obj.block_height - 1, j:j+obj.block_width -1 ) = r;
@@ -59,11 +60,15 @@ classdef MotionEstimationFrames
             p =  nextpow2(residualBlock);
             np2 = 2.^p;
             r = np2.*sign(residualBlock);
-            for i=1:1:width(residualBlock)
-                for j=1:1:height(residualBlock)
+            for i=1:1:size(residualBlock,2)
+                for j=1:1:size(residualBlock,1)
                     if ( abs(r(i,j) - residualBlock(i,j)) > abs(residualBlock(i,j) - r(i,j)/2) )   % -128 - (-90)= -38 > abs(-90 - (-64)) = 26
                         r(i,j) = r(i,j)/2;
+                    else
+                   
                     end
+                   
+        
                 end
             end
         end
@@ -76,7 +81,7 @@ classdef MotionEstimationFrames
                 i_end = row + obj.r;
             else
                 i_start = row - obj.r;
-                if (row + obj.block_height + obj.r > height(obj.referenceFrame))
+                if (row + obj.block_height + obj.r > size(obj.referenceFrame,1))
                     i_end = row;
                 else
                     i_end = row + obj.r;
@@ -89,7 +94,7 @@ classdef MotionEstimationFrames
             else
                 j_start = col - obj.r;
                 
-                if (col + obj.block_width + obj.r > width(obj.referenceFrame))
+                if (col + obj.block_width + obj.r > size(obj.referenceFrame,2))
                     j_end = col;
                 else
                     j_end = col + obj.r;

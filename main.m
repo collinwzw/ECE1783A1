@@ -4,8 +4,10 @@
 % v1 = YUVVideo(inputFilename, 352, 288, 420);
 % y_only = true;
 % v1.writeToFile(outputFilename, y_only);
-% 
-inputFilename = 'C:\Users\ASUS\Matlab-worksapce\ECE1783A1\akiyoY_cif.yuv';
+
+% inputFilename = 'C:\Users\Administrator\Desktop\ба1\1783\ECE1783A1\akiyoY_cif.yuv';
+inputFilename = 'C:\Users\Administrator\Desktop\ба1\1783\ECE1783A1\akiyoY_cif.yuv';
+
 v1 = YOnlyVideo(inputFilename, 352, 288);
 block_width = 8;
 block_height = block_width;
