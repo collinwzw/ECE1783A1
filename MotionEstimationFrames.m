@@ -9,15 +9,16 @@ classdef MotionEstimationFrames
         blocks;
         predictedFrame;
         residualFrame;
+        n;
     end
     
     methods(Access = 'public')
-        function obj = MotionEstimationFrames(r,currentFrame, referenceFrame, block_width, block_height)
+        function obj = MotionEstimationFrames(r,currentFrame, referenceFrame, block_width, block_height,n)
             if ( size(currentFrame,2) ~= size(referenceFrame,2) || size(currentFrame,1) ~= size(referenceFrame,1) )
                     ME = MException('input currentframe size is not equal to referenceFrame size');
                     throw(ME)
             end
-            
+            obj.n = n;
             obj.r = r;
             obj.block_width = block_width;
             obj.block_height = block_height;
@@ -37,41 +38,51 @@ classdef MotionEstimationFrames
                         currentBlock = Block(obj.currentFrame, j,i, obj.block_width, obj.block_height, MotionVector(0,0) );
                         referenceBlockList = obj.getAllBlocks( i, j  );
                         bestMatchBlock = obj.findBestPredictedBlockSAD(referenceBlockList,currentBlock.getBlockSumValue());
-                        residualBlock =  int32(bestMatchBlock.data) - int32(currentBlock.data);
-                        residualBlock = uint8( abs(residualBlock));
-                        r = obj.roundBlock(residualBlock);
+                        residualBlock =  int16(currentBlock.data) -int16(bestMatchBlock.data) ;
+                        
+                        r = obj.roundBlock(int16(residualBlock),obj.n);
+                        
                         obj.predictedFrame(i:i+obj.block_height - 1, j:j+obj.block_width -1 ) = (obj.referenceFrame( bestMatchBlock.top_height_index: bestMatchBlock.top_height_index + obj.block_height - 1, bestMatchBlock.left_width_index: bestMatchBlock.left_width_index + obj.block_width -1));
                         obj.residualFrame(i:i+obj.block_height - 1, j:j+obj.block_width -1 ) = r;
                         obj.blocks = [obj.blocks; currentBlock];
                     end
                 end        
+                reconstructed = int16(obj.predictedFrame(:,:,1)) + int16(obj.residualFrame(:,:,1));
+                reconstructed = uint8(reconstructed);
                 obj.predictedFrame = uint8(obj.predictedFrame);
                 obj.residualFrame = uint8(obj.residualFrame);
-                
+                %obj.residualFrame = obj.residualFrame;
                 subplot(1,5,1), imshow(obj.currentFrame(:,:,1))
                 subplot(1,5,2), imshow(obj.referenceFrame(:,:,1))
                 subplot(1,5,3), imshow(obj.predictedFrame(:,:,1))
-                subplot(1,5,4), imshow(obj.residualFrame(:,:,1))
-                reconstructed = obj.predictedFrame(:,:,1) + obj.residualFrame(:,:,1);
+                subplot(1,5,4), imshow(abs(obj.residualFrame(:,:,1)))
+                
                 subplot(1,5,5), imshow(reconstructed(:,:,1))                
         end
         
-        function r = roundBlock(obj,residualBlock)
-            p =  nextpow2(residualBlock);
-            np2 = 2.^p;
-            r = np2.*sign(residualBlock);
-            for i=1:1:size(residualBlock,2)
-                for j=1:1:size(residualBlock,1)
-                    if ( abs(r(i,j) - residualBlock(i,j)) > abs(residualBlock(i,j) - r(i,j)/2) )   % -128 - (-90)= -38 > abs(-90 - (-64)) = 26
-                        r(i,j) = r(i,j)/2;
-                    else
+        function result = roundBlock(obj,r, n)
+            mutliple = 2^n;
+            result = r;
+            for i=1:1:size(r,2)
+                for j=1:1:size(r,1)
+                        if mod(r(i,j), mutliple) ~= 0
+                            if mod(r(i,j), mutliple)>= mutliple/2
+                                %rounding up
+                                result(i,j) = (mutliple - mod(r(i,j), mutliple)) + r(i,j);
+                            else
+                                %round down
+                                result(i,j) = r(i,j) - mod(r(i,j), mutliple); 
+                            end
+                       
+                        end
+                        
+                end
                    
                     end
                    
         
                 end
-            end
-        end
+
         
         
         function blockList = getAllBlocks(obj, row, col )
