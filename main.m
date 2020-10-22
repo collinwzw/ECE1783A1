@@ -5,15 +5,15 @@
 % y_only = true;
 % v1.writeToFile(outputFilename, y_only);
 
-% inputFilename = 'C:\Users\Administrator\Desktop\ÑÐ1\1783\ECE1783A1\akiyoY_cif.yuv';
-inputFilename = 'C:\Users\Administrator\Desktop\ÑÐ1\1783\ECE1783A1\akiyoY_cif.yuv';
+%inputFilename = 'C:\Users\Administrator\Desktop\ï¿½ï¿½1\1783\ECE1783A1\akiyoY_cif.yuv';
+inputFilename = 'C:\Users\ASUS\Matlab-worksapce\ECE1783A1\akiyoY_cif.yuv';
 
 v1 = YOnlyVideo(inputFilename, 352, 288);
 block_width = 8;
 block_height = block_width;
 [v1WithPadding,v1Averaged] = v1.block_creation(v1.Y,block_width,block_height);
 
-m =  MotionEstimationVideo(v1WithPadding, 1, block_width, block_height)
+m =  MotionEstimationVideo(v1WithPadding, 1, block_width, block_height,2)
 
 
 % firstReferenceFrame(1:352,1:288) = uint8(127);
