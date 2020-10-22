@@ -10,6 +10,7 @@ classdef MotionEstimationFrames
         predictedFrame;
         residualFrame;
         n;
+        reconstructed
     end
     
     methods(Access = 'public')
@@ -33,7 +34,10 @@ classdef MotionEstimationFrames
             % matched block from reference frame according to given r
             %then it gets the residualBlock from best matched block minus
             %current block. 
+                col = 1;
+                row = 1;
                 for i=1:obj.block_height:size(obj.currentFrame,1)
+                    
                     for j=1:obj.block_width:size(obj.currentFrame,2)
                         currentBlock = Block(obj.currentFrame, j,i, obj.block_width, obj.block_height, MotionVector(0,0) );
                         referenceBlockList = obj.getAllBlocks( i, j  );
@@ -44,20 +48,25 @@ classdef MotionEstimationFrames
                         
                         obj.predictedFrame(i:i+obj.block_height - 1, j:j+obj.block_width -1 ) = (obj.referenceFrame( bestMatchBlock.top_height_index: bestMatchBlock.top_height_index + obj.block_height - 1, bestMatchBlock.left_width_index: bestMatchBlock.left_width_index + obj.block_width -1));
                         obj.residualFrame(i:i+obj.block_height - 1, j:j+obj.block_width -1 ) = r;
-                        obj.blocks = [obj.blocks; currentBlock];
+                        
+                        obj.blocks(row,col) = bestMatchBlock.MotionVector.x;
+                        obj.blocks(row,col+1) = bestMatchBlock.MotionVector.y;
+                        col = col + 2;
                     end
+                    row = row + 1;
+                    col = 1;
                 end        
-                reconstructed = int16(obj.predictedFrame(:,:,1)) + int16(obj.residualFrame(:,:,1));
-                reconstructed = uint8(reconstructed);
+                reconstructed_cal = int16(obj.predictedFrame(:,:,1)) + int16(obj.residualFrame(:,:,1));
+                obj.reconstructed = uint8(reconstructed_cal);
                 obj.predictedFrame = uint8(obj.predictedFrame);
                 obj.residualFrame = uint8(obj.residualFrame);
                 %obj.residualFrame = obj.residualFrame;
                 subplot(1,5,1), imshow(obj.currentFrame(:,:,1))
                 subplot(1,5,2), imshow(obj.referenceFrame(:,:,1))
                 subplot(1,5,3), imshow(obj.predictedFrame(:,:,1))
-                subplot(1,5,4), imshow(abs(obj.residualFrame(:,:,1)))
+                subplot(1,5,4), imshow(obj.residualFrame(:,:,1))
                 
-                subplot(1,5,5), imshow(reconstructed(:,:,1))                
+                subplot(1,5,5), imshow(obj.reconstructed(:,:,1))                
         end
         
         function result = roundBlock(obj,r, n)
