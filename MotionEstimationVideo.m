@@ -16,8 +16,8 @@ classdef MotionEstimationVideo
             obj.r = r;
             obj.block_width = block_width;
             obj.block_height = block_height;
-            ReferenceFrame(1:352,1:288) = uint8(127);
-            %ReferenceFrame(1:352,1:288) = obj.video.Y(:,:,1);
+            %ReferenceFrame(1:352,1:288) = uint8(127);
+            ReferenceFrame(1:352,1:288) = obj.video.Y(:,:,1);
             
             for i = 1:1: obj.video.numberOfFrames
                 m = MotionEstimationFrames(1,obj.video.Y(:,:,i), ReferenceFrame, block_width, block_height);
