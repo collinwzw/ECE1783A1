@@ -5,8 +5,8 @@
 % y_only = true;
 % v1.writeToFile(outputFilename, y_only);
 
-%inputFilename = 'C:\Users\Administrator\Desktop\ï¿½ï¿½1\1783\ECE1783A1\akiyoY_cif.yuv';
-inputFilename = 'C:\Users\ASUS\Matlab-worksapce\ECE1783A1\akiyoY_cif.yuv';
+inputFilename = 'C:\Users\Administrator\Desktop\ÑÐ1\1783\ECE1783A1\akiyoY_cif.yuv';
+
 
 v1 = YOnlyVideo(inputFilename, 352, 288);
 block_width = 8;
