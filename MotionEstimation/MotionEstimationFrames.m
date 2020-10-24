@@ -57,6 +57,7 @@ classdef MotionEstimationFrames
                     col = 1;
                 end        
                 reconstructed_cal = int16(obj.predictedFrame(:,:,1)) + int16(obj.residualFrame(:,:,1));
+                %reconstructed_cal = int8(obj.predictedFrame(:,:,1)) + uint8(obj.residualFrame(:,:,1));
                 obj.reconstructed = uint8(reconstructed_cal);
                 obj.predictedFrame = uint8(obj.predictedFrame);
                 obj.residualFrame = uint8(obj.residualFrame);
