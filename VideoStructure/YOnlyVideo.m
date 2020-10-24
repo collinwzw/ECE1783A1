@@ -59,7 +59,6 @@ classdef YOnlyVideo
                 y(:,:,iFrame) = uint8(yImage);
             end
             obj.Y = y;
-            writeToFile(obj, 'test.yuv');
         end
     
         function writeToFile(obj, filename)

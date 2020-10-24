@@ -1,5 +1,7 @@
 function systemSetUp()
-addpath('MotionEstimation');
+addpath('Encoder');
+addpath('Encoder\MotionEstimation');
+addpath('Decoder');
 addpath('VideoStructure');
 addpath('VideoReformate');
 end
