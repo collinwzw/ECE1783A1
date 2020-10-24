@@ -1,4 +1,4 @@
-
+systemSetUp();
 % inputFilename = '.\data\akiyoY_cif.yuv';
 % outputFilename = '.\data\akiyoY_cif.yuv';
 % v1 = YUVVideo(inputFilename, 352, 288, 420);
