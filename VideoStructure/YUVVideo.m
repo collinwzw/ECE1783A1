@@ -61,7 +61,7 @@ classdef YUVVideo
             obj.numberOfFrames = nFrames;
         end
 
-        function obj = yuvRead(obj,vid,lengthMultiplier)
+        function obj = yuvRead(obj,filename,lengthMultiplier)
             switch(obj.YUVType)
                 case 444
                     widthDivider = 1;
@@ -74,7 +74,7 @@ classdef YUVVideo
                     heightDivider = 2;
             end
 
-            fid = fopen(vid,'r');           % Open the video file
+            fid = fopen(filename,'r');           % Open the video file
             stream = fread(fid,'*uchar');    % Read the video file
             length = lengthMultiplier * obj.width * obj.height;  % Length of a single frame
 %             y = uint8(zeros(obj.height, obj.width,   obj.numberOfFrames));

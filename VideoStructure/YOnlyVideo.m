@@ -45,9 +45,9 @@ classdef YOnlyVideo
             obj.numberOfFrames = nFrames;
         end
 
-        function obj = yOnlyRead(obj,vid)
+        function obj = yOnlyRead(obj,filename)
 
-            fid = fopen(vid,'r');           % Open the video file
+            fid = fopen(filename,'r');           % Open the video file
             stream = fread(fid,'*uchar');    % Read the video file
             length =  obj.width * obj.height;  % Length of a single frame
             y = uint8(zeros(obj.width, obj.height,  obj.numberOfFrames));
