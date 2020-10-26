@@ -28,5 +28,7 @@ systemSetUp();
 % reconstructuredVideo.writeToFile(outputReconstructedFilename);
 % 
 % 
-% %de =  MotionCompensationVideo(residualVideo, m.motionVectorVideo, block_width, block_height,2);
-q = QuantizationEngine(1,2,2,0)
+% %de =  MotionCompensationVideo(residualVideo, m.motionVectorVideo,
+% block_width, block_height,2);
+matix = [[140,64];[89,4]];
+q = QuantizationEngine(matix,2,2,0)

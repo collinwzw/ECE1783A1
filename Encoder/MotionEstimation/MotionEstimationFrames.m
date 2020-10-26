@@ -36,8 +36,7 @@ classdef MotionEstimationFrames
             %current block. 
                 col = 1;
                 row = 1;
-                for i=1:obj.block_height:size(obj.currentFrame,1)
-                    
+                for i=1:obj.block_height:size(obj.currentFrame,1)  
                     for j=1:obj.block_width:size(obj.currentFrame,2)
                         currentBlock = Block(obj.currentFrame, j,i, obj.block_width, obj.block_height, MotionVector(0,0) );
                         referenceBlockList = obj.getAllBlocks( i, j  );
