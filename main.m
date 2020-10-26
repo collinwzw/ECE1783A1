@@ -11,7 +11,7 @@ inputFilename = 'C:\Users\Administrator\Desktop\ба1\1783\ECE1783A1\akiyoY_cif.yu
 
 
 v1 = YOnlyVideo(inputFilename, 352, 288);
-block_width = 64;
+block_width = 128;
 block_height = block_width;
 [v1WithPadding,v1Averaged] = v1.block_creation(v1.Y,block_width,block_height);
 

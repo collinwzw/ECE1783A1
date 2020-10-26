@@ -35,10 +35,10 @@ classdef MotionCompensationVideo
                 for i=1:obj.block_height:size(obj.residualFrame,1)
                  
                     for j=1:obj.block_width:size(obj.residualFrame,2)
-                        obj.x = obj.v(col,row);
-                        obj.y = obj.v(col+1,row);
+                        obj.x = obj.v(row,col);
+                        obj.y = obj.v(row,col+1);
         
-                        obj.predictedFrame(i:i+obj.block_height - 1, j:j+obj.block_width -1 ) = ReferenceFrame(i-(obj.y*obj.block_height):i-(obj.y*obj.block_height)+obj.block_height - 1, j-(obj.x*obj.block_width):j-(obj.x*obj.block_width)+obj.block_width -1 );
+                        obj.predictedFrame(i:i+obj.block_height - 1, j:j+obj.block_width -1 ) = ReferenceFrame(i+(obj.x*obj.block_height):i+(obj.x*obj.block_height)+obj.block_height - 1, j+(obj.y*obj.block_width):j+(obj.y*obj.block_width)+obj.block_width -1 );
           
                         col = col + 2;
                     end
