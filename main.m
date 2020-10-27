@@ -30,5 +30,8 @@ systemSetUp();
 % 
 % %de =  MotionCompensationVideo(residualVideo, m.motionVectorVideo,
 % block_width, block_height,2);
-matix = [[140,64];[89,4]];
-q = QuantizationEngine(matix,2,2,0)
+% matix = [[140,64];[89,4]];
+% q = QuantizationEngine(matix,2,2,0)
+
+matrix = [ [-31,9,8,4];[-4,1,4,0];[-3,2,4,0];[4,0,-4,0]];
+r = EntropyEngine(matrix,4,4);

@@ -26,7 +26,7 @@ classdef QuantizationEngine
     methods(Access = 'private')
         function maxValue = calculateQPMax(obj)
             %calculate maximum possible value for quantizationParameter
-            maxValue = log2(obj.block_width);
+            maxValue = log2(obj.block_width)+7;
         end
         
         function obj = generateQMatrix(obj)
