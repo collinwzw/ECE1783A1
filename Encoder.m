@@ -23,7 +23,7 @@ classdef Encoder
             obj.r=r;
             obj.n = n;
             obj.QP = QP;
-            obj.encodeVideo();
+            obj = obj.encodeVideo();
         end
     
         function reconstructedFrame = generateReconstructedFrame(obj,frameIndex, predicted_frame)
