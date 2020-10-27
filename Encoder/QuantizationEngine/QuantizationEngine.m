@@ -58,6 +58,7 @@ classdef QuantizationEngine
                         qtc =  obj.quantizeBlock(currentBlock);
                         obj.quantizationResult(i:i+obj.block_height - 1, j:j+obj.block_width -1 ) = qtc;
                 end
+
             end
             obj.quantizationResult = uint8(obj.quantizationResult);
         end     

@@ -32,7 +32,13 @@ classdef MotionEstimationVideo
                 fprintf("the %d th frame has been processed\n",i);
 
             end
-                
+            fid = fopen('.\output\Residual.txt', 'w');
+            fwrite(fid,int16(obj.residualVideo()),'int16'); 
+            fclose(fid); 
+            fid = fopen('.\output\MotionVectors.txt', 'w');
+            fwrite(fid,int16(obj.motionVectorVideo()),'int16'); 
+            fclose(fid); 
+  
         end
         
         function reconstructuredVideo = getReconstructuredVideo(obj)

@@ -1,4 +1,4 @@
-classdef MotionEstimationFrames
+classdef MotionEstimationEngine
 
     properties (GetAccess='public', SetAccess='public')
         r;
@@ -14,7 +14,7 @@ classdef MotionEstimationFrames
     end
     
     methods(Access = 'public')
-        function obj = MotionEstimationFrames(r,currentFrame, referenceFrame, block_width, block_height,n)
+        function obj = MotionEstimationEngine(r,currentFrame, referenceFrame, block_width, block_height,n)
             if ( size(currentFrame,2) ~= size(referenceFrame,2) || size(currentFrame,1) ~= size(referenceFrame,1) )
                     ME = MException('input currentframe size is not equal to referenceFrame size');
                     throw(ME)
@@ -41,12 +41,9 @@ classdef MotionEstimationFrames
                         currentBlock = Block(obj.currentFrame, j,i, obj.block_width, obj.block_height, MotionVector(0,0) );
                         referenceBlockList = obj.getAllBlocks( i, j  );
                         bestMatchBlock = obj.findBestPredictedBlockSAD(referenceBlockList,currentBlock.getBlockSumValue());
-                        residualBlock =  int16(currentBlock.data) -int16(bestMatchBlock.data) ;
-                        
-                        r = obj.roundBlock(int16(residualBlock),obj.n);
-                        
+                        residualBlock =  int16(currentBlock.data) -int16(bestMatchBlock.data) ;                   
                         obj.predictedFrame(i:i+obj.block_height - 1, j:j+obj.block_width -1 ) = (obj.referenceFrame( bestMatchBlock.top_height_index: bestMatchBlock.top_height_index + obj.block_height - 1, bestMatchBlock.left_width_index: bestMatchBlock.left_width_index + obj.block_width -1));
-                        obj.residualFrame(i:i+obj.block_height - 1, j:j+obj.block_width -1 ) = r;
+                        obj.residualFrame(i:i+obj.block_height - 1, j:j+obj.block_width -1 ) = residualBlock;
                         
                         obj.blocks(row,col) = bestMatchBlock.MotionVector.x;
                         obj.blocks(row,col+1) = bestMatchBlock.MotionVector.y;
@@ -59,7 +56,7 @@ classdef MotionEstimationFrames
                 %reconstructed_cal = int8(obj.predictedFrame(:,:,1)) + uint8(obj.residualFrame(:,:,1));
                 obj.reconstructed = uint8(reconstructed_cal);
                 obj.predictedFrame = uint8(obj.predictedFrame);
-                obj.residualFrame = int16(obj.residualFrame);
+                obj.residualFrame = uint8(obj.residualFrame);
                 %obj.residualFrame = obj.residualFrame;
                 subplot(1,5,1), imshow(obj.currentFrame(:,:,1))
                 subplot(1,5,2), imshow(obj.referenceFrame(:,:,1))
