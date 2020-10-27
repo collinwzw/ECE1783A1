@@ -5,7 +5,8 @@ classdef EntropyEngine
         quantizationParameter; %int
         block_width; %type int
         block_height; %type int, for square block_height = block_weight = i
-        result; %Frame
+        reorderedList; %array
+        encodereorderedList; %array
     end
     
     methods(Access = 'public')
@@ -14,11 +15,13 @@ classdef EntropyEngine
             obj.block_width = block_width;
             obj.block_height = block_height;
             currentBlock = Block(obj.quantizedTransformedFrame, 1,1, obj.block_width, obj.block_height, MotionVector(0,0) );
-            obj.result = obj.reorderBlock(currentBlock);
+            obj.reorderedList = obj.reorderBlock(currentBlock);
+            obj = obj.encodeReorderedList();
         end
-        
+
         
     end
+    
     methods(Access = 'private')
 %         function entropilizeFrame()
 %            for i=1:obj.block_height:size(obj.transformCoefficientFrame,1)  
@@ -30,7 +33,7 @@ classdef EntropyEngine
         
         function r = reorderBlock(obj,block)
                 % reordering the element in a block
-                r = {};
+                r = [];
                 %reordering upper left top part of block
                 for y=1:1:obj.block_width
                     x = 1;
@@ -50,6 +53,77 @@ classdef EntropyEngine
                         x = x + 1;
                     end
                 end
+        end
+        
+        function obj = encodeReorderedList(obj)
+            %take reordered list and encode it
+            left = 1;
+            right = 1;
+            count = 0;
+            while right <= size(obj.reorderedList,2)
+                if obj.isZero(obj.reorderedList(right)) ~= obj.isZero(obj.reorderedList(left))
+                    noElements = right - left;
+                    if obj.isZero(obj.reorderedList(left)) == 1
+                        % the left pointer pointing at zero
+                        if left == 1
+                            obj.encodereorderedList = [noElements obj.encodereorderedList];
+                        else
+                            obj.encodereorderedList = [obj.encodereorderedList noElements];
+                        end
+                    else
+                        % the left pointer pointing at non-zero element
+                        if left == 1
+                            obj.encodereorderedList = [-noElements obj.reorderedList(left:right - 1)];
+                        else
+                            obj.encodereorderedList = [obj.encodereorderedList -noElements obj.reorderedList(left:right - 1)];
+                        end
+                        
+                    end
+                    left = right;
+                else
+                    right = right + 1;
+
+                end
+            end
+            %finish of while loop
+            
+            if left ~= right
+                %in case left is not equal to right
+               if  obj.isZero(obj.reorderedList(left)) == 1
+                    obj.encodereorderedList = [obj.encodereorderedList 0];
+               else
+                   noElements = right - left;
+                   obj.encodereorderedList = [obj.encodereorderedList -noElements obj.reorderedList(left:right - 1 )];
+               end
+            
             end
         end
+        
+        function r = isZero(~,value)
+            %helper function to assert if a number is 0 or not. return 1 if
+            %it's zero, return 0 if it's non zero
+             r = value== 0;
+        end
+        
+       function r = encodeExpGolomblist(obj)
+           
+       end
+       
+       function r = encodeExpGolombValue(~,value)
+            if value > 0
+                value = 2*value - 1;
+            else
+                value = -2 * value;
+            end
+            r = '';
+            M = floor(log2(value + 1));
+            info = dec2bin(value + 1 - 2^M,M);
+            for j=1:M
+                r = [r '0'];
+            end
+            r = [r '1'];
+            r = [r info];
+       end
+
     end
+end
