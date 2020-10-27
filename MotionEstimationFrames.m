@@ -13,7 +13,7 @@ classdef MotionEstimationFrames
         reconstructed
     end
     
-    methods(Access = 'public')
+    Tmethods(Access = 'public')
         function obj = MotionEstimationFrames(r,currentFrame, referenceFrame, block_width, block_height,n)
             if ( size(currentFrame,2) ~= size(referenceFrame,2) || size(currentFrame,1) ~= size(referenceFrame,1) )
                     ME = MException('input currentframe size is not equal to referenceFrame size');
@@ -45,7 +45,8 @@ classdef MotionEstimationFrames
                         residualBlock =  int16(currentBlock.data) -int16(bestMatchBlock.data) ;
                         
                         r = obj.roundBlock(int16(residualBlock),obj.n);
-                        
+                        TC=dct2(r);
+                        ITC=idct2(r);
                         obj.predictedFrame(i:i+obj.block_height - 1, j:j+obj.block_width -1 ) = (obj.referenceFrame( bestMatchBlock.top_height_index: bestMatchBlock.top_height_index + obj.block_height - 1, bestMatchBlock.left_width_index: bestMatchBlock.left_width_index + obj.block_width -1));
                         obj.residualFrame(i:i+obj.block_height - 1, j:j+obj.block_width -1 ) = r;
                         
@@ -56,17 +57,18 @@ classdef MotionEstimationFrames
                     row = row + 1;
                     col = 1;
                 end        
-                reconstructed_cal = int16(obj.predictedFrame(:,:,1)) + int16(obj.residualFrame(:,:,1));
+                reconstructed_cal = (obj.predictedFrame(:,:,1)) + (obj.residualFrame(:,:,1));
                 obj.reconstructed = uint8(reconstructed_cal);
                 obj.predictedFrame = uint8(obj.predictedFrame);
                 obj.residualFrame = uint8(obj.residualFrame);
                 %obj.residualFrame = obj.residualFrame;
-                subplot(1,5,1), imshow(obj.currentFrame(:,:,1))
-                subplot(1,5,2), imshow(obj.referenceFrame(:,:,1))
-                subplot(1,5,3), imshow(obj.predictedFrame(:,:,1))
-                subplot(1,5,4), imshow(obj.residualFrame(:,:,1))
-                
-                subplot(1,5,5), imshow(obj.reconstructed(:,:,1))                
+                subplot(1,5,1), imshow(obj.currentFrame(:,:,1)')
+                subplot(1,5,2), imshow(obj.referenceFrame(:,:,1)')
+                subplot(1,5,3), imshow(obj.predictedFrame(:,:,1)')
+                subplot(1,5,4), imshow(obj.residualFrame(:,:,1)')
+            
+                subplot(1,5,5), imshow(obj.reconstructed(:,:,1)')
+%                 figure
         end
         
         function result = roundBlock(obj,r, n)

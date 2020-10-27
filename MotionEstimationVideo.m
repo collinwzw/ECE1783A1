@@ -20,8 +20,8 @@ classdef MotionEstimationVideo
             ReferenceFrame(1:video.width,1:video.height) = uint8(127);
             %ReferenceFrame(1:video.width,1:video.height) = obj.video.Y(:,:,1);
             
-            for i = 1:1: obj.video.numberOfFrames
-                m = MotionEstimationFrames(1,obj.video.Y(:,:,i), ReferenceFrame, block_width, block_height,n);
+            for i = 1:1: 10
+                m = MotionEstimationFrames(r,obj.video.Y(:,:,i), ReferenceFrame, block_width, block_height,n);
                 m = m.truncateBlock();
                 ReferenceFrame = m.reconstructed;
                 obj.residualVideo(:,:,i) =  m.residualFrame;
@@ -45,14 +45,26 @@ classdef MotionEstimationVideo
             residualVideo.Y = obj.residualVideo;
         end        
     
+        function getSAD_metric(obj)
+            for i=1:1:10
+                currentframe_sum= sum(double(obj.video.Y(:,:,i)),'all');
+                reconstructed_sum=sum(double(obj.reconstructuredVideo(:,:,i)),'all');
+                SAD(i)=abs(currentframe_sum-reconstructed_sum);
+            end
+            frame_number = linspace(1,10,10);
+            plot(frame_number,SAD)
+            title('SAD Metrix for ''i=8'',''r=4'',''n=3');
+            xlabel('Frames')
+            ylabel('SAD values')
+        end
         function motionVectorVideoWriteToFile(obj, filename)
 
-            fid=fopen(filename,'w');
+            fid=fopen(filename,'a');
             if (fid < 0) 
                 error('Could not open the file!');
             end
-             for i=1:obj.video.numberOfFrames
-                fwrite(fid,uint8(obj.motionVectorVideo(:,:,i)),'uchar');
+             for i=1:10
+                fwrite(fid,int16(obj.motionVectorVideo(:,:,i)));
              end
             fclose(fid);
         end   
