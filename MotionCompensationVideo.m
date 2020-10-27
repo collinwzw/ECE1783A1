@@ -1,14 +1,14 @@
 classdef MotionCompensationVideo
     properties (GetAccess='public', SetAccess='public')
-        n;
+        
         block_width;
         block_height;
-
-        
-        video;
-        
-        predictedFrame;
+        residualVideo;
         residualFrame;
+        video;
+        referenceVideo;
+        predictedFrame;
+        r;
         vectors;
         v;
         x;
@@ -16,20 +16,27 @@ classdef MotionCompensationVideo
 
         
     end
-    
+
     methods(Access = 'public')
-        function obj = MotionCompensationVideo(residualVideo, mv, block_width, block_height,n)
-            obj.n = n;
+        function obj = MotionCompensationVideo(inputFilename, mv, block_width, block_height,decoderwidth,decoderheight,numberOfFrames)
+
+            fid = fopen(inputFilename, 'r');
+            a=fread(fid,'int16');
+            fclose(fid); 
+            
+            
+            residualVideo=permute(reshape(a,decoderwidth,decoderheight,numberOfFrames),[1,2,3]);
+            
             obj.vectors = mv;
             obj.video = residualVideo;
             obj.block_width = block_width;
             obj.block_height = block_height;
-            ReferenceFrame(1:residualVideo.width,1:residualVideo.height) = uint8(127);
+            referenceFrame(1:decoderwidth,1:decoderheight) = uint8(127);
             %ReferenceFrame(1:video.width,1:video.height) = obj.video.Y(:,:,1);
             
-            for i = 1:1: obj.video.numberOfFrames
-                obj.residualFrame=obj.video.Y(:,:,i);
-                obj.v = obj.vectors(:,:,i);
+            for p = 1:1: numberOfFrames
+                obj.residualFrame=residualVideo(:,:,p);
+                obj.v = obj.vectors(:,:,p);
                 col=1;
                 row=1;
                 for i=1:obj.block_height:size(obj.residualFrame,1)
@@ -38,15 +45,29 @@ classdef MotionCompensationVideo
                         obj.x = obj.v(row,col);
                         obj.y = obj.v(row,col+1);
         
-                        obj.predictedFrame(i:i+obj.block_height - 1, j:j+obj.block_width -1 ) = ReferenceFrame(i+(obj.x*obj.block_height):i+(obj.x*obj.block_height)+obj.block_height - 1, j+(obj.y*obj.block_width):j+(obj.y*obj.block_width)+obj.block_width -1 );
+                        obj.predictedFrame(i:i+obj.block_height - 1, j:j+obj.block_width -1 ) = referenceFrame(i+(obj.x):i+(obj.x)+obj.block_height - 1, j+(obj.y):j+(obj.y)+obj.block_width -1 );
           
                         col = col + 2;
                     end
                     row = row + 1;
                     col = 1;     
                 end
-                ReferenceFrame=obj.predictedFrame+obj.residualFrame;
+                referenceFrame_cal=int16(obj.predictedFrame)+int16(obj.residualFrame);
+                obj.referenceVideo(:,:,p) = uint8(referenceFrame_cal);
+               
+%                 subplot(1,5,1), imshow(obj.currentFrame(:,:,1))
+%                 subplot(1,5,2), imshow(obj.referenceFrame(:,:,1))
+%                 subplot(1,5,3), imshow(obj.predictedFrame(:,:,1))
+%                 subplot(1,5,4), imshow(obj.residualFrame(:,:,1))
+%                 
+%                 subplot(1,5,5), imshow(obj.reconstructed(:,:,1))    
+%                 
+                
             end
+        end
+        function referenceVideo = getDecodedRefVideo(obj)
+            referenceVideo = obj.video.clone();
+            referenceVideo.Y = obj.referenceVideo;
         end
     end
 end
