@@ -26,11 +26,11 @@
 % 
 % outputReconstructedFilename = '.\output\akiyoYReconstructed.yuv';
 % reconstructuredVideo.writeToFile(outputReconstructedFilename);
-
-decoderwidth = residualVideo.width;
-decoderheight = residualVideo.height;
-[mvwidth,mvheight,~] = size(m.motionVectorVideo);
-numberOfFrames = residualVideo.numberOfFrames;
+% 
+% decoderwidth = residualVideo.width;
+% decoderheight = residualVideo.height;
+% [mvwidth,mvheight,~] = size(m.motionVectorVideo);
+% numberOfFrames = residualVideo.numberOfFrames;
 
 de = MotionCompensationVideo('.\output\Residual.txt', '.\output\MotionVectors.txt', block_width, block_height,decoderwidth,decoderheight,mvwidth,mvheight,numberOfFrames);
 outputDecodeRefFilename = '.\output\akiyoYDecodedRef.yuv';
