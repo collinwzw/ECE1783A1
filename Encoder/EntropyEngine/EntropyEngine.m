@@ -7,6 +7,7 @@ classdef EntropyEngine
         block_height; %type int, for square block_height = block_weight = i
         reorderedList; %array
         encodereorderedList; %array
+        bitstream;
     end
     
     methods(Access = 'public')
@@ -17,9 +18,32 @@ classdef EntropyEngine
             currentBlock = Block(obj.quantizedTransformedFrame, 1,1, obj.block_width, obj.block_height, MotionVector(0,0) );
             obj.reorderedList = obj.reorderBlock(currentBlock);
             obj = obj.encodeReorderedList();
+            
         end
-
+       function r = encodeExpGolombValue(~,value)
+            if value > 0
+                value = 2*value - 1;
+            else
+                value = -2 * value;
+            end
+            r = '';
+            M = floor(log2(value + 1));
+            info = dec2bin(value + 1 - 2^M,M);
+            for j=1:M
+                r = [r '0'];
+            end
+            r = [r '1'];
+            r = [r info];
+       end
         
+      function obj = encodeExpGolomblist(obj)
+           obj.bitstream = '';
+           for i=1:1:size(obj.encodereorderedList,2)
+               bits =  obj.encodeExpGolombValue((obj.encodereorderedList(i)));
+               obj.bitstream = [obj.bitstream, bits];
+           end
+      end
+       
     end
     
     methods(Access = 'private')
@@ -102,28 +126,12 @@ classdef EntropyEngine
         function r = isZero(~,value)
             %helper function to assert if a number is 0 or not. return 1 if
             %it's zero, return 0 if it's non zero
-             r = value== 0;
+             r = value== 0
         end
         
-       function r = encodeExpGolomblist(obj)
-           
-       end
+
        
-       function r = encodeExpGolombValue(~,value)
-            if value > 0
-                value = 2*value - 1;
-            else
-                value = -2 * value;
-            end
-            r = '';
-            M = floor(log2(value + 1));
-            info = dec2bin(value + 1 - 2^M,M);
-            for j=1:M
-                r = [r '0'];
-            end
-            r = [r '1'];
-            r = [r info];
-       end
+
 
     end
 end
