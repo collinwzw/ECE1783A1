@@ -10,7 +10,7 @@
 % 
 % 
 % v1 = YOnlyVideo(inputFilename, 352, 288);
-% block_width = 128;
+% block_width = 64;
 % block_height = block_width;
 % [v1WithPadding,v1Averaged] = v1.block_creation(v1.Y,block_width,block_height);
 % 
@@ -26,12 +26,13 @@
 % 
 % outputReconstructedFilename = '.\output\akiyoYReconstructed.yuv';
 % reconstructuredVideo.writeToFile(outputReconstructedFilename);
-% 
-% decoderwidth = residualVideo.width;
-% decoderheight = residualVideo.height;
-% numberOfFrames = residualVideo.numberOfFrames;
 
-de = MotionCompensationVideo('.\output\Residual.txt', m.motionVectorVideo, block_width, block_height,decoderwidth,decoderheight,numberOfFrames);
+decoderwidth = residualVideo.width;
+decoderheight = residualVideo.height;
+[mvwidth,mvheight,~] = size(m.motionVectorVideo);
+numberOfFrames = residualVideo.numberOfFrames;
+
+de = MotionCompensationVideo('.\output\Residual.txt', '.\output\MotionVectors.txt', block_width, block_height,decoderwidth,decoderheight,mvwidth,mvheight,numberOfFrames);
 outputDecodeRefFilename = '.\output\akiyoYDecodedRef.yuv';
 DecodedRefVideo = de.getDecodedRefVideo();
 DecodedRefVideo.writeToFile(outputDecodeRefFilename);

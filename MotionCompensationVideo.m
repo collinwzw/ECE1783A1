@@ -13,24 +13,36 @@ classdef MotionCompensationVideo
         v;
         x;
         y;
-        dw;
-        dh;
+        dw; %Decoder Width
+        dh; %Decoder height
+        mvw; %MV Width
+        mvh; %MV Width
         inputFilename;
         numberOfFrames;
+        DecodedRefVideo;
+        Temp_v;
     end
 
     methods(Access = 'public')
-        function obj = MotionCompensationVideo(inputFilename, mv, block_width, block_height,decoderwidth,decoderheight,numberOfFrames)
+        function obj = MotionCompensationVideo(inputFilename1, inputFilename2, block_width, block_height,decoderwidth,decoderheight,mvwidth,mvheight,numberOfFrames)
 
-            fid = fopen(inputFilename, 'r');
+            fid = fopen(inputFilename1, 'r');
             a=fread(fid,'int16');
+            fclose(fid); 
+            fid = fopen(inputFilename2, 'r');
+            b=fread(fid,'int16');
             fclose(fid); 
             
             obj.dw=decoderwidth;
             obj.dh=decoderheight;
-            obj.inputFilename=inputFilename;
+            obj.mvw=mvwidth;
+            obj.mvh=mvheight;
+           
+            obj.inputFilename=inputFilename1;
             obj.numberOfFrames=numberOfFrames;
+            
             residualVideo=permute(reshape(a,decoderwidth,decoderheight,numberOfFrames),[1,2,3]);
+            mv=permute(reshape(b,mvwidth,mvheight,numberOfFrames),[1,2,3]);
             
             obj.vectors = mv;
             obj.video = residualVideo;
@@ -38,7 +50,7 @@ classdef MotionCompensationVideo
             obj.block_height = block_height;
             referenceFrame(1:decoderwidth,1:decoderheight) = uint8(127);
             %ReferenceFrame(1:video.width,1:video.height) = obj.video.Y(:,:,1);
-            
+            obj.Temp_v = YOnlyVideo('.\output\akiyoYReconstructed.yuv', obj.dw,  obj.dh);
             for p = 1:1: numberOfFrames
                 obj.residualFrame=residualVideo(:,:,p);
                 obj.v = obj.vectors(:,:,p);
@@ -58,24 +70,28 @@ classdef MotionCompensationVideo
                     col = 1;     
                 end
                 referenceFrame_cal=int16(obj.predictedFrame)+int16(obj.residualFrame);
-                obj.referenceVideo(:,:,p) = uint8(referenceFrame_cal);
+                referenceFrame=uint8(referenceFrame_cal);
+                
+                obj.Temp_v.Y(:,:,p)=referenceFrame;
+                %obj.referenceVideo(:,:,p) = uint8(referenceFrame_cal);
                
-%                 subplot(1,5,1), imshow(obj.currentFrame(:,:,1))
-%                 subplot(1,5,2), imshow(obj.referenceFrame(:,:,1))
-%                 subplot(1,5,3), imshow(obj.predictedFrame(:,:,1))
-%                 subplot(1,5,4), imshow(obj.residualFrame(:,:,1))
+%                  subplot(1,5,1), imshow(uint8(obj.predictedFrame(:,:,1)))
+%                  subplot(1,5,2), imshow(uint8(obj.residualFrame(:,:,1)))
+%                  subplot(1,5,3), imshow(referenceFrame)
+%                  subplot(1,5,4), imshow(Temp_v.Y(:,:,p))
 %                 
 %                 subplot(1,5,5), imshow(obj.reconstructed(:,:,1))    
 %                 
                 
             end
+%             obj.DecodedRefVideo=Temp_v.Y;
         end
         function referenceVideo = getDecodedRefVideo(obj)
-            Temp_v = YOnlyVideo('.\output\akiyoYReconstructed.yuv', obj.dw,  obj.dh);
-            for p = 1:1: obj.numberOfFrames
-                Temp_v.Y(:,:,p)=uint8(obj.referenceVideo(:,:,p));
-            end
-           referenceVideo =Temp_v;
+%             Temp_v = YOnlyVideo('.\output\akiyoYReconstructed.yuv', obj.dw,  obj.dh);
+%             for p = 1:1: obj.numberOfFrames
+%                 Temp_v.Y(:,:,p)=uint8(obj.referenceVideo(:,:,p));
+%             end
+           referenceVideo =obj.Temp_v;
         end
                 
                 

@@ -35,6 +35,9 @@ classdef MotionEstimationVideo
             fid = fopen('.\output\Residual.txt', 'w');
             fwrite(fid,int16(obj.residualVideo()),'int16'); 
             fclose(fid); 
+            fid = fopen('.\output\MotionVectors.txt', 'w');
+            fwrite(fid,int16(obj.motionVectorVideo()),'int16'); 
+            fclose(fid); 
   
         end
         
