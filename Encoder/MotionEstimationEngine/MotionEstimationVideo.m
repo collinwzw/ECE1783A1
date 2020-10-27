@@ -20,7 +20,7 @@ classdef MotionEstimationVideo
             ReferenceFrame(1:video.width,1:video.height) = uint8(127);
             %ReferenceFrame(1:video.width,1:video.height) = obj.video.Y(:,:,1);
             
-            for i = 1:1: 10
+            for i = 1:1:10%obj.video.numberOfFrames
                 m = MotionEstimationFrames(r,obj.video.Y(:,:,i), ReferenceFrame, block_width, block_height,n);
                 m = m.truncateBlock();
                 ReferenceFrame = m.reconstructed;
@@ -69,7 +69,7 @@ classdef MotionEstimationVideo
             if (fid < 0) 
                 error('Could not open the file!');
             end
-             for i=1:10
+             for i=1:10%obj.video.numberOfFrames
                 fwrite(fid,int16(obj.motionVectorVideo(:,:,i)));
              end
             fclose(fid);

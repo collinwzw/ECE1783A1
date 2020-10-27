@@ -67,7 +67,7 @@ classdef YOnlyVideo
             if (fid < 0) 
                 error('Could not open the file!');
             end
-             for i=1:10
+             for i=1:obj.numberOfFrames
                 fwrite(fid,uint8(obj.Y(:,:,i)),'uchar');
              end
             fclose(fid);

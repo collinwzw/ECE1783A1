@@ -1,5 +1,4 @@
 systemSetUp();
-
 inputFilename = '.\data\akiyo_cif.yuv';
 outputFilename = '.\data\akiyoY_cif.yuv';
 v1 = YUVVideo(inputFilename, 352, 288, 420);
@@ -19,10 +18,11 @@ m =  MotionEstimationVideo(v1WithPadding, 1, block_width, block_height,2)
 reconstructuredVideo = m.getReconstructuredVideo();
 residualVideo = m.getResidualVideo();
 
-% outputResidualFilename = '.\output\akiyoYResidual.txt';
-% residualVideo.writeToFile(outputResidualFilename);
-% outputMVFilename = '.\output\akiyoYMV.txt';
-% m.motionVectorVideoWriteToFile(outputMVFilename);
+outputResidualFilename = '.\output\akiyoYResidual.txt';
+residualVideo.writeToFile(outputResidualFilename);
+
+outputMVFilename = '.\output\akiyoYMV.txt';
+m.motionVectorVideoWriteToFile(outputMVFilename);
 
 outputReconstructedFilename = '.\output\akiyoYReconstructed.yuv';
 reconstructuredVideo.writeToFile(outputReconstructedFilename);
@@ -36,5 +36,3 @@ de = MotionCompensationVideo('.\output\Residual.txt', '.\output\MotionVectors.tx
 outputDecodeRefFilename = '.\output\akiyoYDecodedRef.yuv';
 DecodedRefVideo = de.getDecodedRefVideo();
 DecodedRefVideo.writeToFile(outputDecodeRefFilename);
-
-
