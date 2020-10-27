@@ -13,7 +13,7 @@ classdef MotionEstimationFrames
         reconstructed
     end
     
-    Tmethods(Access = 'public')
+    methods(Access = 'public')
         function obj = MotionEstimationFrames(r,currentFrame, referenceFrame, block_width, block_height,n)
             if ( size(currentFrame,2) ~= size(referenceFrame,2) || size(currentFrame,1) ~= size(referenceFrame,1) )
                     ME = MException('input currentframe size is not equal to referenceFrame size');
@@ -25,7 +25,7 @@ classdef MotionEstimationFrames
             obj.block_height = block_height;
             obj.currentFrame = currentFrame;
             obj.referenceFrame = referenceFrame; 
-            
+            obj = obj.truncateBlock();
         end
         
         function obj = truncateBlock(obj)
@@ -36,8 +36,7 @@ classdef MotionEstimationFrames
             %current block. 
                 col = 1;
                 row = 1;
-                for i=1:obj.block_height:size(obj.currentFrame,1)
-                    
+                for i=1:obj.block_height:size(obj.currentFrame,1)  
                     for j=1:obj.block_width:size(obj.currentFrame,2)
                         currentBlock = Block(obj.currentFrame, j,i, obj.block_width, obj.block_height, MotionVector(0,0) );
                         referenceBlockList = obj.getAllBlocks( i, j  );
@@ -45,8 +44,7 @@ classdef MotionEstimationFrames
                         residualBlock =  int16(currentBlock.data) -int16(bestMatchBlock.data) ;
                         
                         r = obj.roundBlock(int16(residualBlock),obj.n);
-                        TC=dct2(r);
-                        ITC=idct2(r);
+                        
                         obj.predictedFrame(i:i+obj.block_height - 1, j:j+obj.block_width -1 ) = (obj.referenceFrame( bestMatchBlock.top_height_index: bestMatchBlock.top_height_index + obj.block_height - 1, bestMatchBlock.left_width_index: bestMatchBlock.left_width_index + obj.block_width -1));
                         obj.residualFrame(i:i+obj.block_height - 1, j:j+obj.block_width -1 ) = r;
                         
@@ -57,18 +55,18 @@ classdef MotionEstimationFrames
                     row = row + 1;
                     col = 1;
                 end        
-                reconstructed_cal = (obj.predictedFrame(:,:,1)) + (obj.residualFrame(:,:,1));
+                reconstructed_cal = int16(obj.predictedFrame(:,:,1)) + int16(obj.residualFrame(:,:,1));
+                %reconstructed_cal = int8(obj.predictedFrame(:,:,1)) + uint8(obj.residualFrame(:,:,1));
                 obj.reconstructed = uint8(reconstructed_cal);
                 obj.predictedFrame = uint8(obj.predictedFrame);
-                obj.residualFrame = uint8(obj.residualFrame);
+                obj.residualFrame = int16(obj.residualFrame);
                 %obj.residualFrame = obj.residualFrame;
-                subplot(1,5,1), imshow(obj.currentFrame(:,:,1)')
-                subplot(1,5,2), imshow(obj.referenceFrame(:,:,1)')
-                subplot(1,5,3), imshow(obj.predictedFrame(:,:,1)')
-                subplot(1,5,4), imshow(obj.residualFrame(:,:,1)')
-            
-                subplot(1,5,5), imshow(obj.reconstructed(:,:,1)')
-%                 figure
+                subplot(1,5,1), imshow(obj.currentFrame(:,:,1))
+                subplot(1,5,2), imshow(obj.referenceFrame(:,:,1))
+                subplot(1,5,3), imshow(obj.predictedFrame(:,:,1))
+                subplot(1,5,4), imshow(obj.residualFrame(:,:,1))
+                
+                subplot(1,5,5), imshow(obj.reconstructed(:,:,1))                
         end
         
         function result = roundBlock(obj,r, n)
