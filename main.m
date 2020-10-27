@@ -30,7 +30,7 @@
 % decoderwidth = residualVideo.width;
 % decoderheight = residualVideo.height;
 % numberOfFrames = residualVideo.numberOfFrames;
-%a=readTxtToYonly(inputFilename);
+
 de = MotionCompensationVideo('.\output\Residual.txt', m.motionVectorVideo, block_width, block_height,decoderwidth,decoderheight,numberOfFrames);
 outputDecodeRefFilename = '.\output\akiyoYDecodedRef.yuv';
 DecodedRefVideo = de.getDecodedRefVideo();

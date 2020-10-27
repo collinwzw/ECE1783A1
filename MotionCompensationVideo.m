@@ -13,8 +13,10 @@ classdef MotionCompensationVideo
         v;
         x;
         y;
-
-        
+        dw;
+        dh;
+        inputFilename;
+        numberOfFrames;
     end
 
     methods(Access = 'public')
@@ -24,7 +26,10 @@ classdef MotionCompensationVideo
             a=fread(fid,'int16');
             fclose(fid); 
             
-            
+            obj.dw=decoderwidth;
+            obj.dh=decoderheight;
+            obj.inputFilename=inputFilename;
+            obj.numberOfFrames=numberOfFrames;
             residualVideo=permute(reshape(a,decoderwidth,decoderheight,numberOfFrames),[1,2,3]);
             
             obj.vectors = mv;
@@ -66,8 +71,17 @@ classdef MotionCompensationVideo
             end
         end
         function referenceVideo = getDecodedRefVideo(obj)
-            referenceVideo = obj.video.clone();
-            referenceVideo.Y = obj.referenceVideo;
+            Temp_v = YOnlyVideo('.\output\akiyoYReconstructed.yuv', obj.dw,  obj.dh);
+            for p = 1:1: obj.numberOfFrames
+                Temp_v.Y(:,:,p)=uint8(obj.referenceVideo(:,:,p));
+            end
+           referenceVideo =Temp_v;
+        end
+                
+                
+                
+           
+            
         end
     end
-end
+
