@@ -8,6 +8,7 @@ addpath('Encoder\IntraPredictionEngine');
 addpath('Decoder\RescalingEngine');
 addpath('Decoder\MotionCompensationEngine');
 addpath('Decoder\ReverseEntropyEngine');
+addpath('Decoder\DifferentialDecodingEngine');
 addpath('Decoder');
 addpath('VideoStructure');
 addpath('VideoReformate');

@@ -60,7 +60,7 @@ classdef QuantizationEngine
                 end
 
             end
-            obj.quantizationResult = uint8(obj.quantizationResult);
+           
         end     
        
 

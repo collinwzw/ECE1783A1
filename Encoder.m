@@ -10,6 +10,8 @@ classdef Encoder
         modes;
         MV;
         I_Period;
+        entropyVideo;
+        rescaledFrame;
     end
     
     methods (Access = 'public')
@@ -26,13 +28,17 @@ classdef Encoder
             obj = obj.encodeVideo();
         end
     
-        function reconstructedFrame = generateReconstructedFrame(obj,frameIndex, predicted_frame)
+        function [reconstructedFrame, entropyFrame,rescaledFrame] = generateReconstructedFrame(obj,frameIndex, predicted_frame)
             %calculating residual frame
             residualFrame =  int16(obj.inputvideo.Y(:,:,frameIndex)) -int16(predicted_frame); 
             %input alculated residual frame to transformation engine
             transformedFrame = dct2(residualFrame);
             %input transformed frame to quantization engine
             quantizedtransformedFrame = QuantizationEngine(transformedFrame,obj.block_width, obj.block_height, obj.QP).quantizationResult;
+            
+            %call entropy engine to encode the quantized transformed frame
+            %and save it.
+            entropyFrame = EntropyEngine(quantizedtransformedFrame, obj.block_width, obj.block_height).bitstream;
             %input quantized transformed frame to rescaling engine    
             rescaledFrame = RescalingEngine(quantizedtransformedFrame,obj.block_width, obj.block_height, obj.QP ).rescalingResult;
             %input rescal transformed frame to inverse transformation engine    
@@ -53,18 +59,23 @@ classdef Encoder
             j = 1;
             k = 1;
             type = obj.generateTypeMatrix();
-            for i = 1: 1:obj.inputvideo.numberOfFrames
+            %for i = 1: 1:obj.inputvideo.numberOfFrames
+            for i = 1: 1:1
                 if type(i) == 1
                     %use intra prediction
                     frame = IntraPredictionEngine(obj.inputvideo.Y(:,:,i),obj.block_width,obj.block_height);
-                    reconstructedFrame = obj.generateReconstructedFrame(i,frame.predictedFrame );
+                    [reconstructedFrame,entropyFrame,rescaledFrame1] = obj.generateReconstructedFrame(i,frame.predictedFrame );
+                    obj.rescaledFrame = rescaledFrame1;
                     obj.reconstructedVideo(:,:,i) = uint8(reconstructedFrame);
+                    obj.entropyVideo = [obj.entropyVideo entropyFrame];
+                    
                     obj.modes(:,:,j) = frame.modeFrame;
                     j = j + 1;
                 else
                     frame = MotionEstimationEngine(obj.r,obj.inputvideo.Y(:,:,i), uint8(obj.reconstructedVideo(:,:,i-1)), obj.block_width, obj.block_height,obj.n);
-                    reconstructedFrame = obj.generateReconstructedFrame(i,frame.predictedFrame );
+                    [reconstructedFrame,entropyFrame] = obj.generateReconstructedFrame(i,frame.predictedFrame );
                     obj.reconstructedVideo(:,:,i) = uint8(reconstructedFrame);
+                    obj.entropyVideo = [obj.entropyVideo entropyFrame];
                     obj.MV(:,:,k) = frame.blocks;
                     k = k + 1;
                     % realationship between i, j, k
