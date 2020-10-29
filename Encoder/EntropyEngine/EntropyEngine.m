@@ -4,17 +4,37 @@ classdef EntropyEngine
         block_width; %type int
         block_height; %type int, for square block_height = block_weight = i
         bitstream;
+        predictionInfoBitstream;
+        motionVector;
+        mode;
+        QP;
     end
     
     methods(Access = 'public')
-        function obj = EntropyEngine(quantizedTransformedFrame,block_width,block_height)
+        function obj = EntropyEngine()
+        end
+        function obj = EntropyEngineI(obj,quantizedTransformedFrame, mode, block_width,block_height, QP)
+            obj.mode = mode;
             obj.quantizedTransformedFrame = quantizedTransformedFrame;
             obj.block_width = block_width;
             obj.block_height = block_height;
+            obj.QP = QP;
             obj = obj.entropilizeFrame();
-
-            
+            obj = obj.entroplizeI();
         end
+        
+        function obj = EntropyEngineP(obj,quantizedTransformedFrame,motionVector, block_width,block_height,QP)
+            obj.motionVector = motionVector;
+            obj.quantizedTransformedFrame = quantizedTransformedFrame;
+            obj.block_width = block_width;
+            obj.block_height = block_height;
+            obj.QP = QP;
+            obj = obj.entropilizeFrame();
+            obj = obj.entroplizeP();
+        end
+        
+
+        
        function r = encodeExpGolombValue(~,value)
             if value > 0
                 value = 2*value - 1;
@@ -41,7 +61,37 @@ classdef EntropyEngine
        
     end
     
+
+    
     methods(Access = 'private')
+        function obj = entroplizeI(obj)
+            paddedVideo = obj.addPadding(obj.mode);
+            obj = obj.entropilizePredictionFrame(paddedVideo);
+            %add one for intra
+            obj.predictionInfoBitstream = [obj.encodeExpGolombValue(1) obj.predictionInfoBitstream];
+            obj.predictionInfoBitstream = [obj.predictionInfoBitstream obj.encodeExpGolombValue(obj.QP)];
+        end
+
+        function obj = entroplizeP(obj)
+            paddedVideo = obj.addPadding(obj.motionVector);
+            obj = obj.entropilizePredictionFrame(paddedVideo);
+            %add one for intra
+            obj.predictionInfoBitstream = [obj.encodeExpGolombValue(0) obj.predictionInfoBitstream];
+            obj.predictionInfoBitstream = [obj.predictionInfoBitstream obj.encodeExpGolombValue(obj.QP)];
+        end
+        
+        function obj = entropilizePredictionFrame(obj,matrix)
+           for i=1:obj.block_height:size(matrix,1)  
+                for j=1:obj.block_width:size(matrix,2)
+                    currentBlock = Block(matrix, j,i, obj.block_width, obj.block_height, MotionVector(0,0) );
+                    reorderedList = obj.reorderBlock((currentBlock));
+                    encodedReorderedList = obj.encodeReorderedList(reorderedList);
+                    obj.predictionInfoBitstream = [obj.predictionInfoBitstream obj.encodeExpGolomblist(encodedReorderedList)];
+
+                end
+            end        
+        end       
+        
         function obj = entropilizeFrame(obj)
            for i=1:obj.block_height:size(obj.quantizedTransformedFrame,1)  
                 for j=1:obj.block_width:size(obj.quantizedTransformedFrame,2)
@@ -129,7 +179,29 @@ classdef EntropyEngine
              r = value== 0;
         end
         
-
+        function result = addPadding(obj,matrix)
+            %UNTITLED Summary of this function goes here
+            %   Detailed explanation goes here
+            width = size(matrix,2);
+            height = size(matrix,1);
+            
+            pad_width = 0;
+            pad_height = 0;
+            
+            if(rem(width,obj.block_width)~=0)
+                pad_width= obj.block_width -(rem(width,obj.block_width));             
+            end
+            
+            if(rem(height,obj.block_height)~=0)
+                pad_height = obj.block_height-(rem(height,obj.block_height));  
+            end
+            result = matrix;% 10 x 10
+            
+            result(height+1:height + pad_height, width+1:width + pad_width)=0;
+            result(height + 1:height + pad_height,:)=0;
+            result(:,width + 1:width + pad_width)=0;
+            
+            end
        
 
 

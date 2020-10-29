@@ -10,19 +10,25 @@ classdef DifferentialEncodingEngine
         mvlength;%length of the motionvector
         mvwidth;%width of the motionvector
         modelength;
-        modewidth
+        modewidth;
     end
     
     methods
-        function obj = DifferentialEncodingEngine(motionvector,modes)
-            obj.motionvector = motionvector;
+        function obj = DifferentialEncodingEngine()
+        end
+        
+        function obj = differentialEncodingMode(obj,modes)
             obj.modes=modes;
+            obj.modewidth=size(obj.modes,2);
+            obj.modelength=size(obj.modes,1);
+            obj.diff_modes=obj.differential_modes();
+        end
+        
+        function obj = differentialEncodingMotionVector(obj,motionvector)
+            obj.motionvector = motionvector;
             obj.mvlength=size(obj.motionvector,1);
             obj.mvwidth=size(obj.motionvector,2);
-            obj.modelength=size(obj.modes,1);
-            obj.modewidth=size(obj.modes,2);
             obj.diff_motionvector=obj.differential_vector();
-            obj.diff_modes=obj.differential_modes();
         end
     end
     

@@ -28,8 +28,11 @@ I_Period = 10;
 % v1.Y = v1.Y(1:video_height, 1:video_width);
 e = Encoder(v1,block_width, block_height,r ,n, QP, I_Period);
 
-% d = ReverseEntropyEngine(e.entropyVideo,block_width,block_height,video_width,video_height);
-d = ReverseEntropyEngine(e.entropyVideo,block_width,block_height,v1.height, v1.width);
+%d = ReverseEntropyPredictionInfoEngine(e.predictionVideo,block_width,block_height);
 
-rescaledFrame = RescalingEngine(d.quantizedTransformedFrame,block_width, block_height, QP ).rescalingResult;
-rescaledFrame = idct2(rescaledFrame);
+%d = ReverseEntropyEngine(e.entropyVideo,block_width,block_height,video_width,video_height);
+ d = ReverseEntropyEngine(e.entropyVideo,block_width,block_height,v1.height, v1.width);
+% 
+% rescaledFrame = RescalingEngine(d.quantizedTransformedFrame,block_width, block_height, QP ).rescalingResult;
+% rescaledFrame = idct2(rescaledFrame);
+
