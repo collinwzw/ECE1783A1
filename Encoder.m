@@ -9,6 +9,8 @@ classdef Encoder
         reconstructedVideo;
         modes;
         MV;
+        diff_modes;
+        diff_MV;
         I_Period;
         entropyVideo;
         predictionVideo;
@@ -28,7 +30,7 @@ classdef Encoder
             obj = obj.encodeVideo();
         end
     
-        function [reconstructedFrame, entropyQTC,entropyPredictionInfo] = generateReconstructedFrame(obj,frameIndex, predicted_frame)
+        function [reconstructedFrame, entropyQTC,entropyPredictionInfo] = generateReconstructedFrame(obj,frameIndex, predicted_frame,Diffencoded_frame)
             %calculating residual frame
             residualFrame =  int16(obj.inputvideo.Y(:,:,frameIndex)) -int16(predicted_frame.predictedFrame); 
             %input alculated residual frame to transformation engine
@@ -41,12 +43,12 @@ classdef Encoder
             entropyFrame = EntropyEngine();
             if (rem(frameIndex - 1,obj.I_Period)) == 0
                 %it's I frame
-                entropyFrame = entropyFrame.EntropyEngineI(quantizedtransformedFrame,predicted_frame.modeFrame, obj.block_width, obj.block_height,obj.QP);
+                entropyFrame = entropyFrame.EntropyEngineI(quantizedtransformedFrame,Diffencoded_frame.diff_modes, obj.block_width, obj.block_height,obj.QP);
                 entropyQTC = entropyFrame.bitstream;
                 entropyPredictionInfo = entropyFrame.predictionInfoBitstream;
             else
                 %it's P frame
-                entropyFrame = entropyFrame.EntropyEngineP(quantizedtransformedFrame,predicted_frame.blocks, obj.block_width, obj.block_height,obj.QP);
+                entropyFrame = entropyFrame.EntropyEngineP(quantizedtransformedFrame,Diffencoded_frame.diff_motionvector, obj.block_width, obj.block_height,obj.QP);
                 entropyQTC = entropyFrame.bitstream;
                 entropyPredictionInfo = entropyFrame.predictionInfoBitstream;
             end
@@ -71,25 +73,29 @@ classdef Encoder
             k = 1;
             type = obj.generateTypeMatrix();
             %for i = 1: 1:obj.inputvideo.numberOfFrames
-            for i = 1: 1:1
+            for i = 1: 1:11
                 if type(i) == 1
                     %use intra prediction
                     frame = IntraPredictionEngine(obj.inputvideo.Y(:,:,i),obj.block_width,obj.block_height);
-%                     deframe = DifferentialEncodingEngine();
-%                     deframe = deframe.differentialEncodingMode(frame.modeFrame);
-                    [reconstructedFrame,entropyQTC,entropyPredictionInfo] = obj.generateReconstructedFrame(i,frame );
+                    deframe = DifferentialEncodingEngine();
+                    deframe = deframe.differentialEncodingMode(frame.modeFrame);
+                    [reconstructedFrame,entropyQTC,entropyPredictionInfo] = obj.generateReconstructedFrame(i,frame,deframe );
                     obj.reconstructedVideo(:,:,i) = uint8(reconstructedFrame);
                     obj.entropyVideo = [obj.entropyVideo entropyQTC];
-                    obj.predictionVideo = [obj.entropyVideo entropyPredictionInfo];
-                    obj.modes(:,:,j) = frame.modeFrame;
+                    obj.predictionVideo = [obj.predictionVideo entropyPredictionInfo];
+                    obj.diff_modes(:,:,j) = deframe.diff_modes;
+                    obj.modes(:,:,j)=frame.modeFrame;
                     j = j + 1;
                 else
                     frame = MotionEstimationEngine(obj.r,obj.inputvideo.Y(:,:,i), uint8(obj.reconstructedVideo(:,:,i-1)), obj.block_width, obj.block_height,obj.n);
-                    [reconstructedFrame,entropyQTC,entropyPredictionInfo] = obj.generateReconstructedFrame(i,frame );
+                    deframe = DifferentialEncodingEngine();
+                    deframe = deframe.differentialEncodingMotionVector(frame.blocks);
+                    [reconstructedFrame,entropyQTC,entropyPredictionInfo] = obj.generateReconstructedFrame(i,frame,deframe );
                     obj.reconstructedVideo(:,:,i) = uint8(reconstructedFrame);
                     obj.entropyVideo = [obj.entropyVideo entropyQTC];
-                    obj.predictionVideo = [obj.entropyVideo entropyPredictionInfo];
-                    obj.MV(:,:,k) = frame.blocks;
+                    obj.predictionVideo = [obj.predictionVideo entropyPredictionInfo];
+                    obj.diff_MV(:,:,k) = deframe.diff_motionvector;
+                    obj.MV(:,:,k)=frame.blocks;
                     k = k + 1;
                     % realationship between i, j, k
                 end

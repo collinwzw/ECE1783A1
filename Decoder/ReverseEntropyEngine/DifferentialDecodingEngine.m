@@ -28,7 +28,7 @@ classdef DifferentialDecodingEngine
             obj.diff_motionvector = diff_motionvector;
             obj.mvlength=size(obj.diff_motionvector,1);
             obj.mvwidth=size(obj.diff_motionvector,2);
-            obj.motionvector=obj.motion_vector();
+            obj.diff_motionvector=obj.motionvector();
         end
     end
     
