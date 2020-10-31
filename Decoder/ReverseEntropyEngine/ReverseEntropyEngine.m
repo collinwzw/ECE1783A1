@@ -9,18 +9,31 @@ classdef ReverseEntropyEngine
         invRLEList;
         invReorderList;
         decodedList;
+        %%%%%
+        residualVideo;
+        QP;
+        %%%%%%
     end
     
     methods(Access = 'public')
-        function obj = ReverseEntropyEngine(bitstream,block_width,block_height,video_width,video_height)
+        function obj = ReverseEntropyEngine(bitstream,block_width,block_height,video_width,video_height,QP)
             obj.bitstream = bitstream;
             obj.block_width = block_width;
             obj.block_height = block_height;
             obj.video_width = video_width;
             obj.video_height = video_height;
-            obj = obj.decodeBitstream();
-            obj = obj.invRLE();
-            obj = obj.generateFrame();
+            
+            %%%%%%%%%%%%%%%%%%%
+%            obj = obj.decodeBitstream();
+%            obj = obj.invRLE();
+             obj.QP=QP;
+             fid = fopen('.\output\aaa.txt', 'r');
+             a=fread(fid,'double');
+             fclose(fid);
+             obj.invRLEList=transpose(a);             
+             obj = obj.generateFrame();
+             obj = generateFrameResInv(obj);
+            %%%%%%%%%%%%%%%%%%%%%%%%
         end
         
         function obj = decodeBitstream(obj) 
@@ -33,19 +46,47 @@ classdef ReverseEntropyEngine
             end
         end
         
+%         function obj = generateFrame(obj)
+% 
+%             for i=0:1:(obj.video_height/obj.block_height) - 1
+%                 for j=0:1:obj.video_width/(obj.block_width) -1
+%                     matrixHeight = (i) * obj.block_height + 1;
+%                     matrixWidth = (j) * obj.block_width + 1;
+% 
+%                     startingIndex = (i* obj.video_width/(obj.block_width) + j ) * obj.block_height * obj.block_width + 1;
+%                     obj.quantizedTransformedFrame(matrixHeight:matrixHeight+obj.block_height - 1, matrixWidth:matrixWidth + obj.block_width - 1) = obj.invReorder(obj.invRLEList(startingIndex:startingIndex + obj.block_width* obj.block_height - 1));
+%                 end
+%             end
+%         end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function obj = generateFrame(obj)
+            index = 0;
+            p = 1;
+            while index < length(obj.invRLEList)
+                for i=0:1:(obj.video_height/obj.block_height) - 1
+                     for j=0:1:obj.video_width/(obj.block_width) -1
+                        matrixHeight = (i) * obj.block_height + 1;
+                        matrixWidth = (j) * obj.block_width + 1;
 
-            for i=0:1:(obj.video_height/obj.block_height) - 1
-                for j=0:1:obj.video_width/(obj.block_width) -1
-                    matrixHeight = (i) * obj.block_height + 1;
-                    matrixWidth = (j) * obj.block_width + 1;
-
-                    startingIndex = (i* obj.video_width/(obj.block_width) + j ) * obj.block_height * obj.block_width + 1;
-                    obj.quantizedTransformedFrame(matrixHeight:matrixHeight+obj.block_height - 1, matrixWidth:matrixWidth + obj.block_width - 1) = obj.invReorder(obj.invRLEList(startingIndex:startingIndex + obj.block_width* obj.block_height - 1));
+                        startingIndex = index + (i* obj.video_width/(obj.block_width) + j ) * obj.block_height * obj.block_width + 1;
+                        obj.quantizedTransformedFrame(matrixHeight:matrixHeight+obj.block_height - 1, matrixWidth:matrixWidth + obj.block_width - 1) = obj.invReorder(obj.invRLEList(startingIndex:startingIndex + obj.block_width* obj.block_height - 1));
+                     end
                 end
+                obj.residualVideo(:,:,p) = obj.quantizedTransformedFrame;
+                p = p + 1;
+                index = startingIndex + obj.block_width * obj.block_height-1;
             end
         end
-        
+         
+         function obj = generateFrameResInv(obj)
+            for p = 1:1:size(obj.residualVideo,3)
+                rescaledFrame = RescalingEngine(obj.residualVideo(:,:,p),obj.block_width, obj.block_height, obj.QP ).rescalingResult;
+                rescaledFrame = idct2(rescaledFrame);
+                obj.residualVideo(:,:,p) = rescaledFrame;
+            end
+         end
+     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
         function block = invReorder(obj, list)
             block = zeros(obj.block_height, obj.block_width);
                             %reordering upper left top part of block

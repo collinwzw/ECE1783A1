@@ -54,7 +54,7 @@ classdef ReverseEntropyPredictionInfoEngine
             obj = obj.invRLE();
             
             obj = obj.generateFrame();
-
+            
         end
         
         function value = removepadding(obj,block_height,block_width)
