@@ -46,15 +46,15 @@ classdef IntraPredictionEngine
         
         function vertical_prediction = verprediction(obj,block)
             vertical_prediction=block;
-            for i=2:obj.block_width
-                vertical_prediction(2:obj.block_height,i)=block(1,i);
+            for i=1:obj.block_width
+                vertical_prediction(1:obj.block_height,i)=128;
             end
         end
         
         function horizontal_prediction = horprediction(obj,block)
             horizontal_prediction=block;
-            for i=2:obj.block_height
-                horizontal_prediction(i,2:obj.block_width)=block(i,1);
+            for i=1:obj.block_height
+                horizontal_prediction(i,1:obj.block_width)=128;
             end
         end
         

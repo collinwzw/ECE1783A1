@@ -40,15 +40,15 @@ classdef MotionCompensationEngine
             obj.vectors = mv;
             obj.block_width = block_width;
             obj.block_height = block_height;
-            referenceFrame(1:decoderwidth,1:decoderheight) = uint8(127);
+            referenceFrame(1:decoderwidth,1:decoderheight) = uint8(128);
+            I_referenceFrame(1:decoderwidth,1:decoderheight) = uint8(128);
             %ReferenceFrame(1:video.width,1:video.height) = obj.video.Y(:,:,1);
             obj.Temp_v = YOnlyVideo('\akiyoY_cif.yuv', obj.dw,  obj.dh);
             index = 0;
             for p = 1:1: numberOfFrames
-                obj.residualFrame=residualVideo(:,:,p);
-                
+                obj.residualFrame=residualVideo(:,:,p);              
                 if obj.frametype(p) == 1
-                    referenceFrame_cal = int16(obj.residualFrame)+int16(referenceFrame);
+                    referenceFrame_cal = int16(obj.residualFrame)+int16(I_referenceFrame);
                     %obj.referenceVideo(:,:,p) = uint8(referenceFrame_cal);
                     referenceFrame=uint8(referenceFrame_cal);
                     %obj.Temp_v.Y(:,:,p)=uint8(referenceFrame);
@@ -69,29 +69,18 @@ classdef MotionCompensationEngine
                     end
                     referenceFrame_cal=int16(obj.predictedFrame)+int16(obj.residualFrame);
                     referenceFrame=uint8(referenceFrame_cal);
-%                     obj.referenceVideo(:,:,p) = uint8(referenceFrame_cal);
-%                     obj.Temp_v.Y(:,:,p)=uint8(referenceFrame);
-                %obj.referenceVideo(:,:,p) = uint8(referenceFrame_cal);
-               
 %                  subplot(1,5,1), imshow(uint8(obj.predictedFrame(:,:,p)))
                   %subplot(1,5,2), imshow(uint8(obj.residualFrame(:,:,p)))
 %                   subplot(1,5,3), imshow(referenceFrame)
                   %subplot(1,5,4), imshow(obj.Temp_v.Y(:,:,p))
-%                 
 %                 subplot(1,5,5), imshow(obj.reconstructed(:,:,1))    
-%                
                 end
                obj.Temp_v.Y(:,:,p)=referenceFrame; 
             end
-%             obj.DecodedRefVideo=Temp_v.Y;
-            end
+          end
         
         function referenceVideo = getDecodedRefVideo(obj)
-%             Temp_v = YOnlyVideo('.\output\akiyoYReconstructed.yuv', obj.dw,  obj.dh);
-%             for p = 1:1: obj.numberOfFrames
-%                 Temp_v.Y(:,:,p)=uint8(obj.referenceVideo(:,:,p));
-%             end
-           referenceVideo =obj.Temp_v;
+           referenceVideo =obj.Temp_v; 
         end     
         end
     end
