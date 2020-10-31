@@ -73,7 +73,7 @@ classdef Encoder
             k = 1;
             type = obj.generateTypeMatrix();
             %for i = 1: 1:obj.inputvideo.numberOfFrames
-            for i = 1: 1:11
+            for i = 1: 1:1
                 if type(i) == 1
                     %use intra prediction
                     frame = IntraPredictionEngine(obj.inputvideo.Y(:,:,i),obj.block_width,obj.block_height);
