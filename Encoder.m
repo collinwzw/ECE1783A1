@@ -98,6 +98,7 @@ classdef Encoder
                     k = k + 1;
                     % realationship between i, j, k
                 end
+                fprintf("frame number %d is done\n", i);
             end
         end
     end

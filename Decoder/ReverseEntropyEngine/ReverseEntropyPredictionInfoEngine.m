@@ -17,13 +17,12 @@ classdef ReverseEntropyPredictionInfoEngine
         perblocklength;
         motionvector;
         mode_height;
-        mode_height_pad;
+        mode_height_pad
         mode_width;
         mode_width_pad
         motionvector_height;
-        motionvector_height_pad;
+        motionvector_height_pad
         motionvector_width;
-        motionvector_width_pad;
         motionvectorframe;
         modevectorframe;
         number_of_frames;
