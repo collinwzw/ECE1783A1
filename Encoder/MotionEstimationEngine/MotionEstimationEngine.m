@@ -58,12 +58,12 @@ classdef MotionEstimationEngine
                 obj.predictedFrame = uint8(obj.predictedFrame);
                 obj.residualFrame = uint8(obj.residualFrame);
                 %obj.residualFrame = obj.residualFrame;
-                subplot(1,5,1), imshow(obj.currentFrame(:,:,1))
-                subplot(1,5,2), imshow(obj.referenceFrame(:,:,1))
-                subplot(1,5,3), imshow(obj.predictedFrame(:,:,1))
-                subplot(1,5,4), imshow(obj.residualFrame(:,:,1))
-                
-                subplot(1,5,5), imshow(obj.reconstructed(:,:,1))                
+%                 subplot(1,5,1), imshow(obj.currentFrame(:,:,1))
+%                 subplot(1,5,2), imshow(obj.referenceFrame(:,:,1))
+%                 subplot(1,5,3), imshow(obj.predictedFrame(:,:,1))
+%                 subplot(1,5,4), imshow(obj.residualFrame(:,:,1))
+%                 
+%                 subplot(1,5,5), imshow(obj.reconstructed(:,:,1))                
         end
         
         function result = roundBlock(obj,r, n)

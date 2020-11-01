@@ -44,6 +44,7 @@ classdef MotionCompensationEngine
             I_referenceFrame(1:decoderwidth,1:decoderheight) = uint8(128);
             %ReferenceFrame(1:video.width,1:video.height) = obj.video.Y(:,:,1);
             obj.Temp_v = YOnlyVideo('\akiyoY_cif.yuv', obj.dw,  obj.dh);
+            obj.Temp_v.numberOfFrames = numberOfFrames;
             index = 0;
             for p = 1:1: numberOfFrames
                 obj.residualFrame=residualVideo(:,:,p);              
