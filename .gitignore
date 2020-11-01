@@ -7,3 +7,5 @@ data
 output
 .idea
 *.txt
+*.docx
+*.pdf
