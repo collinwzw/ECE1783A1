@@ -24,15 +24,15 @@ classdef ReverseEntropyEngine
             obj.video_height = video_height;
             obj.QP=QP;
             %%%%%%%%%%%%%%%%%%%
-%              obj = obj.decodeBitstream();
-%              obj = obj.invRLE();
+              obj = obj.decodeBitstream();
+              obj = obj.invRLE();
               
             
               
-             fid = fopen('.\output\aaa.txt', 'r');
-             a=fread(fid,'double');
-             fclose(fid);
-            obj.invRLEList=transpose(a);   
+%              fid = fopen('.\output\aaa.txt', 'r');
+%              a=fread(fid,'double');
+%              fclose(fid);
+%             obj.invRLEList=transpose(a);   
 
 % % % % fid = fopen('.\output\aaa.txt', 'w');
 % % % % fwrite(fid,obj.invRLEList,'double');

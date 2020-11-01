@@ -27,8 +27,8 @@ I_Period = 10;
 % video_height = 24;
 % v1.Y = v1.Y(1:video_height, 1:video_width);
 
-% e = Encoder(v1,block_width, block_height,r ,n, QP, I_Period);
-% writeEntropyToTxt(e,'.\output\entropyVideo.txt','.\output\predictionVideo.txt');
+e = Encoder(v1,block_width, block_height,r ,n, QP, I_Period);
+writeEntropyToTxt(e,'.\output\entropyVideo.txt','.\output\predictionVideo.txt');
 
 fid = fopen('.\output\entropyVideo.txt', 'r');
 entropyVideo=fread(fid,'*char');
