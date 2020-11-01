@@ -21,7 +21,7 @@ block_height = block_width;
 %parameter section
 r = 1;
 n = 3;
-QP = 3;
+QP = 10;
 I_Period = 10;
 % video_width = 16;
 % video_height = 24;
@@ -46,16 +46,16 @@ dT = ReverseEntropyEngine(entropyVideo,block_width,block_height,v1.height, v1.wi
  dB = ReverseEntropyPredictionInfoEngine(predictionVideo,block_width,block_height,v1.height, v1.width);
  d = MotionCompensationEngine(dT.residualVideo,dB.motionvector,dB.frameType,block_width, block_height,size(dT.residualVideo,1),size(dT.residualVideo,2),dB.motionvector_width,dB.motionvector_height,size(dT.residualVideo,3));
 
-                subplot(2,5,1), imshow(uint8(d.Temp_v.Y(:,:,1)))
-                subplot(2,5,2), imshow(uint8(d.Temp_v.Y(:,:,2)))
-                subplot(2,5,3), imshow(uint8(d.Temp_v.Y(:,:,3)))
-                subplot(2,5,4), imshow(uint8(d.Temp_v.Y(:,:,4)))
-                subplot(2,5,5), imshow(uint8(d.Temp_v.Y(:,:,5))) 
-                subplot(2,5,6), imshow(uint8(d.Temp_v.Y(:,:,7)))
-                subplot(2,5,7), imshow(uint8(d.Temp_v.Y(:,:,8)))
-                subplot(2,5,8), imshow(uint8(d.Temp_v.Y(:,:,9)))
-                subplot(2,5,9), imshow(uint8(d.Temp_v.Y(:,:,10)))
-                subplot(2,5,10), imshow(uint8(d.Temp_v.Y(:,:,11))) 
+%                 subplot(2,5,1), imshow(uint8(d.Temp_v.Y(:,:,1)))
+%                 subplot(2,5,2), imshow(uint8(d.Temp_v.Y(:,:,2)))
+%                 subplot(2,5,3), imshow(uint8(d.Temp_v.Y(:,:,3)))
+%                 subplot(2,5,4), imshow(uint8(d.Temp_v.Y(:,:,4)))
+%                 subplot(2,5,5), imshow(uint8(d.Temp_v.Y(:,:,5))) 
+%                 subplot(2,5,6), imshow(uint8(d.Temp_v.Y(:,:,7)))
+%                 subplot(2,5,7), imshow(uint8(d.Temp_v.Y(:,:,8)))
+%                 subplot(2,5,8), imshow(uint8(d.Temp_v.Y(:,:,9)))
+%                 subplot(2,5,9), imshow(uint8(d.Temp_v.Y(:,:,10)))
+%                 subplot(2,5,10), imshow(uint8(d.Temp_v.Y(:,:,11))) 
  
  % outputDecodeRefFilename = '.\output\akiyoYDecodedRefPart4.yuv';
 % DecodedRefVideo = d.getDecodedRefVideo();
