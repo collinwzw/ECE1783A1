@@ -7,5 +7,6 @@ data
 output
 .idea
 *.txt
+result
 *.docx
 *.pdf

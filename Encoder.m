@@ -14,6 +14,7 @@ classdef Encoder
         I_Period;
         entropyVideo;
         predictionVideo;
+        numberOfBitsList;
     end
     
     methods (Access = 'public')
@@ -62,7 +63,6 @@ classdef Encoder
         
         function type = generateTypeMatrix(obj)
             type = zeros(1, obj.inputvideo.numberOfFrames);
-            obj.I_Period = 10;
             for i = 1: obj.I_Period:obj.inputvideo.numberOfFrames
                 type(i) = 1;
             end
@@ -73,7 +73,7 @@ classdef Encoder
             k = 1;
             type = obj.generateTypeMatrix();
             %for i = 1: 1:obj.inputvideo.numberOfFrames
-            for i = 1: 1:11
+            for i = 1: 1:10
                 if type(i) == 1
                     %use intra prediction
                     frame = IntraPredictionEngine(obj.inputvideo.Y(:,:,i),obj.block_width,obj.block_height);
@@ -99,6 +99,8 @@ classdef Encoder
                     k = k + 1;
                     % realationship between i, j, k
                 end
+                obj.numberOfBitsList = [obj.numberOfBitsList size(entropyQTC,2) + size(entropyPredictionInfo,2) ];
+                fprintf("frame number %d is done\n", i);
             end
         end
     end
