@@ -14,6 +14,7 @@ classdef Encoder
         I_Period;
         entropyVideo;
         predictionVideo;
+        numberOfBitsList;
     end
     
     methods (Access = 'public')
@@ -98,6 +99,7 @@ classdef Encoder
                     k = k + 1;
                     % realationship between i, j, k
                 end
+                obj.numberOfBitsList = [obj.numberOfBitsList size(entropyQTC,2) + size(entropyPredictionInfo,2) ];
                 fprintf("frame number %d is done\n", i);
             end
         end

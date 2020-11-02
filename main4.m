@@ -18,11 +18,11 @@ v1 = YOnlyVideo(inputFilename, 352, 288);
 %P frame is 0
 
 % %parameter section
-block_width = 8;
+block_width = 16;
 block_height = block_width;
-r = 1;
+r = 2;
 n = 3;
-QP = 3;
+QP = 4;
 I_Period = 10;
 
 %pad the video if necessary
