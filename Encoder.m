@@ -33,7 +33,7 @@ classdef Encoder
     
         function [reconstructedBlock, entropyQTCBlock,entropyPredictionInfoBlock] = generateReconstructedFrame(obj,frameIndex, predicted_block,Diffencoded_frame)
             %calculating residual frame
-            residualBlock =  int16(obj.inputvideo.Y(predicted_block.left_width_index: predicted_block.left_width_index + predicted_block.block_width-1, predicted_block.top_height_index: predicted_block.left_width_index + predicted_block.block_height-1,frameIndex)) -int16(predicted_block.data); 
+            residualBlock =  int16(obj.inputvideo.Y(predicted_block.left_width_index: predicted_block.left_width_index + predicted_block.block_width-1, predicted_block.top_height_index: predicted_block.left_width_index + predicted_block.block_height-1,frameIndex)) -int16(predicted_block.data);
             %input alculated residual frame to transformation engine
             transformedBlock = dct2(residualBlock);
             %input transformed frame to quantization engine
@@ -44,9 +44,9 @@ classdef Encoder
             entropyFrame = EntropyEngine();
             if (rem(frameIndex - 1,obj.I_Period)) == 0
                 %it's I frame
-                entropyFrame = entropyFrame.EntropyEngineI(quantizedResult,Diffencoded_frame.diff_modes, obj.block_width, obj.block_height,obj.QP);
-                entropyQTCBlock = entropyFrame.bitstream;
-                entropyPredictionInfoBlock = entropyFrame.predictionInfoBitstream;
+                entropyFrame = entropyFrame.EntropyEngineI(quantizedtransformedFrame,Diffencoded_frame.diff_modes, obj.block_width, obj.block_height,obj.QP);
+                entropyQTC = entropyFrame.bitstream;
+                entropyPredictionInfo = entropyFrame.predictionInfoBitstream;
             else
                 %it's P frame
                 entropyFrame = entropyFrame.EntropyEngineP(quantizedResult,Diffencoded_frame.diff_motionvector, obj.block_width, obj.block_height,obj.QP);
@@ -94,7 +94,7 @@ classdef Encoder
                          ME_result = MotionEstimationEngine(obj.r,block_list(index), uint8(obj.inputvideo.Y(:,:,i)), obj.block_width, obj.block_height);
                          obj.generateReconstructedFrame(i,ME_result.bestMatchBlock,deframe )
                     end
-                    
+
 %                     deframe = DifferentialEncodingEngine();
 %                     deframe = deframe.differentialEncodingMotionVector(frame.blocks);
 %                     [reconstructedFrame,entropyQTC,entropyPredictionInfo] = obj.generateReconstructedFrame(i,frame,deframe );
@@ -110,13 +110,13 @@ classdef Encoder
                 fprintf("frame number %d is done\n", i);
             end
         end
-        
+
         function blockList = truncateFrameToBlocks(obj,frameIndex)
             %This function truncate the frame and to blocks.
             %from each truncated block in current frame, it gets the best
             % matched block from reference frame according to given r
             %then it gets the residualBlock from best matched block minus
-            %current block. 
+            %current block.
             blockList = []
             height = size(obj.inputvideo.Y(:,:,frameIndex),1);
             width = size(obj.inputvideo.Y(:,:,frameIndex),2);
@@ -124,9 +124,9 @@ classdef Encoder
                 for j=1:obj.block_width:width
                     currentBlock = Block(obj.inputvideo.Y(:,:,frameIndex), j,i, obj.block_width, obj.block_height );
                     currentBlock = currentBlock.setQP(obj.QP);
-                    blockList = [blockList, currentBlock] 
+                    blockList = [blockList, currentBlock]
                 end
-            end          
+            end
         end
     end
 end
