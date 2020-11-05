@@ -1,16 +1,16 @@
 classdef QuantizationEngine
    properties (GetAccess='public', SetAccess='public')
-        transformCoefficientFrame; %type Frame
+        transformCoefficientBlock; %type Frame
         qMatrix; %int[height][width]
         quantizationParameter; %int
         block_width; %type int
         block_height; %type int, for square block_height = block_weight = i
-        quantizationResult; %Frame
+        qtc; %Frame
     end
     
     methods(Access = 'public')
-        function obj = QuantizationEngine(transformCoefficientFrame,block_width, block_height,QP )
-            obj.transformCoefficientFrame = transformCoefficientFrame;
+        function obj = QuantizationEngine(transformCoefficientBlock,block_width, block_height,QP )
+            obj.transformCoefficientBlock = transformCoefficientBlock;
             obj.block_width = block_width;
             obj.block_height = block_height;
             if QP > obj.calculateQPMax()
@@ -19,7 +19,7 @@ classdef QuantizationEngine
             end
             obj.quantizationParameter = QP;
             obj = obj.generateQMatrix();
-            obj = obj.quantizeFrame();
+            obj = obj.quantizeBlock(transformCoefficientBlock);
         end
        
     end
@@ -43,25 +43,25 @@ classdef QuantizationEngine
             end
         end
         
-        function qtc = quantizeBlock(obj, block)
+        function obj = quantizeBlock(obj, block)
             for x=1:1:obj.block_height
                 for y=1:1:obj.block_width
-                    qtc(x,y) = round(block.data(x,y)/obj.qMatrix(x,y));
+                    obj.qtc(x,y) = round(block(x,y)/obj.qMatrix(x,y));
                 end
             end
         end
 
-        function obj = quantizeFrame(obj)
-            for i=1:obj.block_height:size(obj.transformCoefficientFrame,1)  
-                for j=1:obj.block_width:size(obj.transformCoefficientFrame,2)
-                        currentBlock = Block(obj.transformCoefficientFrame, j,i, obj.block_width, obj.block_height, MotionVector(0,0) );
-                        qtc =  obj.quantizeBlock(currentBlock);
-                        obj.quantizationResult(i:i+obj.block_height - 1, j:j+obj.block_width -1 ) = qtc;
-                end
-
-            end
-           
-        end     
+%         function obj = quantizeFrame(obj)
+%             for i=1:obj.block_height:size(obj.transformCoefficientFrame,1)  
+%                 for j=1:obj.block_width:size(obj.transformCoefficientFrame,2)
+%                         currentBlock = Block(obj.transformCoefficientFrame, j,i, obj.block_width, obj.block_height, MotionVector(0,0) );
+%                         qtc =  obj.quantizeBlock(currentBlock);
+%                         obj.quantizationResult(i:i+obj.block_height - 1, j:j+obj.block_width -1 ) = qtc;
+%                 end
+% 
+%             end
+%            
+%         end     
        
 
         
