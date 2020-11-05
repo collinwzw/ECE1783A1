@@ -13,8 +13,8 @@ classdef Block
         bitStream;
         referenceFrameIndex;
         split;
-        
     end
+    
     methods(Access = 'public')
         function obj = Block(frame, left_width_index,top_height_index, block_width, block_height )
             obj.left_width_index = left_width_index;

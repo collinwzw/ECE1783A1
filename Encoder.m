@@ -87,10 +87,14 @@ classdef Encoder
 %                     obj.modes(:,:,j)=frame.modeFrame;
                     j = j + 1;
                 else
-                    block_list = obj.truncateFrameToBlocks(i);
+                    block_list = obj.truncateFrameToBlocks(i);           
                     length = size(block_list,2);
                     deframe = DifferentialEncodingEngine();
+
                     for index=1:1:length
+                         %RDO computation of block_list(index)
+                         %if futher truncate
+                         % if not do one time
                          ME_result = MotionEstimationEngine(obj.r,block_list(index), uint8(obj.inputvideo.Y(:,:,i)), obj.block_width, obj.block_height);
                          obj.generateReconstructedFrame(i,ME_result.bestMatchBlock,deframe )
                     end
