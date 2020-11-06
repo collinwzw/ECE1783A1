@@ -14,7 +14,6 @@ classdef MotionEstimationEngine
     
     methods(Access = 'public')
         function obj = MotionEstimationEngine(r,currentBlock, referenceFrame, block_width, block_height)
-
             obj.r = r;
             obj.block_width = block_width;
             obj.block_height = block_height;
@@ -24,6 +23,7 @@ classdef MotionEstimationEngine
             bestMatchBlockUnprocessed = obj.findBestPredictedBlockSAD(referenceBlockList,currentBlock.getBlockSumValue());
             obj.bestMatchBlock = currentBlock;
             obj.bestMatchBlock.data = bestMatchBlockUnprocessed.data;
+            obj.bestMatchBlock.MotionVector = referenceBlockList.MotionVector;
         end
         
 %         function obj = truncateBlock(obj)
@@ -82,14 +82,14 @@ classdef MotionEstimationEngine
                         
                 end
                    
-                    end
+            end
                    
         
-                end
+         end
 
         
         
-        function blockList = getAllBlocks(obj, row, col )
+        function blockList = getAllBlocks(obj,col, row )
             %according to the given position of (row,col), get all the
             %possible candidate blocks from reference frame
             % initialize i  and i end 
