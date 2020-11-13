@@ -10,6 +10,7 @@ classdef MotionEstimationEngine
         predictedFrame;
         reconstructed
         bestMatchBlock;
+        differenceForBestMatchBlock;
     end
     
     methods(Access = 'public')
@@ -21,6 +22,7 @@ classdef MotionEstimationEngine
             obj.referenceFrame = referenceFrame; 
             referenceBlockList = obj.getAllBlocks( currentBlock.left_width_index, currentBlock.top_height_index); 
             bestMatchBlockUnprocessed = obj.findBestPredictedBlockSAD(referenceBlockList,currentBlock.getBlockSumValue());
+            obj.differenceForBestMatchBlock = abs( currentBlock.getBlockSumValue() - bestMatchBlockUnprocessed.getBlockSumValue());
             obj.bestMatchBlock = currentBlock;
             obj.bestMatchBlock.data = bestMatchBlockUnprocessed.data;
             obj.bestMatchBlock.MotionVector = referenceBlockList.MotionVector;
@@ -145,6 +147,7 @@ classdef MotionEstimationEngine
                     end        
                 end
             end
+            
         end
 
         function result = calculateBlockSumValue(obj, frame)

@@ -41,8 +41,8 @@ classdef YUVVideo
                     s = dir(filename);
                     filesize = s.bytes;  
                     try
-                        obj = CalculateFrame(obj,filesize,lengthMultiplier);
-                        obj = yuvRead(obj,filename, lengthMultiplier);
+                        obj = obj.CalculateFrame(filesize,lengthMultiplier);
+                        obj = obj.yuvRead(filename, lengthMultiplier);
                     catch ME
                         throw(ME)
                     end

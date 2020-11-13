@@ -24,12 +24,13 @@ r = 2;
 n = 3;
 QP = 4;
 I_Period = 10;
-
+nRefFrame = 2;
+% 
 %pad the video if necessary
 [v1WithPadding,v1Averaged] = v1.block_creation(v1.Y,block_width,block_height);
 
 %encode the video
-e = Encoder(v1WithPadding,block_width, block_height,r ,n, QP, I_Period);
+e = Encoder(v1WithPadding,block_width, block_height,r ,n, QP, I_Period,nRefFrame);
 % 
 % %write the residual bitstream and prediction info bitstream to file
 % writeEntropyToTxt(e,'.\output\entropyVideo.txt','.\output\predictionVideo.txt');

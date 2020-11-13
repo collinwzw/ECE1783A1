@@ -53,6 +53,9 @@ classdef Block
         function obj = setbitMode(obj,Mode)
             obj.Mode = Mode;
         end
+        function obj = setframeType(obj,frameType)
+            obj.frameType = frameType;
+        end
     end
     
 end
