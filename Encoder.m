@@ -92,37 +92,37 @@ classdef Encoder
                     obj.reconstructedVideo.Y(:,:,i) = obj.inputvideo.Y(:,:,i);
                     lastIFrame = i;
                     %use intra prediction
-                     deframe = DifferentialEncodingEngine();
-                    for bl_i=1:obj.block_height:size(obj.inputvideo.Y(:,:,i),1)
-                        for bl_j=1:obj.block_width:size(obj.inputvideo.Y(:,:,i),2)
-                            frame = IntraPredictionEngine(obj.inputvideo.Y(:,:,i),obj.block_width,obj.block_height,bl_i,bl_j);
-                            if(frame.RDO_flag==0)
-                                mode=frame.mode;
-                                predicted_block=frame.final_frame;
-%                                 obj.generateReconstructedFrame(i,predicted_block,deframe);
-                            else
-                                o=1;
-                                for row_i=1:1:2
-                                    for col_i=1:1:2
-                                        mode=frame.mode_4(o);
-                                        curr_row=1+((row_i-1)*obj.block_width/2):(row_i)*obj.block_width/2;
-                                        curr_col=1+((col_i-1)*obj.block_height/2):(col_i)*obj.block_height/2;
-                                        predicted_block_4=frame.final_frame(curr_row,curr_col);
-%                                         obj.generateReconstructedFrame(i,predicted_block_4,deframe);
-                                        o=o+1;
-                                    end
-                                end
-                            end
-
-%                     deframe = deframe.differentialEncodingMode(frame.modeFrame);
-%                     [reconstructedFrame,entropyQTC,entropyPredictionInfo] = obj.generateReconstructedFrame(i,frame,deframe );
-%                     obj.reconstructedVideo(:,:,i) = uint8(reconstructedFrame);
-%                     obj.entropyVideo = [obj.entropyVideo entropyQTC];
-%                     obj.predictionVideo = [obj.predictionVideo entropyPredictionInfo];
-%                     obj.diff_modes(:,:,j) = deframe.diff_modes;
-%                     obj.modes(:,:,j)=frame.modeFr
-                        end
-                    end
+                    %deframe = DifferentialEncodingEngine();
+%                     for bl_i=1:obj.block_height:size(obj.inputvideo.Y(:,:,i),1)
+%                         for bl_j=1:obj.block_width:size(obj.inputvideo.Y(:,:,i),2)
+%                             frame = IntraPredictionEngine(obj.inputvideo.Y(:,:,i),obj.block_width,obj.block_height,bl_i,bl_j);
+%                             if(frame.RDO_flag==0)
+%                                 mode=frame.mode;
+%                                 predicted_block=frame.final_frame;
+% %                                 obj.generateReconstructedFrame(i,predicted_block,deframe);
+%                             else
+%                                 o=1;
+%                                 for row_i=1:1:2
+%                                     for col_i=1:1:2
+%                                         mode=frame.mode_4(o);
+%                                         curr_row=1+((row_i-1)*obj.block_width/2):(row_i)*obj.block_width/2;
+%                                         curr_col=1+((col_i-1)*obj.block_height/2):(col_i)*obj.block_height/2;
+%                                         predicted_block_4=frame.final_frame(curr_row,curr_col);
+% %                                         obj.generateReconstructedFrame(i,predicted_block_4,deframe);
+%                                         o=o+1;
+%                                     end
+%                                 end
+%                             end
+% 
+% %                     deframe = deframe.differentialEncodingMode(frame.modeFrame);
+% %                     [reconstructedFrame,entropyQTC,entropyPredictionInfo] = obj.generateReconstructedFrame(i,frame,deframe );
+% %                     obj.reconstructedVideo(:,:,i) = uint8(reconstructedFrame);
+% %                     obj.entropyVideo = [obj.entropyVideo entropyQTC];
+% %                     obj.predictionVideo = [obj.predictionVideo entropyPredictionInfo];
+% %                     obj.diff_modes(:,:,j) = deframe.diff_modes;
+% %                     obj.modes(:,:,j)=frame.modeFr
+%                         end
+%                     end
                 else
                     block_list = obj.truncateFrameToBlocks(i);
                     length = size(block_list,2);

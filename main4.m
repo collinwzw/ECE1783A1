@@ -24,7 +24,7 @@ r = 2;
 n = 3;
 QP = 4;
 I_Period = 10;
-nRefFrame = 2;
+nRefFrame = 1;
 FEMEnable = true;
 % 
 %pad the video if necessary

@@ -28,7 +28,6 @@ classdef RDO
             obj.SAD_4=SAD_4;
             obj.lambda=2;%used a random lambda value
             obj=obj.RDO_calculation();
-
         end
     end
     methods(Access = 'private')
