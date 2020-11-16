@@ -16,10 +16,11 @@ classdef Encoder
         predictionVideo;
         numberOfBitsList;
         nRefFrame;
+        FEMEnable;
     end
     
     methods (Access = 'public')
-        function obj = Encoder(inputvideo,block_width, block_height,r ,n, QP, I_Period,nRefFrame)
+        function obj = Encoder(inputvideo,block_width, block_height,r ,n, QP, I_Period,nRefFrame, FEMEnable)
             %UNTITLED2 Construct an instance of this class
             %   Detailed explanation goes here
             obj.inputvideo = inputvideo;
@@ -30,6 +31,7 @@ classdef Encoder
             obj.n = n;
             obj.QP = QP;
             obj.nRefFrame=nRefFrame;
+            obj.FEMEnable=FEMEnable;
             obj = obj.encodeVideo();
         end
     
@@ -47,6 +49,8 @@ classdef Encoder
             
             %call entropy engine to encode the quantized transformed frame
             %and save it.
+%             e = EntropyEngine_Block();
+%             e = EntropyEngineB(processedBlock);
             %entropyFrame = EntropyEngine();
 %             if (rem(frameIndex - 1,obj.I_Period)) == 0
 %                 %it's I frame
@@ -115,7 +119,7 @@ classdef Encoder
                          % to get best matched block
                          for referenceframe_index = i - obj.nRefFrame: 1 : i-1
                              if referenceframe_index >= lastIFrame
-                                ME_result = MotionEstimationEngine(obj.r,block_list(index), uint8(obj.reconstructedVideo.Y(:,:,referenceframe_index)), obj.block_width, obj.block_height);
+                                ME_result = MotionEstimationEngine(obj.r,block_list(index), uint8(obj.reconstructedVideo.Y(:,:,referenceframe_index)), obj.block_width, obj.block_height,obj.FEMEnable);
                                 if ME_result.differenceForBestMatchBlock < min_value
                                     min_value = ME_result.differenceForBestMatchBlock;
                                     bestMatchBlock = ME_result.bestMatchBlock;

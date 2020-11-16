@@ -14,13 +14,17 @@ classdef MotionEstimationEngine
     end
     
     methods(Access = 'public')
-        function obj = MotionEstimationEngine(r,currentBlock, referenceFrame, block_width, block_height)
+        function obj = MotionEstimationEngine(r,currentBlock, referenceFrame, block_width, block_height, FEMEnable)
             obj.r = r;
             obj.block_width = block_width;
             obj.block_height = block_height;
             obj.currentBlock = currentBlock;
             obj.referenceFrame = referenceFrame; 
-            referenceBlockList = obj.getAllBlocks( currentBlock.left_width_index, currentBlock.top_height_index); 
+            if FEMEnable == false
+                referenceBlockList = obj.getAllBlocks( currentBlock.left_width_index, currentBlock.top_height_index); 
+            else
+                referenceBlockList = obj.getAllBlocksFME( currentBlock.left_width_index, currentBlock.top_height_index); 
+            end
             bestMatchBlockUnprocessed = obj.findBestPredictedBlockSAD(referenceBlockList,currentBlock.getBlockSumValue());
             obj.differenceForBestMatchBlock = abs( currentBlock.getBlockSumValue() - bestMatchBlockUnprocessed.getBlockSumValue());
             obj.bestMatchBlock = currentBlock;
@@ -124,10 +128,160 @@ classdef MotionEstimationEngine
             for i=i_start:1:i_end
                     for j=j_start:1:j_end
                         b =  Block(obj.referenceFrame, j,i, obj.block_width, obj.block_height);
-                        b= b.setbitMotionVector(MotionVector(i-row,j - col));
+                        b= b.setbitMotionVector(MotionVector(j - col,i-row));
                         blockList = [blockList b];
                     end
             end      
+        end
+        function result = getSearchWindow(obj, col, row)
+            %according to the given position of (row,col), get the search
+            %window
+            if (row - obj.r < 1)
+                i_start = 1;
+                i_end = row + obj.block_height + obj.r - 1;
+            else
+                i_start = row - obj.r;
+                if (row + obj.block_height + obj.r > size(obj.referenceFrame,1))
+                    i_end = row + obj.block_height - 1 ;
+                else
+                    i_end = row + obj.r + obj.block_height - 1 ;
+                end
+            end
+            % initialize j  and j end 
+            if (col - obj.r < 1)
+                j_start = 1;
+                j_end = col + obj.block_width + obj.r - 1;
+            else
+                j_start = col - obj.r;
+                
+                if (col + obj.block_width + obj.r > size(obj.referenceFrame,2))
+                    j_end = col + obj.block_width - 1;
+                else
+                    j_end = col + obj.block_width + obj.r - 1;
+                end
+            end
+            result = obj.referenceFrame( i_start:i_end , j_start:j_end);
+        end
+        
+        function blockList = getAllBlocksFME(obj,col, row )
+            %according to the given position of (row,col), get all the
+            %possible candidate blocks from reference frame
+            % initialize i  and i end 
+
+                if (row - obj.r < 1)
+                    i_start = 1;
+                    i_end = row + obj.r;
+                else
+                    i_start = row - obj.r;
+                    if (row + obj.block_height + obj.r > size(obj.referenceFrame,1))
+                        i_end = row;
+                    else
+                        i_end = row + obj.r;
+                    end
+                end
+                % initialize j  and j end 
+                if (col - obj.r < 1)
+                    j_start = 1;
+                    j_end = col + obj.r;
+                else
+                    j_start = col - obj.r;
+
+                    if (col + obj.block_width + obj.r > size(obj.referenceFrame,2))
+                        j_end = col;
+                    else
+                        j_end = col + obj.r;
+                    end
+                end
+                
+                for i=i_start:1:i_end
+                        for j=j_start:1:j_end
+                            b =  Block(obj.referenceFrame, j,i, obj.block_width, obj.block_height);
+                            b = b.setbitMotionVector(MotionVector(j - col,i-row));
+                            originalblockMatrix(i- i_start + 1,j- j_start + 1).class =b;
+                        end                        
+                end      
+        
+            if (row - 2 * obj.r < 1)
+                i_start = 1;
+                i_end = row + 2 * obj.r;
+            else
+                i_start = row - 2 * obj.r;
+                if (row + obj.block_height + 2 * obj.r > size(obj.referenceFrame,1))
+                    i_end = row;
+                else
+                    i_end = row + 2 * obj.r;
+                end
+            end
+            % initialize j  and j end 
+            if (col - 2* obj.r < 1)
+                j_start = 1;
+                j_end = col + 2 * obj.r;
+            else
+                j_start = col - 2 * obj.r;
+                
+                if (col + obj.block_width + 2 * obj.r > size(obj.referenceFrame,2))
+                    j_end = col;
+                else
+                    j_end = col + 2 * obj.r;
+                end
+            end
+            
+            i_count = 1;     
+            for i=i_start:1:i_end
+                j_count = 1;
+                    for j=j_start:1:j_end
+                        if rem( abs(i - row), 2)==0 && rem( abs(j - col), 2) == 0                        
+                            blockMatrix(i - i_start + 1,j - j_start + 1)=originalblockMatrix(i_count,j_count);
+                            blockMatrix(i - i_start + 1,j - j_start + 1).class.MotionVector  = blockMatrix(i - i_start + 1,j - j_start + 1).class.MotionVector.changeY( blockMatrix(i - i_start + 1,j - j_start + 1).class.MotionVector.y * 2);
+                            blockMatrix(i - i_start + 1,j - j_start + 1).class.MotionVector  = blockMatrix(i - i_start + 1,j - j_start + 1).class.MotionVector.changeX( blockMatrix(i - i_start + 1,j - j_start + 1).class.MotionVector.x * 2);
+                            if j_count < size(originalblockMatrix,2)
+                                j_count = j_count + 1;
+                            end
+                        else                          
+                        end                        
+                    end
+                    if i_count < size(originalblockMatrix,1)
+                        i_count = i_count + 1;
+                    end
+            end 
+            
+            for i=i_start:1:i_end
+                    for j=j_start:1:j_end
+                        if rem( abs(i - row), 2)~=0 && rem( abs(j - col), 2) == 0                                  
+                            blockMatrix(i - i_start + 1,j - j_start + 1) =blockMatrix(i - i_start,j - j_start + 1);
+                            block1 = blockMatrix(i - i_start,j - j_start + 1).class.data;
+                            block2 = blockMatrix(i - i_start + 2,j - j_start + 1).class.data;
+                            blockMatrix(i - i_start + 1,j - j_start + 1).class = blockMatrix(i - i_start + 1,j - j_start + 1).class.setData(uint8((uint16(block1) + uint16(block2))/2));
+                            blockMatrix(i - i_start + 1,j - j_start + 1).class.MotionVector =blockMatrix(i - i_start + 1,j - j_start + 1).class.MotionVector.changeY( blockMatrix(i - i_start + 1,j - j_start + 1).class.MotionVector.y + 1);       
+                        end 
+                        if rem( abs(i - row), 2)==0 && rem( abs(j - col), 2) ~= 0                                  
+                            blockMatrix(i - i_start + 1,j - j_start + 1) =blockMatrix(i - i_start + 1,j - j_start);      
+                            block1 = blockMatrix(i - i_start + 1,j - j_start).class.data;
+                            block2 = blockMatrix(i - i_start + 1,j - j_start + 2).class.data;
+                            blockMatrix(i - i_start + 1,j - j_start + 1).class = blockMatrix(i - i_start + 1,j - j_start + 1).class.setData(uint8((uint16(block1) + uint16(block2))/2));
+                            blockMatrix(i - i_start + 1,j - j_start + 1).class.MotionVector =blockMatrix(i - i_start + 1,j - j_start + 1).class.MotionVector.changeX( blockMatrix(i - i_start + 1,j - j_start + 1).class.MotionVector.x + 1);
+                        end    
+                    end
+            end 
+            for i=i_start:1:i_end
+                    for j=j_start:1:j_end
+                        if rem( abs(i - row), 2)~=0 && rem( abs(j - col), 2) ~= 0                                  
+                            blockMatrix(i - i_start + 1,j - j_start + 1) =blockMatrix(i - i_start,j - j_start + 1);
+                            block1 = blockMatrix(i - i_start,j - j_start + 1).class.data;
+                            block2 = blockMatrix(i - i_start + 2,j - j_start + 1).class.data;
+                            block3 = blockMatrix(i - i_start + 1,j - j_start).class.data;
+                            block4 = blockMatrix(i - i_start + 1,j - j_start + 2).class.data;
+                            blockMatrix(i - i_start + 1,j - j_start + 1).class = blockMatrix(i - i_start + 1,j - j_start + 1).class.setData(uint8((uint16(block1) + uint16(block2) + (uint16(block3) + uint16(block4))/4)));
+                            blockMatrix(i - i_start + 1,j - j_start + 1).class.MotionVector =blockMatrix(i - i_start + 1,j - j_start + 1).class.MotionVector.changeY( blockMatrix(i - i_start + 1,j - j_start + 1).class.MotionVector.y + 1);       
+                        end 
+                    end
+            end 
+            blockList = [];
+            for k=1:1:size(blockMatrix,1)
+                    for l=1:1:size(blockMatrix,2)
+                        blockList = [blockList blockMatrix(k,l).class];
+                    end
+            end 
         end
         
         function r = findBestPredictedBlockSAD(obj, referenceBlockList, currentBlockSum)

@@ -56,6 +56,9 @@ classdef Block
         function obj = setframeType(obj,frameType)
             obj.frameType = frameType;
         end
+        function obj = setData(obj,data)
+            obj.data = data;
+        end
     end
     
 end
