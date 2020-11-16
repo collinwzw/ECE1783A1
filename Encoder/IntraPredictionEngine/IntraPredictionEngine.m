@@ -26,17 +26,17 @@ classdef IntraPredictionEngine
 %             i_pos=(bl_i-1)*obj.block_height+1;
 %             j_pos=(bl_j-1)*obj.block_width+1;
             if(bl_i==1 && bl_j==1)
-                prev_col=[128;128;128;128];
-                prev_row=[128,128,128,128];
+                prev_col(1:obj.block_width,1)=128;
+                prev_row(1,1:obj.block_height)=128;
             end
             if(bl_i==1)
-                prev_row=[128,128,128,128];
+                prev_row(1,1:obj.block_height)=128;
             end
             if(bl_j~=1)
                 prev_col=obj.input_frame(bl_i:bl_i+obj.block_height-1,bl_j-1);
             end
             if(bl_j==1)
-                prev_col=[128;128;128;128];
+                prev_col(1:obj.block_width,1)=128;
             end
             if(bl_i~=1)
                 prev_row=obj.input_frame(bl_i-1,bl_j:bl_j+obj.block_width-1);
@@ -56,15 +56,15 @@ classdef IntraPredictionEngine
         
         function vertical_prediction = verprediction(obj,block,prev_value)
             vertical_prediction=block;
-            for i=1:obj.block_width
-                vertical_prediction(1:obj.block_height,i)=prev_value(i);
-            end
+                for j=1:size(prev_value,2)
+                    vertical_prediction(1:obj.block_height,j)=prev_value(j);
+                end
         end
         
         function horizontal_prediction = horprediction(obj,block,prev_value)
             horizontal_prediction=block;
-            for i=1:obj.block_height
-                horizontal_prediction(i,1:obj.block_width)=prev_value(i);
+            for i=1:size(prev_value,1)
+               horizontal_prediction(i,1:obj.block_width)=prev_value(i);
             end
         end
         

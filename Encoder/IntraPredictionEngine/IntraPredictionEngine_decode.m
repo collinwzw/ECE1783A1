@@ -31,13 +31,13 @@ classdef IntraPredictionEngine_decode
 %             i_pos=(bl_i-1)*obj.block_height+1;
 %             j_pos=(bl_j-1)*obj.block_width+1;
             if(bl_i==1)
-                prev_row=[128,128,128,128];
+                prev_row(1,1:obj.block_height)=128;
             end
             if(bl_j~=1)
                 prev_col=obj.decoded_frame(bl_i:bl_i+obj.block_height-1,bl_j-1);
             end
             if(bl_j==1)
-                prev_col=[128;128;128;128];
+                prev_col(1:obj.block_width,1)=128;
             end
             if(bl_i~=1)
                 prev_row=obj.decoded_frame(bl_i-1,bl_j:bl_j+obj.block_width-1);
