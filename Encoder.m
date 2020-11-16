@@ -40,10 +40,10 @@ classdef Encoder
             residualBlockData =  int16(obj.inputvideo.Y(predicted_block.top_height_index: predicted_block.top_height_index + predicted_block.block_height-1, predicted_block.left_width_index: predicted_block.left_width_index + predicted_block.block_width-1,frameIndex)) -int16(predicted_block.data);
             processedBlock = predicted_block;
             processedBlock.data = residualBlockData;
-            
+
             %input alculated residual frame to transformation engine
             processedBlock.data = dct2(processedBlock.data);
-            
+
             %input transformed frame to quantization engine
             processedBlock.data = QuantizationEngine(processedBlock).qtc;
             
@@ -75,6 +75,7 @@ classdef Encoder
         
         function type = generateTypeMatrix(obj)
             type = zeros(1, obj.inputvideo.numberOfFrames);
+            obj.I_Period = 10;
             for i = 1: obj.I_Period:obj.inputvideo.numberOfFrames
                 type(i) = 1;
             end
@@ -91,21 +92,42 @@ classdef Encoder
                     obj.reconstructedVideo.Y(:,:,i) = obj.inputvideo.Y(:,:,i);
                     lastIFrame = i;
                     %use intra prediction
-%                     frame = IntraPredictionEngine(obj.inputvideo.Y(:,:,i),obj.block_width,obj.block_height);
-%                     deframe = DifferentialEncodingEngine();
+                     deframe = DifferentialEncodingEngine();
+                    for bl_i=1:obj.block_height:size(obj.inputvideo.Y(:,:,i),1)
+                        for bl_j=1:obj.block_width:size(obj.inputvideo.Y(:,:,i),2)
+                            frame = IntraPredictionEngine(obj.inputvideo.Y(:,:,i),obj.block_width,obj.block_height,bl_i,bl_j);
+                            if(frame.RDO_flag==0)
+                                mode=frame.mode;
+                                predicted_block=frame.final_frame;
+%                                 obj.generateReconstructedFrame(i,predicted_block,deframe);
+                            else
+                                o=1;
+                                for row_i=1:1:2
+                                    for col_i=1:1:2
+                                        mode=frame.mode_4(o);
+                                        curr_row=1+((row_i-1)*obj.block_width/2):(row_i)*obj.block_width/2;
+                                        curr_col=1+((col_i-1)*obj.block_height/2):(col_i)*obj.block_height/2;
+                                        predicted_block_4=frame.final_frame(curr_row,curr_col);
+%                                         obj.generateReconstructedFrame(i,predicted_block_4,deframe);
+                                        o=o+1;
+                                    end
+                                end
+                            end
+
 %                     deframe = deframe.differentialEncodingMode(frame.modeFrame);
 %                     [reconstructedFrame,entropyQTC,entropyPredictionInfo] = obj.generateReconstructedFrame(i,frame,deframe );
 %                     obj.reconstructedVideo(:,:,i) = uint8(reconstructedFrame);
 %                     obj.entropyVideo = [obj.entropyVideo entropyQTC];
 %                     obj.predictionVideo = [obj.predictionVideo entropyPredictionInfo];
 %                     obj.diff_modes(:,:,j) = deframe.diff_modes;
-%                     obj.modes(:,:,j)=frame.modeFrame;
-                    j = j + 1;
+%                     obj.modes(:,:,j)=frame.modeFr
+                        end
+                    end
                 else
-                    block_list = obj.truncateFrameToBlocks(i);           
+                    block_list = obj.truncateFrameToBlocks(i);
                     length = size(block_list,2);
                     deframe = DifferentialEncodingEngine();
-                    
+
                     %for loop to go through all blocks
                     for index=1:1:length
                          %RDO computation of block_list(index)
@@ -124,8 +146,8 @@ classdef Encoder
                                     min_value = ME_result.differenceForBestMatchBlock;
                                     bestMatchBlock = ME_result.bestMatchBlock;
                                     bestMatchBlock.referenceFrameIndex = referenceframe_index;
-                                end               
-                             end                      
+                                end
+                             end
                          end
                          bestMatchBlock = bestMatchBlock.setframeType(type(i));
                          processedBlock = obj.generateReconstructedFrame(i,bestMatchBlock,deframe );
