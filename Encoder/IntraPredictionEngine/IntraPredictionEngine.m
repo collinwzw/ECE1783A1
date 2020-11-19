@@ -5,6 +5,7 @@ classdef IntraPredictionEngine
     properties (GetAccess='public', SetAccess='public')
         block_width;
         block_height;
+        reference_frame;
         input_frame;
         curr_block;
         mode;
@@ -19,25 +20,17 @@ classdef IntraPredictionEngine
         RDO_flag;
     end
     
-    methods (Access = 'public')
-        function obj = IntraPredictionEngine(frame,block_width, block_height,bl_i,bl_j)
+    methods
+        function obj = IntraPredictionEngine(in_frame,frame,block_width, block_height)
             %UNTITLED2 Construct an instance of this class
             %   Detailed explanation goes here
             obj.block_width=block_width;
             obj.block_height=block_height;
-            obj.input_frame=frame;
-            obj = obj.block_creation(bl_i,bl_j);
-%             if(VBSEnable==1)
-                obj = obj.block_creation4(bl_i,bl_j);
-                cost=RDO(obj.predictedblock,obj.predictedblock_4,obj.block_height,obj.block_width,obj.SAD,obj.SAD_4);
-                obj.final_frame=cost.final_frame;
-                obj.RDO_flag=cost.flag;
-%             else
-                obj.final_frame=obj.predictedblock;
-%             end
+            obj.reference_frame=frame;
+            obj.input_frame=in_frame;
+
         end
-    end
-   methods(Access = 'private')
+   
         function obj = block_creation(obj,bl_i,bl_j)
             obj.flag=0;
 %             i_pos=(bl_i-1)*obj.block_height+1;
@@ -63,11 +56,10 @@ classdef IntraPredictionEngine
             
         end
         
-        function obj = block_creation4(obj,bl_i,bl_j)
+        function obj = block_creation4(obj,bl_i,bl_j,count)
             obj.flag=1;
             obj.mode_4=[];
             obj.SAD_4=[];
-                for count=1:1:4
                     if(count==1)
                         bl4_i=bl_i;
                         bl4_j=bl_j;
@@ -77,14 +69,14 @@ classdef IntraPredictionEngine
                     if(count==2)
                         bl4_i=bl_i;
                         bl4_j=1+obj.block_width/2;
-                        row_i=2;
-                        col_i=1;
+                        row_i=1;
+                        col_i=2;
                     end
                     if(count==3)
                         bl4_i=1+obj.block_height/2;
                         bl4_j=bl_j;
-                        row_i=1;
-                        col_i=2;
+                        row_i=2;
+                        col_i=1;
                     end
                     if(count==4)
                         bl4_i=1+obj.block_width/2;
@@ -104,15 +96,16 @@ classdef IntraPredictionEngine
                         prev_col(1:obj.block_width/2,1)=128;
                     end
                     if(bl4_i~=1)
-                        prev_row=obj.input_frame(bl4_i-1,bl4_j:(bl4_j+obj.block_width/2)-1);
+                        prev_row=obj.input_frame(bl4_i-1,bl4_j:bl4_j+(obj.block_width/2)-1);
                     end
                     obj.curr_block=obj.input_frame(bl4_i:bl4_i+(obj.block_height/2)-1,bl4_j:(bl4_j+obj.block_height/2)-1);
                     obj = obj.intraPredictBlock(obj.curr_block,prev_row,prev_col);
                     curr_row=1+((row_i-1)*obj.block_width/2):(row_i)*obj.block_width/2;
                     curr_col=1+((col_i-1)*obj.block_height/2):(col_i)*obj.block_height/2;
                     obj.predictedblock_4(curr_row,curr_col)=obj.smallblock_4;
-                end
         end
+   end
+   methods(Access = 'private')
         function obj = intraPredictBlock(obj, block,prev_row,prev_col)
             pred_block_ver=obj.verprediction(block,prev_row);
             pred_block_hor=obj.horprediction(block,prev_col);
