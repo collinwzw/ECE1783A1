@@ -180,6 +180,7 @@ classdef Encoder
                     length = size(block_list,2);
                     deframe = DifferentialEncodingEngine();
                     previousMV = MotionVector(0,0);
+                    previousFrameIndex = 0;
                     %for loop to go through all blocks
                     for index=1:1:length
                          %RDO computation of block_list(index)
@@ -201,8 +202,18 @@ classdef Encoder
                                 end
                              end
                          end
+                         %set the frame type for the block
                          bestMatchBlock = bestMatchBlock.setframeType(type(i));
-                         previousMV = bestMatchBlock.MotionVector;
+                         %differential encoding for motion vector
+                         tempPreviousMV = bestMatchBlock.MotionVector;
+                         bestMatchBlock = bestMatchBlock.setbitMotionVector( MotionVector(previousMV.x - bestMatchBlock.MotionVector.x, previousMV.y - bestMatchBlock.MotionVector.y));
+                         previousMV = tempPreviousMV;
+                            
+                         %differential encoding for reference frame index
+                         tempPreviousFrameIndex = bestMatchBlock.referenceFrameIndex;
+                         bestMatchBlock.referenceFrameIndex = previousFrameIndex - bestMatchBlock.referenceFrameIndex;
+                         previousFrameIndex = tempPreviousFrameIndex;
+                         
                          [processedBlock, en] = obj.generateReconstructedFrame(i,bestMatchBlock,deframe );
                          obj.reconstructedVideo.Y(processedBlock.top_height_index:processedBlock.top_height_index + obj.block_height-1,processedBlock.left_width_index:processedBlock.left_width_index + obj.block_width-1,i) = uint8(processedBlock.data);
                          obj.OutputBitstream = [obj.OutputBitstream en.bitstream];
