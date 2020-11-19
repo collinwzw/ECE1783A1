@@ -96,85 +96,85 @@ classdef Encoder
             %for i = 1: 1:obj.inputvideo.numberOfFrames
             for i = 1: 1:2
                 if type(i) == 1
-%                     obj.reconstructedVideo.Y(:,:,i) = obj.inputvideo.Y(:,:,i);
+                    obj.reconstructedVideo.Y(:,:,i) = obj.inputvideo.Y(:,:,i);
                     lastIFrame = i;
-                    reference_frame=[];
-                    %use intra prediction
-                    deframe = DifferentialEncodingEngine();
-                    for bl_i=1:obj.block_height:size(obj.inputvideo.Y(:,:,i),1)  
-                        for bl_j=1:obj.block_width:size(obj.inputvideo.Y(:,:,i),2)
-                            frame = IntraPredictionEngine(obj.inputvideo.Y(:,:,i),reference_frame,obj.block_width,obj.block_height);
-                            frame=frame.block_creation(bl_i,bl_j);
-                            %[processedBlock, en] = obj.generateReconstructedFrame(i,frame.predictedblock,deframe );
-                            obj.reconstructedVideo.Y(bl_i:bl_i+obj.block_width-1,bl_j:bl_j+obj.block_height-1,i)=frame.predictedblock;
-                            if(obj.VBSEnable==0)
-                            mode=frame.mode;
-                            predicted_block=frame.predictedblock;
-                            reference_frame=reference_frame1;
-                            end
-                            if(obj.VBSEnable==1)
-                            count=0;
-                            mode_4=[];
-                            SAD_4=[];
-                            for row_i =1:1:2
-                                for col_i=1:1:2
-                                    count=count+1;
-                                    frame=frame.block_creation4(bl_i,bl_j,count);
-    %                                 obj.generateReconstructedFrame(i,frame.smallblock_4,deframe);
-                                    curr_row=bl_i+((row_i-1)*obj.block_width/2):bl_i-1+(row_i)*obj.block_width/2;
-                                    curr_col=bl_j+((col_i-1)*obj.block_height/2):bl_j-1+(col_i)*obj.block_height/2;
-                                    frame.reference_frame(curr_row,curr_col)=frame.smallblock_4;
-                                    mode_4=[mode_4 frame.mode_4];
-                                    SAD_4=[SAD_4 frame.SAD_4];
-                                    reference_frame4(curr_row,curr_col)=frame.smallblock_4;
-                                end
-                            end
-                            cost=RDO(frame.predictedblock,frame.predictedblock_4,obj.block_height,obj.block_width,frame.SAD,SAD_4);
-
-                            if(cost.flag==0)
-                                mode=frame.mode;
-                                predicted_block=frame.predictedblock;
-                                reference_frame=reference_frame1;
-                                %insert encode line here
-                                border_frame1=predicted_block;
-                                border_frame1(1:obj.block_height,1)=0;
-                                border_frame1(1,1:obj.block_width)=0;
-                                border_frame1(obj.block_height,1:obj.block_width)=0;
-                                border_frame1(1:obj.block_height,obj.block_width)=0;
-                                final_frame(bl_i:bl_i+obj.block_width-1,bl_j:bl_j+obj.block_height-1)=border_frame1;
-                            else
-                                o=1;
-                                for row_i=1:1:2
-                                    for col_i=1:1:2
-                                        mode=mode_4(o);
-                                        curr_row=1+((row_i-1)*obj.block_width/2):(row_i)*obj.block_width/2;
-                                        curr_col=1+((col_i-1)*obj.block_height/2):(col_i)*obj.block_height/2;
-                                        predicted_block_4=frame.predictedblock_4(curr_row,curr_col);
-                                        %insert encode line here
-                                        border_frame4=predicted_block_4;
-                                        border_frame4(1:obj.block_height/2,1)=0;
-                                        border_frame4(1,1:obj.block_width/2)=0;
-                                        border_frame4(obj.block_height/2,1:obj.block_width/2)=0;
-                                        border_frame4(1:obj.block_height/2,obj.block_width/2)=0;
-                                        curr_row1=bl_i+((row_i-1)*obj.block_width/2):bl_i-1+(row_i)*obj.block_width/2;
-                                        curr_col1=bl_j+((col_i-1)*obj.block_height/2):bl_j-1+(col_i)*obj.block_height/2;
-                                        final_frame(curr_row1,curr_col1)=border_frame4;
-                                        o=o+1;
-                                    end
-                                end
-                                reference_frame=reference_frame4;
-                            end
-                            end
-%                             
-%                     deframe = deframe.differentialEncodingMode(frame.modeFrame);
-%                     [reconstructedFrame,entropyQTC,entropyPredictionInfo] = obj.generateReconstructedFrame(i,frame,deframe );
-%                     obj.reconstructedVideo(:,:,i) = uint8(reconstructedFrame);
-%                     obj.entropyVideo = [obj.entropyVideo entropyQTC];
-%                     obj.predictionVideo = [obj.predictionVideo entropyPredictionInfo];
-%                     obj.diff_modes(:,:,j) = deframe.diff_modes;
-%                     obj.modes(:,:,j)=frame.modeFr
-                        end
-                    end
+%                     reference_frame=[];
+%                     %use intra prediction
+%                     deframe = DifferentialEncodingEngine();
+%                     for bl_i=1:obj.block_height:size(obj.inputvideo.Y(:,:,i),1)  
+%                         for bl_j=1:obj.block_width:size(obj.inputvideo.Y(:,:,i),2)
+%                             frame = IntraPredictionEngine(obj.inputvideo.Y(:,:,i),reference_frame,obj.block_width,obj.block_height);
+%                             frame=frame.block_creation(bl_i,bl_j);
+%                             %[processedBlock, en] = obj.generateReconstructedFrame(i,frame.predictedblock,deframe );
+%                             obj.reconstructedVideo.Y(bl_i:bl_i+obj.block_width-1,bl_j:bl_j+obj.block_height-1,i)=frame.predictedblock;
+%                             if(obj.VBSEnable==0)
+%                             mode=frame.mode;
+%                             predicted_block=frame.predictedblock;
+%                             reference_frame=reference_frame1;
+%                             end
+%                             if(obj.VBSEnable==1)
+%                             count=0;
+%                             mode_4=[];
+%                             SAD_4=[];
+%                             for row_i =1:1:2
+%                                 for col_i=1:1:2
+%                                     count=count+1;
+%                                     frame=frame.block_creation4(bl_i,bl_j,count);
+%     %                                 obj.generateReconstructedFrame(i,frame.smallblock_4,deframe);
+%                                     curr_row=bl_i+((row_i-1)*obj.block_width/2):bl_i-1+(row_i)*obj.block_width/2;
+%                                     curr_col=bl_j+((col_i-1)*obj.block_height/2):bl_j-1+(col_i)*obj.block_height/2;
+%                                     frame.reference_frame(curr_row,curr_col)=frame.smallblock_4;
+%                                     mode_4=[mode_4 frame.mode_4];
+%                                     SAD_4=[SAD_4 frame.SAD_4];
+%                                     reference_frame4(curr_row,curr_col)=frame.smallblock_4;
+%                                 end
+%                             end
+%                             cost=RDO(frame.predictedblock,frame.predictedblock_4,obj.block_height,obj.block_width,frame.SAD,SAD_4);
+% 
+%                             if(cost.flag==0)
+%                                 mode=frame.mode;
+%                                 predicted_block=frame.predictedblock;
+%                                 reference_frame=reference_frame1;
+%                                 %insert encode line here
+%                                 border_frame1=predicted_block;
+%                                 border_frame1(1:obj.block_height,1)=0;
+%                                 border_frame1(1,1:obj.block_width)=0;
+%                                 border_frame1(obj.block_height,1:obj.block_width)=0;
+%                                 border_frame1(1:obj.block_height,obj.block_width)=0;
+%                                 final_frame(bl_i:bl_i+obj.block_width-1,bl_j:bl_j+obj.block_height-1)=border_frame1;
+%                             else
+%                                 o=1;
+%                                 for row_i=1:1:2
+%                                     for col_i=1:1:2
+%                                         mode=mode_4(o);
+%                                         curr_row=1+((row_i-1)*obj.block_width/2):(row_i)*obj.block_width/2;
+%                                         curr_col=1+((col_i-1)*obj.block_height/2):(col_i)*obj.block_height/2;
+%                                         predicted_block_4=frame.predictedblock_4(curr_row,curr_col);
+%                                         %insert encode line here
+%                                         border_frame4=predicted_block_4;
+%                                         border_frame4(1:obj.block_height/2,1)=0;
+%                                         border_frame4(1,1:obj.block_width/2)=0;
+%                                         border_frame4(obj.block_height/2,1:obj.block_width/2)=0;
+%                                         border_frame4(1:obj.block_height/2,obj.block_width/2)=0;
+%                                         curr_row1=bl_i+((row_i-1)*obj.block_width/2):bl_i-1+(row_i)*obj.block_width/2;
+%                                         curr_col1=bl_j+((col_i-1)*obj.block_height/2):bl_j-1+(col_i)*obj.block_height/2;
+%                                         final_frame(curr_row1,curr_col1)=border_frame4;
+%                                         o=o+1;
+%                                     end
+%                                 end
+%                                 reference_frame=reference_frame4;
+%                             end
+%                             end
+% %                             
+% %                     deframe = deframe.differentialEncodingMode(frame.modeFrame);
+% %                     [reconstructedFrame,entropyQTC,entropyPredictionInfo] = obj.generateReconstructedFrame(i,frame,deframe );
+% %                     obj.reconstructedVideo(:,:,i) = uint8(reconstructedFrame);
+% %                     obj.entropyVideo = [obj.entropyVideo entropyQTC];
+% %                     obj.predictionVideo = [obj.predictionVideo entropyPredictionInfo];
+% %                     obj.diff_modes(:,:,j) = deframe.diff_modes;
+% %                     obj.modes(:,:,j)=frame.modeFr
+%                         end
+%                     end
                 else
                     block_list = obj.truncateFrameToBlocks(i);
                     length = size(block_list,2);
