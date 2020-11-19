@@ -11,25 +11,33 @@ classdef MotionEstimationEngine
         reconstructed
         bestMatchBlock;
         differenceForBestMatchBlock;
+        FastME;
+        
     end
     
     methods(Access = 'public')
-        function obj = MotionEstimationEngine(r,currentBlock, referenceFrame, block_width, block_height, FEMEnable)
+        function obj = MotionEstimationEngine(r,currentBlock, referenceFrame, block_width, block_height, FEMEnable, FastME, MVP)
             obj.r = r;
             obj.block_width = block_width;
             obj.block_height = block_height;
             obj.currentBlock = currentBlock;
-            obj.referenceFrame = referenceFrame; 
-            if FEMEnable == false
-                referenceBlockList = obj.getAllBlocks( currentBlock.left_width_index, currentBlock.top_height_index); 
+            obj.referenceFrame = referenceFrame;
+            
+            if FastME == true
+                obj.bestMatchBlock = obj.NNSearch(referenceFrame,currentBlock, MVP);     
+                obj.differenceForBestMatchBlock = abs( currentBlock.getBlockSumValue() - obj.bestMatchBlock.getBlockSumValue());
             else
-                referenceBlockList = obj.getAllBlocksFME( currentBlock.left_width_index, currentBlock.top_height_index); 
+                if FEMEnable == false
+                    referenceBlockList = obj.getAllBlocks( currentBlock.left_width_index, currentBlock.top_height_index); 
+                else
+                    referenceBlockList = obj.getAllBlocksFME( currentBlock.left_width_index, currentBlock.top_height_index); 
+                end
+                bestMatchBlockUnprocessed = obj.findBestPredictedBlockSAD(referenceBlockList,currentBlock.getBlockSumValue());
+                obj.differenceForBestMatchBlock = abs( currentBlock.getBlockSumValue() - bestMatchBlockUnprocessed.getBlockSumValue());
+                obj.bestMatchBlock = currentBlock;
+                obj.bestMatchBlock.data = bestMatchBlockUnprocessed.data;
+                obj.bestMatchBlock.MotionVector = referenceBlockList.MotionVector;
             end
-            bestMatchBlockUnprocessed = obj.findBestPredictedBlockSAD(referenceBlockList,currentBlock.getBlockSumValue());
-            obj.differenceForBestMatchBlock = abs( currentBlock.getBlockSumValue() - bestMatchBlockUnprocessed.getBlockSumValue());
-            obj.bestMatchBlock = currentBlock;
-            obj.bestMatchBlock.data = bestMatchBlockUnprocessed.data;
-            obj.bestMatchBlock.MotionVector = referenceBlockList.MotionVector;
         end
         
 %         function obj = truncateBlock(obj)
@@ -304,6 +312,116 @@ classdef MotionEstimationEngine
             
         end
 
+        function r = withInSearchWindown(obj, Block,referenceFrame, MotionVector)
+            startingX = Block.left_width_index + MotionVector.x;
+            if startingX <= 0 || startingX + Block.block_width - 1 > size(referenceFrame,2)
+                r = false;
+                return;
+            end
+            startingY = Block.top_height_index + MotionVector.y;
+            if startingY <= 0 || startingY + Block.block_height -1 > size(referenceFrame,1)
+                r = false;
+                return;
+            end
+            r= true;
+        end
+
+        function r = getReferenceBlockByMV(obj, currentBlock, referenceFrame, MotionVector)
+            if obj.withInSearchWindown( currentBlock,referenceFrame, MotionVector) == false
+                r = 0;
+            else
+            r = Block(referenceFrame, currentBlock.left_width_index + MotionVector.x ,currentBlock.top_height_index + MotionVector.y, currentBlock.block_width, currentBlock.block_height);
+            r = r.setbitMotionVector(MotionVector);
+            r = r.setQP(currentBlock.QP);   
+            end
+        end
+            
+
+        
+        function r = NNSearch(obj, referenceFrame, currentBlock, MVP)
+            %set up initial minimum value to (0,0)
+            originBlock = obj.getReferenceBlockByMV(currentBlock, referenceFrame , MotionVector(0,0));
+            minimumValue = abs(currentBlock.getBlockSumValue() -originBlock.getBlockSumValue());
+            
+            %set up offset array
+            MV = MVP;
+            MVOffset = [MotionVector(0,0),MotionVector(0,1),MotionVector(-1,0),MotionVector(1,0),MotionVector(0,-1)];
+            %get the block from previous block Motion Vector
+            
+            while 1
+                blockList = [];
+                for i = 1:1:size(MVOffset,2)
+                    MVoff = MVOffset(i);
+                    blk = obj.getReferenceBlockByMV(currentBlock, referenceFrame , MotionVector(MV.x + MVoff.x, MV.y + MVoff.y));
+                    if isobject(blk)== 1 
+                        blockList  = [ blockList blk];
+                    end
+                    
+                end
+                
+                bestBlock = obj.findBestPredictedBlockSAD(blockList, currentBlock.getBlockSumValue());
+                if isobject(blk)== 1 
+                    r = originBlock;
+                    break;
+                else
+                    if abs(currentBlock.getBlockSumValue() -bestBlock.getBlockSumValue()) < minimumValue
+                        minimumValue = abs(currentBlock.getBlockSumValue() -bestBlock.getBlockSumValue());
+                        originBlock = bestBlock;
+                        MV = originBlock.MotionVector;
+                    else
+
+                        r = originBlock;
+                        break;
+                    end
+                end
+                
+            end
+% 
+%             if matchedBlock ~=None
+%                 if (abs(currentBlock.getBlockSumValue() -matchedBlock.getBlockSumValue()) < minimumValue)
+%                     minimumValue = abs(currentBlock.getBlockSumValue() -bestBlock.getBlockSumValue());
+%                     bestBlock = matchedBlock;
+%                 end
+%                 
+%                 while 
+%                 end
+%                 
+%             else
+%                 % if the previous Motion vector is out of range. might
+%                 % happen in corner case
+%                 r = matchedBlock;
+%             end
+%             while (size(MVStack,1) ~= 0)
+%                 MV = MVStack.pop();
+%                 matchedBlock = obj.getReferenceBLockByMV(currentBlock, referenceFrame , MV);
+%                 if matchedBlock ~= None
+%                     
+%                     
+%                     if (abs(currentBlock.getBlockSumValue() -matchedBlock.getBlockSumValue()) < minimumValue)
+%                         minimumValue = abs(currentBlock.getBlockSumValue() -bestBlock.getBlockSumValue());
+%                         bestBlock = 
+%                     end
+%                     
+%                 end
+%             end
+%             for i = 1: 1 : length(referenceBlockList)
+%                 diff = abs( currentBlockSum - referenceBlockList(i).getBlockSumValue());
+%                 if (diff < minimumValue)
+%                     minimumValue = diff;
+%                     r = referenceBlockList(i);
+%                 elseif diff == minimumValue %case of tie
+%                     if (referenceBlockList(i).MotionVector.getL1Norm() < r.MotionVector.getL1Norm())
+%                         r = referenceBlockList(i);
+%                     elseif (referenceBlockList(i).MotionVector.getL1Norm() == r.MotionVector.getL1Norm())
+%                             if (referenceBlockList(i).left_width_index < r.left_width_index)
+%                                 r = referenceBlockList(i);
+%                             end
+%                     end        
+%                 end
+%             end
+            
+         end
+        
         function result = calculateBlockSumValue(obj, frame)
             block = frame(obj.left_width_index: obj.left_width_index + obj.block_width, height_index: height_index + obj.block_height);
             result=round(mean(block,'all'));

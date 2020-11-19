@@ -17,10 +17,11 @@ classdef Encoder
         numberOfBitsList;
         nRefFrame;
         FEMEnable;
+        FastME;
     end
     
     methods (Access = 'public')
-        function obj = Encoder(inputvideo,block_width, block_height,r ,n, QP, I_Period,nRefFrame, FEMEnable)
+        function obj = Encoder(inputvideo,block_width, block_height,r ,n, QP, I_Period,nRefFrame, FEMEnable,FastME)
             %UNTITLED2 Construct an instance of this class
             %   Detailed explanation goes here
             obj.inputvideo = inputvideo;
@@ -32,7 +33,9 @@ classdef Encoder
             obj.QP = QP;
             obj.nRefFrame=nRefFrame;
             obj.FEMEnable=FEMEnable;
+            obj.FastME = FastME;
             obj = obj.encodeVideo();
+            
         end
     
         function [processedBlock] = generateReconstructedFrame(obj,frameIndex, predicted_block,Diffencoded_frame)
@@ -127,7 +130,7 @@ classdef Encoder
                     block_list = obj.truncateFrameToBlocks(i);
                     length = size(block_list,2);
                     deframe = DifferentialEncodingEngine();
-
+                    previousMV = MotionVector(0,0);
                     %for loop to go through all blocks
                     for index=1:1:length
                          %RDO computation of block_list(index)
@@ -141,7 +144,7 @@ classdef Encoder
                          % to get best matched block
                          for referenceframe_index = i - obj.nRefFrame: 1 : i-1
                              if referenceframe_index >= lastIFrame
-                                ME_result = MotionEstimationEngine(obj.r,block_list(index), uint8(obj.reconstructedVideo.Y(:,:,referenceframe_index)), obj.block_width, obj.block_height,obj.FEMEnable);
+                                ME_result = MotionEstimationEngine(obj.r,block_list(index), uint8(obj.reconstructedVideo.Y(:,:,referenceframe_index)), obj.block_width, obj.block_height,obj.FEMEnable, obj.FastME, previousMV);
                                 if ME_result.differenceForBestMatchBlock < min_value
                                     min_value = ME_result.differenceForBestMatchBlock;
                                     bestMatchBlock = ME_result.bestMatchBlock;
@@ -150,6 +153,7 @@ classdef Encoder
                              end
                          end
                          bestMatchBlock = bestMatchBlock.setframeType(type(i));
+                         previousMV = bestMatchBlock.MotionVector;
                          processedBlock = obj.generateReconstructedFrame(i,bestMatchBlock,deframe );
                          obj.reconstructedVideo.Y(processedBlock.top_height_index:processedBlock.top_height_index + obj.block_height-1,processedBlock.left_width_index:processedBlock.left_width_index + obj.block_width-1,i) = uint8(processedBlock.data);
                     end
