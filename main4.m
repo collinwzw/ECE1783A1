@@ -34,15 +34,15 @@ FEMEnable = true;
 e = Encoder(v1WithPadding,block_width, block_height,r ,n, QP, I_Period,nRefFrame, FEMEnable);
 % 
 % %write the residual bitstream and prediction info bitstream to file
-writeEntropyToTxt(e,'.\output\entropyVideo.txt');
+%writeEntropyToTxt(e,'.\output\entropyVideo.txt');
 % 
 % %read the residual bitstream and prediction info bitstream from file
-fid = fopen('.\output\entropyVideo.txt', 'r');
-entropyVideo=fread(fid,'*char');
-entropyVideo=transpose(entropyVideo);
-fclose(fid); 
-
-d = ReverseEntropyEngine_Block(entropyVideo,block_width,block_height,v1.height, v1.width,QP);
+% fid = fopen('.\output\entropyVideo.txt', 'r');
+% entropyVideo=fread(fid,'*char');
+% entropyVideo=transpose(entropyVideo);
+% fclose(fid); 
+% 
+% d = ReverseEntropyEngine_Block(entropyVideo,block_width,block_height,v1.height, v1.width,QP);
 % 
 % fid = fopen('.\output\predictionVideo.txt', 'r');
 % predictionVideo=fread(fid,'*char');
