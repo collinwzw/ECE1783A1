@@ -13,7 +13,6 @@ classdef ReverseEntropyEngine
         residualVideo;
         QP;
         %%%%%%
-        number_of_frames;
     end
     
     methods(Access = 'public')
@@ -120,7 +119,6 @@ classdef ReverseEntropyEngine
             end
         end
         
-        
         function obj = invRLE(obj )
             index = 1;
             obj.invRLEList = [];
@@ -130,11 +128,7 @@ classdef ReverseEntropyEngine
                 obj.invRLEList = [obj.invRLEList,invReorderedPatialList];
             end
         end
-
-        
-   
-        
-        
+            
         function [invRLEList,index, count] = invReorderValue(obj,decodedlist, index,count )
             noElement = decodedlist(index);
             invRLEList = [];
