@@ -11,10 +11,55 @@ classdef EntropyEngine_Block
         splitList;
         BlockList;
         splitindex;
+        B;
     end
     
     methods(Access = 'public')
-        function obj = EntropyEngine_Block()
+        function obj = EntropyEngine_Block(B)
+            obj.B=B;
+           
+            obj.splitindex=0;
+   
+            B_left_width_index=B.left_width_index;
+            B_top_height_index=B.top_height_index;
+            obj.block_width=B.block_width;
+            obj.block_height=B.block_height;
+            B_MotionVector=B.MotionVector;
+            B_Mode=B.Mode;
+            B_BlockSumValue=B.BlockSumValue;
+            B_data=B.data;
+            B_QP=B.QP;% QP value for quantization
+            B_frameType=B.frameType; % 
+            B_bitStream=B.bitStream;
+            B_referenceFrameIndex=B.referenceFrameIndex;
+            B_split=B.split;
+            
+            %Type
+            obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_frameType)];
+            %   Mode /   RefF+Mv
+            if B_frameType==0
+                obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_referenceFrameIndex)];
+                %obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_MotionVector.x)];
+                %obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_MotionVector.y)];
+            else
+                obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_Mode)];
+            end
+
+            %Split
+            if B_split ==1
+                obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_split)];
+            else 
+                obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_split)];
+            end
+
+            %QP
+            obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_QP)];
+
+            %Data
+            currentBlock=double(B_data);
+            reorderedList = obj.reorderBlock(currentBlock);
+            encodedReorderedList = obj.encodeReorderedList(reorderedList);
+            obj.bitstream = [obj.bitstream obj.encodeExpGolomblist(encodedReorderedList)];
         end
         
         
@@ -38,62 +83,106 @@ classdef EntropyEngine_Block
             obj = obj.entroplizeP();
         end
         
-        function obj = EntropyEngineB(obj,BlockList)
-            obj.BlockList=BlockList;
-            index=0;
+%         function obj = EntropyEngineB(obj,BlockList)
+%             obj.BlockList=BlockList;
+%             index=0;
+%             obj.splitindex=0;
+%             while index <= length(BlockList)
+%                 B_left_width_index=BlockList[index].left_width_index;
+%                 B_top_height_index=BlockList[index].top_height_index;
+%                 B_block_width=BlockList[index].block_width;
+%                 B_block_height=BlockList[index].block_height;
+%                 B_MotionVector=BlockList[index].MotionVector;
+%                 B_Mode=BlockList[index].Mode;
+%                 B_BlockSumValue=BlockList[index].BlockSumValue;
+%                 B_data=BlockList[index].data;
+%                 B_QP=BlockList[index].QP;% QP value for quantization
+%                 B_frameType=BlockList[index].frameType; % 
+%                 B_bitStream=BlockList[index].bitStream;
+%                 B_referenceFrameIndex=BlockList[index].referenceFrameIndex;
+%                 B_split=BlockList[index].split;
+%                 %Type
+%                 obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_frameType)];
+%                 %   Mode /   RefF+Mv
+%                 if B_frameType==0
+%                     obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_referenceFrameIndex)];
+%                     obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_MotionVector(1,1))];
+%                     obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_MotionVector(1,2))];
+%                 elseif B_frameType==1
+%                     obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_Mode)];
+%                 else
+%                     print("Error");
+%                 end
+%                 
+%                 %Split
+%                 if B_split ==1
+%                     obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_split)];
+%                     obj.splitindex=obj.splitindex+1;
+%                 else 
+%                     obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_split)];
+%                     obj.splitindex=0;
+%                 end
+%                 
+%                 %QP
+%                 obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_QP)];
+%                 
+%                 %Data
+%                 currentBlock=B_data;
+%                 reorderedList = obj.reorderBlock((currentBlock));
+%                 encodedReorderedList = obj.encodeReorderedList(reorderedList);
+%                 obj.bitstream = [obj.bitstream obj.encodeExpGolomblist(encodedReorderedList)];
+%             end
+%             index=index+1;
+%         end
+
+ function obj = EntropyEngineB(obj,B)
+            obj.B=B;
+           
             obj.splitindex=0;
-            while index <= length(BlockList)
-                B_left_width_index=BlockList[index].left_width_index;
-                B_top_height_index=BlockList[index].top_height_index;
-                B_block_width=BlockList[index].block_width;
-                B_block_height=BlockList[index].block_height;
-                B_MotionVector=BlockList[index].MotionVector;
-                B_Mode=BlockList[index].Mode;
-                B_BlockSumValue=BlockList[index].BlockSumValue;
-                B_data=BlockList[index].data;
-                B_QP=BlockList[index].QP;% QP value for quantization
-                B_frameType=BlockList[index].frameType; % 
-                B_bitStream=BlockList[index].bitStream;
-                B_referenceFrameIndex=BlockList[index].referenceFrameIndex;
-                B_split=BlockList[index].split;
-                %Type
-                obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_frameType)];
-                %   Mode /   RefF+Mv
-                if B_frameType==0
-                    obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_referenceFrameIndex)];
-                    obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_MotionVector(1,1))];
-                    obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_MotionVector(1,2))];
-                elseif B_frameType==1
-                    obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_Mode)];
-                    %%%%%%%%%%%%%
-                    %%%%%%%%%%
-                    %%%%%%%%%%%
-                    %%%%%%%%%
-                else
-                    print("Error");
-                end
-                
-                %Split
-                if B_split ==1
-                    obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_split)];
-                    obj.splitindex=obj.splitindex+1;
-                else 
-                    obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_split)];
-                    obj.splitindex=0;
-                end
-                
-                %QP
-                obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_QP)];
-                
-                %Data
-                currentBlock=B_data;
-                reorderedList = obj.reorderBlock((currentBlock));
-                encodedReorderedList = obj.encodeReorderedList(reorderedList);
-                obj.bitstream = [obj.bitstream obj.encodeExpGolomblist(encodedReorderedList)];
+   
+            B_left_width_index=B.left_width_index;
+            B_top_height_index=B.top_height_index;
+            obj.block_width=B.block_width;
+            obj.block_height=B.block_height;
+            B_MotionVector=B.MotionVector;
+            B_Mode=B.Mode;
+            B_BlockSumValue=B.BlockSumValue;
+            B_data=B.data;
+            B_QP=B.QP;% QP value for quantization
+            B_frameType=B.frameType; % 
+            B_bitStream=B.bitStream;
+            B_referenceFrameIndex=B.referenceFrameIndex;
+            B_split=B.split;
+            
+            %Type
+            obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_frameType)];
+            %   Mode /   RefF+Mv
+            if B_frameType==0
+                obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_referenceFrameIndex)];
+                obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_MotionVector.x)];
+                obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_MotionVector.y)];
+            else
+                obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_Mode)];
             end
-            index=index+1;
+
+            %Split
+            if B_split ==1
+                obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_split)];
+            else 
+                obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_split)];
+            end
+
+            %QP
+            obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_QP)];
+
+            %Data
+            currentBlock=B_data;
+            reorderedList = obj.reorderBlock(currentBlock);
+            encodedReorderedList = obj.encodeReorderedList(reorderedList);
+            obj.bitstream = [obj.bitstream obj.encodeExpGolomblist(encodedReorderedList)];
         end
-        
+
+
        function r = encodeExpGolombValue(~,value)
             if value > 0
                 value = 2*value - 1;
@@ -154,15 +243,11 @@ classdef EntropyEngine_Block
         function obj = entropilizeFrame(obj)
            for i=1:obj.block_height:size(obj.quantizedTransformedFrame,1)  
                 for j=1:obj.block_width:size(obj.quantizedTransformedFrame,2)
-                    if obj.splitList((i-1)/obj.block_height+1,(j-1)/obj.block_width)==0
-                        obj.bitstream = [obj.bitstream 
-                        
-                        currentBlock = Block(obj.quantizedTransformedFrame, j,i, obj.block_width, obj.block_height);
-                        reorderedList = obj.reorderBlock((currentBlock));
-                        encodedReorderedList = obj.encodeReorderedList(reorderedList);
-                        obj.bitstream = [obj.bitstream obj.encodeExpGolomblist(encodedReorderedList)];
-                    else
-                        
+                    currentBlock = Block(obj.quantizedTransformedFrame, j,i, obj.block_width, obj.block_height, MotionVector(0,0) );
+                    reorderedList = obj.reorderBlock((currentBlock));
+                    encodedReorderedList = obj.encodeReorderedList(reorderedList);
+                    obj.bitstream = [obj.bitstream obj.encodeExpGolomblist(encodedReorderedList)];
+
                 end
             end        
         end
@@ -174,7 +259,7 @@ classdef EntropyEngine_Block
                 for y=1:1:obj.block_width
                     x = 1;
                     while y >=1
-                        r = [r,block.data(x,y)];
+                        r = [r,block(x,y)];
                         y = y -1;
                         x = x + 1;
                     end
@@ -184,7 +269,7 @@ classdef EntropyEngine_Block
                 for x=2:1:obj.block_height
                     y = obj.block_width;
                     while x <= obj.block_height
-                        r = [r,block.data(x,y)];
+                        r = [r,block(x,y)];
                         y = y - 1;
                         x = x + 1;
                     end

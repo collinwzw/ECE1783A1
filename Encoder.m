@@ -18,6 +18,7 @@ classdef Encoder
         nRefFrame;
         FEMEnable;
         FastME;
+        OutputBitstream;
     end
     
     methods (Access = 'public')
@@ -90,14 +91,14 @@ classdef Encoder
             lastIFrame=-1;
             type = obj.generateTypeMatrix();
             %for i = 1: 1:obj.inputvideo.numberOfFrames
-            for i = 1: 1:10
+            for i = 1: 1:2
                 if type(i) == 1
                     obj.reconstructedVideo.Y(:,:,i) = obj.inputvideo.Y(:,:,i);
                     lastIFrame = i;
                     reference_frame=[];
                     %use intra prediction
                      deframe = DifferentialEncodingEngine();
-                    for bl_i=1:obj.block_height:size(obj.inputvideo.Y(:,:,i),1)  
+                    for bl_i=1:obj.block_height:size(obj.inputvideo.Y(:,:,i),1)
                         for bl_j=1:obj.block_width:size(obj.inputvideo.Y(:,:,i),2)
                             frame = IntraPredictionEngine(obj.inputvideo.Y(:,:,i),reference_frame,obj.block_width,obj.block_height);
                             frame=frame.block_creation(bl_i,bl_j);

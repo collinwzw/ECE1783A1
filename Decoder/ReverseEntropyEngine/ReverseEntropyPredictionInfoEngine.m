@@ -163,8 +163,16 @@ classdef ReverseEntropyPredictionInfoEngine
             while(isempty(obj.decodedList)~=1)
             
 %             obj.QP=obj.decodedList(size(obj.decodedList,2));
-            obj.frameType(obj.number_of_frames)=obj.decodedList(1);
-            obj.decodedList=obj.decodedList(2:end);
+            obj.TypeLi(obj.number_of_frames)=obj.decodedList(1);
+            if obj.TypeLi(obj.number_of_frames)==1
+                obj.ModeLi(obj.number_of_frames)=obj.decodedList(2);
+            else
+                obj.RefLi(obj.number_of_frames)=obj.decodedList(2);
+            end
+            obj.SplitLi(obj.number_of_frames)=obj.decodedList(3);
+            obj.QPLi(obj.number_of_frames)=obj.decodedList(4);
+
+            obj.decodedList=obj.decodedList(5:end);
 %             obj.decodedList(end)=[];
             
             if(obj.frameType(obj.number_of_frames)==0)
