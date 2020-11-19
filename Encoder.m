@@ -16,10 +16,11 @@ classdef Encoder
         predictionVideo;
         numberOfBitsList;
         nRefFrame;
+        VBSEnable;
     end
     
     methods (Access = 'public')
-        function obj = Encoder(inputvideo,block_width, block_height,r ,n, QP, I_Period,nRefFrame)
+        function obj = Encoder(inputvideo,block_width, block_height,r ,n, QP, I_Period,nRefFrame,VBSEnable)
             %UNTITLED2 Construct an instance of this class
             %   Detailed explanation goes here
             obj.inputvideo = inputvideo;
@@ -30,6 +31,7 @@ classdef Encoder
             obj.n = n;
             obj.QP = QP;
             obj.nRefFrame=nRefFrame;
+            obj.VBSEnable=VBSEnable;
             obj = obj.encodeVideo();
         end
     
@@ -95,6 +97,12 @@ classdef Encoder
                             frame=frame.block_creation(bl_i,bl_j);
 %                             obj.generateReconstructedFrame(i,frame.predictedblock,deframe);
                             reference_frame1(bl_i:bl_i+obj.block_width-1,bl_j:bl_j+obj.block_height-1)=frame.predictedblock;
+                            if(obj.VBSEnable==0)
+                            mode=frame.mode;
+                            predicted_block=frame.predictedblock;
+                            reference_frame=reference_frame1;
+                            end
+                            if(obj.VBSEnable==1)
                             count=0;
                             mode_4=[];
                             SAD_4=[];
@@ -112,6 +120,7 @@ classdef Encoder
                                 end
                             end
                             cost=RDO(frame.predictedblock,frame.predictedblock_4,obj.block_height,obj.block_width,frame.SAD,SAD_4);
+                            
                             if(cost.flag==0)
                                 mode=frame.mode;
                                 predicted_block=frame.predictedblock;
@@ -144,6 +153,7 @@ classdef Encoder
                                     end
                                 end
                                 reference_frame=reference_frame4;
+                            end
                             end
 %                             
 %                     deframe = deframe.differentialEncodingMode(frame.modeFrame);
