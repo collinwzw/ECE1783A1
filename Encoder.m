@@ -56,9 +56,9 @@ classdef Encoder
             %call entropy engine to encode the quantized transformed frame
             %and save it.
             en = EntropyEngine_Block(processedBlock);
-            
-            
-            
+
+
+
 %             if (rem(frameIndex - 1,obj.I_Period)) == 0
 %                 %it's I frame
 %                 entropyFrame = entropyFrame.EntropyEngineI(quantizedtransformedFrame,Diffencoded_frame.diff_modes, obj.block_width, obj.block_height,obj.QP);
@@ -94,14 +94,14 @@ classdef Encoder
             lastIFrame=-1;
             type = obj.generateTypeMatrix();
             %for i = 1: 1:obj.inputvideo.numberOfFrames
-            for i = 1: 1:2
+            for i = 1: 1:3
                 if type(i) == 1
                     obj.reconstructedVideo.Y(:,:,i) = obj.inputvideo.Y(:,:,i);
                     lastIFrame = i;
 %                     reference_frame=[];
 %                     %use intra prediction
 %                     deframe = DifferentialEncodingEngine();
-%                     for bl_i=1:obj.block_height:size(obj.inputvideo.Y(:,:,i),1)  
+%                     for bl_i=1:obj.block_height:size(obj.inputvideo.Y(:,:,i),1)
 %                         for bl_j=1:obj.block_width:size(obj.inputvideo.Y(:,:,i),2)
 %                             frame = IntraPredictionEngine(obj.inputvideo.Y(:,:,i),reference_frame,obj.block_width,obj.block_height);
 %                             frame=frame.block_creation(bl_i,bl_j);
@@ -130,7 +130,7 @@ classdef Encoder
 %                                 end
 %                             end
 %                             cost=RDO(frame.predictedblock,frame.predictedblock_4,obj.block_height,obj.block_width,frame.SAD,SAD_4);
-% 
+%
 %                             if(cost.flag==0)
 %                                 mode=frame.mode;
 %                                 predicted_block=frame.predictedblock;
@@ -165,7 +165,7 @@ classdef Encoder
 %                                 reference_frame=reference_frame4;
 %                             end
 %                             end
-% %                             
+% %
 % %                     deframe = deframe.differentialEncodingMode(frame.modeFrame);
 % %                     [reconstructedFrame,entropyQTC,entropyPredictionInfo] = obj.generateReconstructedFrame(i,frame,deframe );
 % %                     obj.reconstructedVideo(:,:,i) = uint8(reconstructedFrame);
@@ -208,12 +208,12 @@ classdef Encoder
                          tempPreviousMV = bestMatchBlock.MotionVector;
                          bestMatchBlock = bestMatchBlock.setbitMotionVector( MotionVector(previousMV.x - bestMatchBlock.MotionVector.x, previousMV.y - bestMatchBlock.MotionVector.y));
                          previousMV = tempPreviousMV;
-                            
+
                          %differential encoding for reference frame index
                          tempPreviousFrameIndex = bestMatchBlock.referenceFrameIndex;
                          bestMatchBlock.referenceFrameIndex = previousFrameIndex - bestMatchBlock.referenceFrameIndex;
                          previousFrameIndex = tempPreviousFrameIndex;
-                         
+
                          [processedBlock, en] = obj.generateReconstructedFrame(i,bestMatchBlock,deframe );
                          obj.reconstructedVideo.Y(processedBlock.top_height_index:processedBlock.top_height_index + obj.block_height-1,processedBlock.left_width_index:processedBlock.left_width_index + obj.block_width-1,i) = uint8(processedBlock.data);
                          obj.OutputBitstream = [obj.OutputBitstream en.bitstream];

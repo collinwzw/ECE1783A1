@@ -24,13 +24,15 @@ classdef ReverseEntropyEngine_Block
         ModeLi;
         MotionVectorLi;
         RefLi;
+        xLi;
+        yLi;
         SplitLi;
         QPLi;
         DataLi;
     end
     
     methods(Access = 'public')
-        function obj = ReverseEntropyEngine_Block(bitstream,block_width,block_height,video_width,video_height,QP)
+        function obj = ReverseEntropyEngine_Block(bitstream,block_width,block_height,video_width,video_height)
             obj.bitstream = bitstream;
             obj.block_width = block_width;
             obj.block_height = block_height;
@@ -40,10 +42,11 @@ classdef ReverseEntropyEngine_Block
             %%%%%%%%%%%
             obj.video_width = video_width;
             obj.video_height = video_height;
-            obj.QP=QP;
+       
             %%%%%%%%%%%%%%%%%%%
             obj = obj.decodeBitstream();
             obj = obj.invRLE();
+            obj = obj.generateFrameResInv();
               
             
               
@@ -262,10 +265,13 @@ classdef ReverseEntropyEngine_Block
         
         
          function obj = generateFrameResInv(obj)
-            for p = 1:1:size(obj.residualVideo,3)
-                rescaledFrame = RescalingEngine(obj.residualVideo(:,:,p),obj.block_width, obj.block_height, obj.QP ).rescalingResult;
-                rescaledFrame = idct2(rescaledFrame);
-                obj.residualVideo(:,:,p) = rescaledFrame;
+            for p = 1:1:size (obj.BlockList,2)
+                r = RescalingEngine(obj.BlockList(p));
+                obj.BlockList(p).data=idct2(r.rescalingResult);
+                
+%                 rescaledFrame = RescalingEngine(obj.residualVideo(:,:,p),obj.block_width, obj.block_height, obj.QP ).rescalingResult;
+%                 rescaledFrame = idct2(rescaledFrame);
+%                 obj.residualVideo(:,:,p) = rescaledFrame;
             end
          end
      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
@@ -336,17 +342,21 @@ classdef ReverseEntropyEngine_Block
                 obj.SplitLi = 0;
                 obj.QPLi = 0;
                 obj.DataLi = 0;
-       
+                
                 obj.TypeLi=obj.decodedList(1);
                 if obj.TypeLi==1
                 obj.ModeLi=obj.decodedList(2);
+                ind = 2;
                 else
                 obj.RefLi=obj.decodedList(2);
+                obj.xLi=obj.decodedList(3);
+                obj.yLi=obj.decodedList(4);
+                ind = 4;
                 end
           
-                obj.SplitLi=obj.decodedList(3);
-                obj.QPLi=obj.decodedList(4);
-                obj.decodedList=obj.decodedList(5:end);
+                obj.SplitLi=obj.decodedList(ind+1);
+                obj.QPLi=obj.decodedList(ind+2);
+                obj.decodedList=obj.decodedList(ind+3:end);
                 if obj.SplitLi == 0
                     index_val=obj.block_width*obj.block_height;
                     tempBlock = Block(ReferenceFrame, 1,1, obj.block_width, obj.block_height);
@@ -374,7 +384,8 @@ classdef ReverseEntropyEngine_Block
                 
                 tempBlock.frameType = obj.TypeLi;
                 tempBlock.Mode = obj.ModeLi;
-                tempBlock.MotionVector = obj.MotionVectorLi;
+                tempBlock.MotionVector.x = obj.xLi;
+                tempBlock.MotionVector.y = obj.yLi;
                 tempBlock.referenceFrameIndex = obj.RefLi;
                 tempBlock.split = obj.SplitLi;
                 tempBlock.QP = obj.QPLi;
