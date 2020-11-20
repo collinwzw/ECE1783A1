@@ -94,7 +94,8 @@ classdef Encoder
             lastIFrame=-1;
             type = obj.generateTypeMatrix();
             %for i = 1: 1:obj.inputvideo.numberOfFrames
-            for i = 1: 1:3
+
+            for i = 1: 1:2
                 if type(i) == 1
                     obj.reconstructedVideo.Y(:,:,i) = obj.inputvideo.Y(:,:,i);
                     lastIFrame = i;
