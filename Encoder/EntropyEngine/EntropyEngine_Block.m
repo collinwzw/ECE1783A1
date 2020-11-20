@@ -39,8 +39,8 @@ classdef EntropyEngine_Block
             %   Mode /   RefF+Mv
             if B_frameType==0
                 obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_referenceFrameIndex)];
-                %obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_MotionVector.x)];
-                %obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_MotionVector.y)];
+                obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_MotionVector.x)];
+                obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_MotionVector.y)];
             else
                 obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_Mode)];
             end

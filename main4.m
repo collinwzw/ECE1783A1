@@ -25,24 +25,28 @@ n = 3;
 QP = 4;
 I_Period = 10;
 nRefFrame = 1;
-FEMEnable = true;
+FEMEnable = false;
+FastME = false;
+VBSEnable = false;
 % 
 %pad the video if necessary
 [v1WithPadding,v1Averaged] = v1.block_creation(v1.Y,block_width,block_height);
 
 %encode the video
-e = Encoder(v1WithPadding,block_width, block_height,r ,n, QP, I_Period,nRefFrame, FEMEnable);
+e = Encoder(v1WithPadding,block_width, block_height,r ,n, QP, I_Period,nRefFrame, FEMEnable, FastME, VBSEnable);
+
+c=ReverseEntropyEngine_Block(e.OutputBitstream,block_width,block_height,288,352);
+BlockList = c.BlockList;
+d=MotionCompensationEngine_Block(BlockList,block_width,block_height,288,352);
 % 
 % %write the residual bitstream and prediction info bitstream to file
-%writeEntropyToTxt(e,'.\output\entropyVideo.txt');
+% writeEntropyToTxt(e,'.\output\entropyVideo.txt','.\output\predictionVideo.txt');
 % 
 % %read the residual bitstream and prediction info bitstream from file
 % fid = fopen('.\output\entropyVideo.txt', 'r');
 % entropyVideo=fread(fid,'*char');
 % entropyVideo=transpose(entropyVideo);
 % fclose(fid); 
-% 
-% d = ReverseEntropyEngine_Block(entropyVideo,block_width,block_height,v1.height, v1.width,QP);
 % 
 % fid = fopen('.\output\predictionVideo.txt', 'r');
 % predictionVideo=fread(fid,'*char');

@@ -17,11 +17,13 @@ classdef Encoder
         numberOfBitsList;
         nRefFrame;
         FEMEnable;
-        OutputBitstream;
+        FastME;
+        OutputBitstream=[];
+        VBSEnable;
     end
     
     methods (Access = 'public')
-        function obj = Encoder(inputvideo,block_width, block_height,r ,n, QP, I_Period,nRefFrame, FEMEnable)
+        function obj = Encoder(inputvideo,block_width, block_height,r ,n, QP, I_Period,nRefFrame,FEMEnable,FastME, VBSEnable)
             %UNTITLED2 Construct an instance of this class
             %   Detailed explanation goes here
             obj.inputvideo = inputvideo;
@@ -33,10 +35,13 @@ classdef Encoder
             obj.QP = QP;
             obj.nRefFrame=nRefFrame;
             obj.FEMEnable=FEMEnable;
+            obj.FastME = FastME;
+            obj.VBSEnable=VBSEnable;
             obj = obj.encodeVideo();
+
         end
     
-        function [processedBlock] = generateReconstructedFrame(obj,frameIndex, predicted_block,Diffencoded_frame)
+        function [processedBlock, en] = generateReconstructedFrame(obj,frameIndex, predicted_block,Diffencoded_frame)
             %calculating residual frame
             residualBlockData =  int16(obj.inputvideo.Y(predicted_block.top_height_index: predicted_block.top_height_index + predicted_block.block_height-1, predicted_block.left_width_index: predicted_block.left_width_index + predicted_block.block_width-1,frameIndex)) -int16(predicted_block.data);
             processedBlock = predicted_block;
@@ -50,9 +55,10 @@ classdef Encoder
             
             %call entropy engine to encode the quantized transformed frame
             %and save it.
-%             e = EntropyEngine_Block();
-%             e = EntropyEngineB(processedBlock);
-            %entropyFrame = EntropyEngine();
+            en = EntropyEngine_Block(processedBlock);
+            
+            
+            
 %             if (rem(frameIndex - 1,obj.I_Period)) == 0
 %                 %it's I frame
 %                 entropyFrame = entropyFrame.EntropyEngineI(quantizedtransformedFrame,Diffencoded_frame.diff_modes, obj.block_width, obj.block_height,obj.QP);
@@ -87,34 +93,79 @@ classdef Encoder
             k = 1;
             lastIFrame=-1;
             type = obj.generateTypeMatrix();
-            %for i = 1: 1:obj.inputvideo.numberOfFrames 
-            for i = 1: 1:2
+            %for i = 1: 1:obj.inputvideo.numberOfFrames
+            for i = 1: 1:3
                 if type(i) == 1
                     obj.reconstructedVideo.Y(:,:,i) = obj.inputvideo.Y(:,:,i);
                     lastIFrame = i;
-                    %use intra prediction
-                    %deframe = DifferentialEncodingEngine();
-%                     for bl_i=1:obj.block_height:size(obj.inputvideo.Y(:,:,i),1)
+%                     reference_frame=[];
+%                     %use intra prediction
+%                     deframe = DifferentialEncodingEngine();
+%                     for bl_i=1:obj.block_height:size(obj.inputvideo.Y(:,:,i),1)  
 %                         for bl_j=1:obj.block_width:size(obj.inputvideo.Y(:,:,i),2)
-%                             frame = IntraPredictionEngine(obj.inputvideo.Y(:,:,i),obj.block_width,obj.block_height,bl_i,bl_j);
-%                             if(frame.RDO_flag==0)
+%                             frame = IntraPredictionEngine(obj.inputvideo.Y(:,:,i),reference_frame,obj.block_width,obj.block_height);
+%                             frame=frame.block_creation(bl_i,bl_j);
+%                             %[processedBlock, en] = obj.generateReconstructedFrame(i,frame.predictedblock,deframe );
+%                             obj.reconstructedVideo.Y(bl_i:bl_i+obj.block_width-1,bl_j:bl_j+obj.block_height-1,i)=frame.predictedblock;
+%                             if(obj.VBSEnable==0)
+%                             mode=frame.mode;
+%                             predicted_block=frame.predictedblock;
+%                             reference_frame=reference_frame1;
+%                             end
+%                             if(obj.VBSEnable==1)
+%                             count=0;
+%                             mode_4=[];
+%                             SAD_4=[];
+%                             for row_i =1:1:2
+%                                 for col_i=1:1:2
+%                                     count=count+1;
+%                                     frame=frame.block_creation4(bl_i,bl_j,count);
+%     %                                 obj.generateReconstructedFrame(i,frame.smallblock_4,deframe);
+%                                     curr_row=bl_i+((row_i-1)*obj.block_width/2):bl_i-1+(row_i)*obj.block_width/2;
+%                                     curr_col=bl_j+((col_i-1)*obj.block_height/2):bl_j-1+(col_i)*obj.block_height/2;
+%                                     frame.reference_frame(curr_row,curr_col)=frame.smallblock_4;
+%                                     mode_4=[mode_4 frame.mode_4];
+%                                     SAD_4=[SAD_4 frame.SAD_4];
+%                                     reference_frame4(curr_row,curr_col)=frame.smallblock_4;
+%                                 end
+%                             end
+%                             cost=RDO(frame.predictedblock,frame.predictedblock_4,obj.block_height,obj.block_width,frame.SAD,SAD_4);
+% 
+%                             if(cost.flag==0)
 %                                 mode=frame.mode;
-%                                 predicted_block=frame.final_frame;
-% %                                 obj.generateReconstructedFrame(i,predicted_block,deframe);
+%                                 predicted_block=frame.predictedblock;
+%                                 reference_frame=reference_frame1;
+%                                 %insert encode line here
+%                                 border_frame1=predicted_block;
+%                                 border_frame1(1:obj.block_height,1)=0;
+%                                 border_frame1(1,1:obj.block_width)=0;
+%                                 border_frame1(obj.block_height,1:obj.block_width)=0;
+%                                 border_frame1(1:obj.block_height,obj.block_width)=0;
+%                                 final_frame(bl_i:bl_i+obj.block_width-1,bl_j:bl_j+obj.block_height-1)=border_frame1;
 %                             else
 %                                 o=1;
 %                                 for row_i=1:1:2
 %                                     for col_i=1:1:2
-%                                         mode=frame.mode_4(o);
+%                                         mode=mode_4(o);
 %                                         curr_row=1+((row_i-1)*obj.block_width/2):(row_i)*obj.block_width/2;
 %                                         curr_col=1+((col_i-1)*obj.block_height/2):(col_i)*obj.block_height/2;
-%                                         predicted_block_4=frame.final_frame(curr_row,curr_col);
-% %                                         obj.generateReconstructedFrame(i,predicted_block_4,deframe);
+%                                         predicted_block_4=frame.predictedblock_4(curr_row,curr_col);
+%                                         %insert encode line here
+%                                         border_frame4=predicted_block_4;
+%                                         border_frame4(1:obj.block_height/2,1)=0;
+%                                         border_frame4(1,1:obj.block_width/2)=0;
+%                                         border_frame4(obj.block_height/2,1:obj.block_width/2)=0;
+%                                         border_frame4(1:obj.block_height/2,obj.block_width/2)=0;
+%                                         curr_row1=bl_i+((row_i-1)*obj.block_width/2):bl_i-1+(row_i)*obj.block_width/2;
+%                                         curr_col1=bl_j+((col_i-1)*obj.block_height/2):bl_j-1+(col_i)*obj.block_height/2;
+%                                         final_frame(curr_row1,curr_col1)=border_frame4;
 %                                         o=o+1;
 %                                     end
 %                                 end
+%                                 reference_frame=reference_frame4;
 %                             end
-% 
+%                             end
+% %                             
 % %                     deframe = deframe.differentialEncodingMode(frame.modeFrame);
 % %                     [reconstructedFrame,entropyQTC,entropyPredictionInfo] = obj.generateReconstructedFrame(i,frame,deframe );
 % %                     obj.reconstructedVideo(:,:,i) = uint8(reconstructedFrame);
@@ -128,7 +179,7 @@ classdef Encoder
                     block_list = obj.truncateFrameToBlocks(i);
                     length = size(block_list,2);
                     deframe = DifferentialEncodingEngine();
-
+                    previousMV = MotionVector(0,0);
                     %for loop to go through all blocks
                     for index=1:1:length
                          %RDO computation of block_list(index)
@@ -142,7 +193,7 @@ classdef Encoder
                          % to get best matched block
                          for referenceframe_index = i - obj.nRefFrame: 1 : i-1
                              if referenceframe_index >= lastIFrame
-                                ME_result = MotionEstimationEngine(obj.r,block_list(index), uint8(obj.reconstructedVideo.Y(:,:,referenceframe_index)), obj.block_width, obj.block_height,obj.FEMEnable);
+                                ME_result = MotionEstimationEngine(obj.r,block_list(index), uint8(obj.reconstructedVideo.Y(:,:,referenceframe_index)), obj.block_width, obj.block_height,obj.FEMEnable, obj.FastME, previousMV);
                                 if ME_result.differenceForBestMatchBlock < min_value
                                     min_value = ME_result.differenceForBestMatchBlock;
                                     bestMatchBlock = ME_result.bestMatchBlock;
@@ -151,9 +202,10 @@ classdef Encoder
                              end
                          end
                          bestMatchBlock = bestMatchBlock.setframeType(type(i));
-                         processedBlock = obj.generateReconstructedFrame(i,bestMatchBlock,deframe );
-
+                         previousMV = bestMatchBlock.MotionVector;
+                         [processedBlock, en] = obj.generateReconstructedFrame(i,bestMatchBlock,deframe );
                          obj.reconstructedVideo.Y(processedBlock.top_height_index:processedBlock.top_height_index + obj.block_height-1,processedBlock.left_width_index:processedBlock.left_width_index + obj.block_width-1,i) = uint8(processedBlock.data);
+                         obj.OutputBitstream = [obj.OutputBitstream en.bitstream];
                     end
 
 %                     deframe = DifferentialEncodingEngine();
