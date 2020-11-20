@@ -13,7 +13,7 @@ classdef ReverseEntropyEngine_Block
         residualVideo;
         QP;
         %%%%%%
-        
+        count1 = 0;
         Split_block_width; %type int
         Split_block_height;%type int
 
@@ -46,20 +46,7 @@ classdef ReverseEntropyEngine_Block
             %%%%%%%%%%%%%%%%%%%
             obj = obj.decodeBitstream();
             obj = obj.invRLE();
-            obj = obj.generateFrameResInv();
-              
-            
-              
-%              fid = fopen('.\output\aaa.txt', 'r');
-%              a=fread(fid,'double');
-%              fclose(fid);
-%             obj.invRLEList=transpose(a);   
-
-% % % % fid = fopen('.\output\aaa.txt', 'w');
-% % % % fwrite(fid,obj.invRLEList,'double');
-% % % % fclose(fid);
-%              obj = obj.generateFrame();
-%              obj = generateFrameResInv(obj);
+            %obj = obj.generateFrameResInv();               
             %%%%%%%%%%%%%%%%%%%%%%%%
         end
         
@@ -72,198 +59,7 @@ classdef ReverseEntropyEngine_Block
                 obj.decodedList = [obj.decodedList,value];
             end
         end
-        
-
-%         function obj = generateFrame(obj)
-%             n_b_h = obj.video_height/obj.block_height;
-%             n_b_w = obj.video_width/obj.block_width;
-%             NumberofBlockperFrame = n_b_w * n_b_h; % total Block in a frame, 4 sub-blocks = 1 Block
-%             matrixHeight = 1;
-%             matrixWidth = 1;
-%             BlockCount = 0;
-%             subBlockCount = 0;
-%             index = 0;
-%             p = 1;
-%             startingIndex = 1;
-%             while index < length(obj.invRLEList)
-%                 obj.TypeList = 0;
-%                 obj.SplitList = 0;
-%                 obj.QP_BList = 0;
-%                 obj.mode_s0 = 0;
-%                 obj.mode_s1 = 0;
-%                 obj.mv_s0 = 0;
-%                 obj.mv_s1 = 0;
-%                 indexi=0;
-%                 indexj=0;
-%                 while BlockCount < NumberofBlockperFrame
-%                     %Read Type
-%                     type = obj.invRLEList(startingIndex);
-%                     startingIndex = startingIndex+1;
-%                     obj.TypeList = [obj.TypeList type];
-%                     %Mode / RefF+MV
-%                     if  type == 1
-%                         mode = obj.invRLEList(startingIndex);
-%                         startingIndex = startingIndex+1;
-%                     else
-%                         RefF = obj.invRLEList(startingIndex);
-%                         mvx = obj.invRLEList(startingIndex+1);
-%                         mvy = obj.invRLEList(startingIndex+2);
-%                         startingIndex = startingIndex+3;
-%                     end
-% 
-%                     %Split
-%                     split = obj.invRLEList(startingIndex);
-%                     startingIndex = startingIndex+1;
-%                     obj.SplitList = [obj.SplitList split];
-%                     
-%                     %QP
-%                     QP_B = obj.invRLEList(startingIndex);
-%                     startingIndex = startingIndex+1;
-%                     obj.QP_BList = [obj.QP_BList QP_B];
-%                     
-%                     %Data
-%                     if split == 0  
-%                         matrixHeight = (indexi) * obj.block_height + 1;
-%                         matrixWidth = (indexj) * obj.block_width + 1;                     
-%                         obj.quantizedTransformedFrame(matrixHeight:matrixHeight+obj.block_height - 1, matrixWidth:matrixWidth + obj.block_width - 1) = obj.invReorder(obj.invRLEList(startingIndex:startingIndex + obj.block_width* obj.block_height - 1));
-%                         startingIndex = startingIndex + obj.block_width* obj.block_height;
-%                         if indexj < (n_b_w - 1)
-%                             indexj = indexj + 1;
-%                         else 
-%                            indexj = 0;
-%                            indexi = indexi +1;
-%                         end
-%                         BlockCount = BlockCount + 1;
-%                         if type == 1
-%                             obj.mode_s0 = [obj.mode_s0 mode];
-%                         elseif type == 0
-%                             obj.mv_s0 = [obj.mv_s0 RefF mvx mvy];
-%                         end
-%                     else %split==1
-%                         matrixHeight = (indexi) * obj.block_height + 1;
-%                         matrixWidth = (indexj) * obj.block_width + 1;   
-%                         
-%                         
-%                         obj.quantizedTransformedFrame(matrixHeight:matrixHeight+obj.Split_block_height - 1, matrixWidth:matrixWidth + obj.Split_block_width - 1) = obj.invReorder(obj.invRLEList(startingIndex:startingIndex + obj.Split_block_width* obj.Split_block_height - 1));
-%                         startingIndex = startingIndex + obj.Split_block_width* obj.Split_block_height;
-%                         matrixHeight = matrixHeight + obj.Split_block_height;
-%                         matrixWidth = matrixWidth + obj.Split_block_width;
-%                         subBlockCount = subBlockCount + 1;
-%                         if subBlockCount ==4
-%                             BlockCount = BlockCount + 1;
-%                             subBlockCount = 0;
-%                         end
-%                         
-%                         if type == 1
-%                             obj.mode_s1 = [obj.mode_s1 mode];
-%                         elseif type == 0
-%                             obj.mv_s1 = [obj.mv_s1 RefF mvx mvy];
-%                         end
-%                     end
-%                 end
-%                 obj.TypeVideo(:,:,p) = obj.TypeList;
-%                 obj.SplitVideo(:,:,p) = obj.SplitList;
-%                 obj.QP_BVideo(:,:,p) = obj.QP_BList;
-%                 obj.mode_s0Video(:,:,p) = obj.mode_s0;
-%                 obj.mode_s1Video(:,:,p) = obj.mode_s1;
-%                 obj.mv_s0Video(:,:,p) = obj.mv_s0;
-%                 obj.mv_s1Video(:,:,p) = obj.mv_s1;
-%                 obj.residualVideo(:,:,p) = obj.quantizedTransformedFrame;
-%                 p = p + 1;
-%             end
-%         end
-%       
-%         
-%           function obj = generateBlockList(obj)
-%             n_b_h = obj.video_height/obj.block_height;
-%             n_b_w = obj.video_width/obj.block_width;
-%             NumberofBlockperFrame = n_b_w * n_b_h; % total Block in a frame, 4 sub-blocks = 1 Block
-%             matrixHeight = 1;
-%             matrixWidth = 1;
-%             BlockCount = 0;
-%             subBlockCount = 0;
-%             index = 0;
-%             p = 1;
-%             startingIndex = 1;
-%             while index < length(obj.invRLEList)
-%                 obj.TypeList = 0;
-%                 obj.SplitList = 0;
-%                 obj.QP_BList = 0;
-%                 obj.mode_s0 = 0;
-%                 obj.mode_s1 = 0;
-%                 obj.mv_s0 = 0;
-%                 obj.mv_s1 = 0;
-%                 while BlockCount < NumberofBlockperFrame
-%                     %Read Type
-%                     type = obj.invRLEList(startingIndex);
-%                     startingIndex = startingIndex+1;
-%                     obj.TypeList = [obj.TypeList type];
-%                     %Mode / RefF+MV
-%                     if  type == 1
-%                         mode = obj.invRLEList(startingIndex);
-%                         startingIndex = startingIndex+1;
-%                     else
-%                         RefF = obj.invRLEList(startingIndex);
-%                         mvx = obj.invRLEList(startingIndex+1);
-%                         mvy = obj.invRLEList(startingIndex+2);
-%                         startingIndex = startingIndex+3;
-%                     end
-% 
-%                     %Split
-%                     split = obj.invRLEList(startingIndex);
-%                     startingIndex = startingIndex+1;
-%                     obj.SplitList = [obj.SplitList split];
-%                     
-%                     %QP
-%                     QP_B = obj.invRLEList(startingIndex);
-%                     startingIndex = startingIndex+1;
-%                     obj.QP_BList = [obj.QP_BList QP_B];
-%                     
-%                     %Data
-%                     if split == 0  
-%                         obj.quantizedTransformedFrame(matrixHeight:matrixHeight+obj.block_height - 1, matrixWidth:matrixWidth + obj.block_width - 1) = obj.invReorder(obj.invRLEList(startingIndex:startingIndex + obj.block_width* obj.block_height - 1));
-%                         startingIndex = startingIndex + obj.block_width* obj.block_height;
-%                         matrixHeight = matrixHeight + obj.block_height;
-%                         matrixWidth = matrixWidth + obj.block_width;
-%                         BlockCount = BlockCount + 1;
-%                         if type == 1
-%                             obj.mode_s0 = [obj.mode_s0 mode];
-%                         elseif type == 0
-%                             obj.mv_s0 = [obj.mv_s0 RefF mvx mvy];
-%                         end
-%                     else 
-%                         obj.quantizedTransformedFrame(matrixHeight:matrixHeight+obj.Split_block_height - 1, matrixWidth:matrixWidth + obj.Split_block_width - 1) = obj.invReorder(obj.invRLEList(startingIndex:startingIndex + obj.Split_block_width* obj.Split_block_height - 1));
-%                         startingIndex = startingIndex + obj.Split_block_width* obj.Split_block_height;
-%                         matrixHeight = matrixHeight + obj.Split_block_height;
-%                         matrixWidth = matrixWidth + obj.Split_block_width;
-%                         subBlockCount = subBlockCount + 1;
-%                         if subBlockCount ==4
-%                             BlockCount = BlockCount + 1;
-%                             subBlockCount = 0;
-%                         end
-%                         
-%                         if type == 1
-%                             obj.mode_s1 = [obj.mode_s1 mode];
-%                         elseif type == 0
-%                             obj.mv_s1 = [obj.mv_s1 RefF mvx mvy];
-%                         end
-%                     end
-%                 end
-%                 obj.TypeVideo(:,:,p) = obj.TypeList;
-%                 obj.SplitVideo(:,:,p) = obj.SplitList;
-%                 obj.QP_BVideo(:,:,p) = obj.QP_BList;
-%                 obj.mode_s0Video(:,:,p) = obj.mode_s0;
-%                 obj.mode_s1Video(:,:,p) = obj.mode_s1;
-%                 obj.mv_s0Video(:,:,p) = obj.mv_s0;
-%                 obj.mv_s1Video(:,:,p) = obj.mv_s1;
-%                 obj.residualVideo(:,:,p) = obj.quantizedTransformedFrame;
-%                 p = p + 1;
-%             end
-%         end
-%         
-        
-        
-        
+                
          function obj = generateFrameResInv(obj)
             for p = 1:1:size (obj.BlockList,2)
                 r = RescalingEngine(obj.BlockList(p));
@@ -334,7 +130,7 @@ classdef ReverseEntropyEngine_Block
             
             obj.BlockList = [];
             while(isempty(obj.decodedList)~=1)
-                
+                obj.count1 = obj.count1 + 1;
                 obj.TypeLi = 0;
                 obj.ModeLi = 0;
                 obj.MotionVectorLi = 0;

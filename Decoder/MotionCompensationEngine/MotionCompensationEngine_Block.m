@@ -79,7 +79,7 @@ classdef MotionCompensationEngine_Block
                              Blockcount = Blockcount +1;    
                          end
                     else %I frame
-                        
+                        Blockcount = Blockcount +1;   
                     end
                     
                  end
@@ -113,6 +113,7 @@ classdef MotionCompensationEngine_Block
                 Blockcount = 0;
                 while Blockcount < ((obj.video_height/obj.block_height))* (obj.video_width/(obj.block_width))
                     if obj.BlockList(index).frameType ==0
+                        %inter
                         for i=0:1:(obj.video_height/obj.block_height) - 1
                             for j=0:1:obj.video_width/(obj.block_width) -1
                                     if SplitList1(1) == 0
@@ -167,6 +168,8 @@ classdef MotionCompensationEngine_Block
                         obj.residualVideo(:,:,p) = 0;
                         obj.numberOfFrames = p;
                         p = p + 1;
+                        Blockcount = Blockcount + 1 ;
+                        BlockList1 =  BlockList1(2:end);
                     end
                 end
             end
