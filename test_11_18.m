@@ -22,8 +22,8 @@ b.data(10,:)=120;
 b.left_width_index = 3;
 b.QP=2;
 b.referenceFrameIndex = 1;
-b.frameType = 0;
-b.MotionVector = 1;
+b.frameType = 1;
+b.MotionVector = MotionVector(0,0);
 b.split = 0;
 
 b1=b;
@@ -47,7 +47,7 @@ en = EntropyEngine_Block(b3);
 OutputBitstream = [OutputBitstream en.bitstream];
 
 
-c=ReverseEntropyEngine_Block(OutputBitstream,block_width,block_height,video_width,video_height,QP);
+c=ReverseEntropyEngine_Block(OutputBitstream,block_width,block_height,video_width,video_height);
 BlockList = c.BlockList;
 i=2;
 r = RescalingEngine(BlockList(i));

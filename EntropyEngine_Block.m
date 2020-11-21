@@ -39,8 +39,8 @@ classdef EntropyEngine_Block
             %   Mode /   RefF+Mv
             if B_frameType==0
                 obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_referenceFrameIndex)];
-                %obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_MotionVector.x)];
-                %obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_MotionVector.y)];
+                obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_MotionVector.x)];
+                obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_MotionVector.y)];
             else
                 obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_Mode)];
             end
@@ -158,10 +158,12 @@ classdef EntropyEngine_Block
             obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_frameType)];
             %   Mode /   RefF+Mv
             if B_frameType==0
+                %inter
                 obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_referenceFrameIndex)];
                 obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_MotionVector.x)];
                 obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_MotionVector.y)];
             else
+                %intra
                 obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_Mode)];
             end
 
