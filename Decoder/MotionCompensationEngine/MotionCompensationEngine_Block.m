@@ -57,11 +57,21 @@ classdef MotionCompensationEngine_Block
             Framecount = 0;
             Listindex = 1;
             while Framecount <obj.numberOfFrames
+                Previousmvx = 0;
+                Previousmvy = 0;
+                PreviousrefIn = 0;
                  while Blockcount < ((obj.video_height/obj.block_height))* (obj.video_width/(obj.block_width))
                     if obj.BlockList(1,Listindex).frameType ==0
                          if obj.BlockList(1,Listindex).split==0
+                             %differential decoding for motion vector
                              mvx = obj.BlockList(1,Listindex).MotionVector.x;
                              mvy = obj.BlockList(1,Listindex).MotionVector.y;
+                             mvx = Previousmvx - mvx;
+                             mvy = Previousmvy - mvy;
+                             Previousmvx = mvx;
+                             Previousmvy = mvy;
+
+                             %Filling block to frame
                              matrixHeight = obj.BlockList(1,Listindex).top_height_index;
                              matrixWidth = obj.BlockList(1,Listindex).left_width_index;
                              obj.predictedFrame(matrixHeight : matrixHeight+obj.block_height - 1, matrixWidth : matrixWidth + obj.block_width - 1) = ref1(matrixHeight+mvy:matrixHeight+mvy+obj.block_height - 1,matrixWidth+mvx:matrixWidth+mvx+obj.block_width - 1 );
@@ -70,8 +80,14 @@ classdef MotionCompensationEngine_Block
                              Listindex = Listindex +1;
                          else
                              for i =1:1:4
+                                 %differential decoding for motion vector
                                  mvx = obj.BlockList(1,Listindex).MotionVector.x;
                                  mvy = obj.BlockList(1,Listindex).MotionVector.y;
+                                 mvx = Previousmvx - mvx;
+                                 mvy = Previousmvy - mvy;
+                                 Previousmvx = mvx;
+                                 Previousmvy = mvy;
+
                                  matrixHeight = obj.BlockList(1,Listindex).top_height_index;
                                  matrixWidth = obj.BlockList(1,Listindex).left_width_index;
                                  obj.predictedFrame(matrixHeight:matrixHeight+obj.Split_block_height - 1, matrixWidth:matrixWidth + obj.Split_block_width - 1) = ref1(matrixHeight+mvx:matrixHeight+mvx+obj.Split_block_height - 1,matrixWidth+mvy:matrixWidth+mvy+obj.Split_block_width - 1 );
@@ -79,7 +95,7 @@ classdef MotionCompensationEngine_Block
                              end
                              Blockcount = Blockcount +1;    
                          end
-                         
+
                     else %I frame
                         if obj.BlockList(1,Listindex).split==0
                              Intra_prediction=IntraPredictionEngine_decode(obj.BlockList(1,Listindex),referenceFrame);
@@ -92,12 +108,12 @@ classdef MotionCompensationEngine_Block
                              Blockcount = Blockcount +1;
                              Listindex = Listindex +1;
                         else
-                            
+
                         end
-                         
+
                     end
                  end
-            
+
             if obj.BlockList(1,Listindex-1).frameType ==0
                     referenceFrame_cal=int16(obj.predictedFrame)+int16(obj.residualVideo(:,:,Framecount+1));
                     referenceFrame=uint8(referenceFrame_cal);
@@ -121,7 +137,7 @@ classdef MotionCompensationEngine_Block
 %             end
         
           
-%         end    
+%         end
    
         function obj = residualFrameGenerator(obj)
             p=1;
@@ -130,7 +146,7 @@ classdef MotionCompensationEngine_Block
             index = 1;
             while (isempty(BlockList1)~=1) 
                 Blockcount = 0;
-                while Blockcount < ((obj.video_height/obj.block_height))* (obj.video_width/(obj.block_width))                   
+                while Blockcount < ((obj.video_height/obj.block_height))* (obj.video_width/(obj.block_width))
                     if obj.BlockList(index).frameType ==0
                         %inter
                         for i=0:1:(obj.video_height/obj.block_height) - 1
