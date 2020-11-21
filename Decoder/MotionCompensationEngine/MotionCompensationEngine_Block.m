@@ -79,8 +79,14 @@ classdef MotionCompensationEngine_Block
                              Listindex = Listindex +1;
                          else
                              for i =1:1:4
+                                 %differential decoding for motion vector
                                  mvx = obj.BlockList(1,Listindex).MotionVector.x;
                                  mvy = obj.BlockList(1,Listindex).MotionVector.y;
+                                 mvx = Previousmvx - mvx;
+                                 mvy = Previousmvy - mvy;
+                                 Previousmvx = mvx;
+                                 Previousmvy = mvy;
+                                 
                                  matrixHeight = obj.BlockList(1,Listindex).top_height_index;
                                  matrixWidth = obj.BlockList(1,Listindex).left_width_index;
                                  obj.predictedFrame(matrixHeight:matrixHeight+obj.Split_block_height - 1, matrixWidth:matrixWidth + obj.Split_block_width - 1) = ref1(matrixHeight+mvx:matrixHeight+mvx+obj.Split_block_height - 1,matrixWidth+mvy:matrixWidth+mvy+obj.Split_block_width - 1 );
