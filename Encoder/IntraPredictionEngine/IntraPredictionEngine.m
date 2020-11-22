@@ -11,7 +11,7 @@ classdef IntraPredictionEngine
         flag;
         smallblock_4;
         predictedblock_4;
-        mode_4=[];
+        mode_4;
         SAD;
         SAD_4=[];
         final_frame;
@@ -154,11 +154,11 @@ classdef IntraPredictionEngine
                 end
             elseif (obj.flag==1)
                 if(SAD_h<=SAD_v)
-                    obj.blocks.Mode=[0 obj.mode_4];
+                    obj.blocks.Mode=0;
                     obj.smallblock_4=pred_block_hor;
                     obj.SAD_4=[obj.SAD_4 SAD_h];
                 else
-                    obj.blocks.Mode=[1 obj.mode_4];
+                    obj.blocks.Mode=1;
                     obj.smallblock_4=pred_block_ver;
                     obj.SAD_4=[obj.SAD_4 SAD_v];
                 end

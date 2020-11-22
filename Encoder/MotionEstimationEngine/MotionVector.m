@@ -8,7 +8,13 @@ classdef MotionVector
             obj.x = x;
             obj.y = y;
         end
-        
+        function obj = changeX(obj,x)
+            obj.x = x;
+
+        end
+        function obj = changeY(obj,y)
+            obj.y = y;
+        end
         function r = getL1Norm(obj)
             r = abs(obj.x) + abs(obj.y); 
         end

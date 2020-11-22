@@ -23,7 +23,6 @@ classdef ReverseEntropyPredictionInfoEngine
         motionvector_height;
         motionvector_height_pad
         motionvector_width;
-        motionvector_width_pad
         motionvectorframe;
         modevectorframe;
         number_of_frames;
@@ -41,11 +40,7 @@ classdef ReverseEntropyPredictionInfoEngine
             obj.motionvector_height_pad=obj.motionvector_height+(obj.block_height -(rem(obj.motionvector_height,obj.block_height)));
             
             obj.motionvector_width=(obj.video_width/obj.block_width)*2;
-            if(rem(obj.motionvector_width,obj.block_width)~=0)
-                    obj.motionvector_width_pad=obj.motionvector_width+(obj.block_width -(rem(obj.motionvector_width,obj.block_width)));
-            else
-                obj.motionvector_width_pad=obj.motionvector_width;
-            end        
+            
             
             obj.mode_height=obj.video_height/obj.block_height;
             obj.mode_height_pad=obj.mode_height+(obj.block_height -(rem(obj.mode_height,obj.block_height)));
@@ -59,7 +54,7 @@ classdef ReverseEntropyPredictionInfoEngine
             obj = obj.invRLE();
             
             obj = obj.generateFrame();
-
+            
         end
         
         function value = removepadding(obj,block_height,block_width)
@@ -84,7 +79,7 @@ classdef ReverseEntropyPredictionInfoEngine
                 if(obj.frameType(f)==0)
                      k=0;
                      for i=0:1:(obj.motionvector_height_pad/obj.block_height)-1
-                        for j=0:1:((obj.motionvector_width_pad/obj.block_width))-1
+                        for j=0:1:((obj.motionvector_width/obj.block_width))-1
                         matrixHeight = (i) * obj.block_height + 1;
                         matrixWidth = (j) * obj.block_width + 1;
 
@@ -163,20 +158,12 @@ classdef ReverseEntropyPredictionInfoEngine
             while(isempty(obj.decodedList)~=1)
             
 %             obj.QP=obj.decodedList(size(obj.decodedList,2));
-            obj.TypeLi(obj.number_of_frames)=obj.decodedList(1);
-            if obj.TypeLi(obj.number_of_frames)==1
-                obj.ModeLi(obj.number_of_frames)=obj.decodedList(2);
-            else
-                obj.RefLi(obj.number_of_frames)=obj.decodedList(2);
-            end
-            obj.SplitLi(obj.number_of_frames)=obj.decodedList(3);
-            obj.QPLi(obj.number_of_frames)=obj.decodedList(4);
-
-            obj.decodedList=obj.decodedList(5:end);
+            obj.frameType(obj.number_of_frames)=obj.decodedList(1);
+            obj.decodedList=obj.decodedList(2:end);
 %             obj.decodedList(end)=[];
             
             if(obj.frameType(obj.number_of_frames)==0)
-                index_val=obj.motionvector_height_pad*obj.motionvector_width_pad;
+                index_val=obj.motionvector_height_pad*obj.motionvector_width;
             elseif(obj.frameType(obj.number_of_frames)==1)
                 index_val=obj.mode_height_pad*obj.mode_width_pad;
             end
