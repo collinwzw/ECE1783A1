@@ -52,7 +52,8 @@ classdef Encoder
             processedBlock.data = dct2(processedBlock.data);
 
             %input transformed frame to quantization engine
-            processedBlock.data = QuantizationEngine(processedBlock).qtc;
+
+            processedBlock.data= QuantizationEngine(processedBlock).qtc;
             
             %call entropy engine to encode the quantized transformed frame
             %and save it.
@@ -82,7 +83,7 @@ classdef Encoder
         
         function type = generateTypeMatrix(obj)
             type = zeros(1, obj.inputvideo.numberOfFrames);
-            obj.I_Period = 10;
+%             obj.I_Period = 10;
             for i = 1: obj.I_Period:obj.inputvideo.numberOfFrames
                 type(i) = 1;
             end
@@ -94,7 +95,7 @@ classdef Encoder
             lastIFrame=-1;
             type = obj.generateTypeMatrix();
             %for i = 1: 1:obj.inputvideo.numberOfFrames
-            for i = 1: 1: 2
+            for i = 1: 1: 1
                 if type(i) == 1
                     obj.reconstructedVideo.Y(:,:,i) = obj.inputvideo.Y(:,:,i);
                     obj.reconstructedVideo.Y(:,:,i) = zeros( obj.inputvideo.width , obj.inputvideo.height);
@@ -116,7 +117,7 @@ classdef Encoder
                              obj.count = obj.count + 1;
                              predicted_value = predicted_value.setframeType(type(i));
                              [processedBlock, en] = obj.generateReconstructedFrame(i,predicted_value,deframe );
-                             obj.reconstructedVideo.Y(processedBlock.top_height_index:processedBlock.top_height_index + obj.block_height-1,processedBlock.left_width_index:processedBlock.left_width_index + obj.block_width-1,i) = uint8(processedBlock.data);                             
+                             obj.reconstructedVideo.Y(processedBlock.top_height_index:processedBlock.top_height_index + obj.block_height-1,processedBlock.left_width_index:processedBlock.left_width_index + obj.block_width-1,i) = uint8(processedBlock.data);
                              obj.OutputBitstream = [obj.OutputBitstream en.bitstream];
 
                          else
@@ -150,7 +151,7 @@ classdef Encoder
                                     count=count+1;
                                     SAD4=[SAD4 intrapred_4.SAD_4];
                                     mode4=[mode4 predicted_value_4.Mode];
-                                    
+
                                 end
                              end
                              cost=RDO(predicted_value.data,predictedblock_4,obj.block_height,obj.block_width,intrapred.SAD,SAD4);
@@ -161,7 +162,7 @@ classdef Encoder
                                  obj.reconstructedVideo.Y(predicted_value.top_height_index:predicted_value.top_height_index + obj.block_height-1,predicted_value.left_width_index:predicted_value.left_width_index + obj.block_width-1,i) = reference_frame4(predicted_value.top_height_index:predicted_value.top_height_index + obj.block_height-1,predicted_value.left_width_index:predicted_value.left_width_index + obj.block_width-1);
                                  obj.OutputBitstream = [obj.OutputBitstream temp_bitstream4];
                              end
-                             reference_frame(:,:)=obj.reconstructedVideo.Y;
+%                              reference_frame(:,:)=obj.reconstructedVideo.Y;
                          end
                       end
 
@@ -193,10 +194,10 @@ classdef Encoder
                                     bestMatchBlock.referenceFrameIndex = referenceframe_index;
                                 end
                                 if obj.VBSEnable == true
-                                    % variable block size  
+                                    % variable block size
                                     SAD4=0;
                                     SubBlockList = [];
-                                    previousMVSubBlock = previousMV; 
+                                    previousMVSubBlock = previousMV;
                                     for row_i =1:1:2
                                        for col_i=1:1:2
                                            %truncate the original block to
@@ -210,10 +211,10 @@ classdef Encoder
                                         SubBlockME_result = MotionEstimationEngine(obj.r,subBlock_list(subBlockIndex), uint8(obj.reconstructedVideo.Y(:,:,referenceframe_index)), obj.block_width/2, obj.block_height/2,obj.FEMEnable, obj.FastME, previousMVSubBlock);
                                         SAD4 = SAD4 + SubBlockME_result.differenceForBestMatchBlock;
                                         SubBlockME_result.bestMatchBlock.referenceFrameIndex = referenceframe_index;
-                                        
-                                        previousMVSubBlock = SubBlockME_result.bestMatchBlock.MotionVector;                                         
+
+                                        previousMVSubBlock = SubBlockME_result.bestMatchBlock.MotionVector;
                                         SubBlockList = [SubBlockList SubBlockME_result.bestMatchBlock];
-                                    end                                    
+                                    end
                                     if SAD4 < min_value
                                         %compare to the minvalue
                                         min_value = SAD4;
@@ -222,27 +223,27 @@ classdef Encoder
                                 end
                              end
                          end
-                     
+
                          for bestMatchBlockIndex = 1:1:size(bestMatchBlock,2)
                                 %set the frame type for the block
                                 bestMatchBlock(bestMatchBlockIndex) = bestMatchBlock(bestMatchBlockIndex).setframeType(type(i));
-                                
+
                                 %differential encoding for motion vector
                                 tempPreviousMV = bestMatchBlock(bestMatchBlockIndex).MotionVector;
                                 bestMatchBlock(bestMatchBlockIndex) = bestMatchBlock(bestMatchBlockIndex).setbitMotionVector( MotionVector(previousMV.x - bestMatchBlock(bestMatchBlockIndex).MotionVector.x, previousMV.y - bestMatchBlock(bestMatchBlockIndex).MotionVector.y));
                                 previousMV = tempPreviousMV;
-                                
+
                                 %differential encoding for reference frame index
                                 tempPreviousFrameIndex = bestMatchBlock(bestMatchBlockIndex).referenceFrameIndex;
                                 bestMatchBlock(bestMatchBlockIndex).referenceFrameIndex = previousFrameIndex - bestMatchBlock(bestMatchBlockIndex).referenceFrameIndex;
                                 previousFrameIndex = tempPreviousFrameIndex;
-                                
+
                                 [processedBlock, en] = obj.generateReconstructedFrame(i,bestMatchBlock(bestMatchBlockIndex),deframe );
                                 obj.reconstructedVideo.Y(processedBlock.top_height_index:processedBlock.top_height_index + bestMatchBlock(bestMatchBlockIndex).block_height-1,processedBlock.left_width_index:processedBlock.left_width_index + bestMatchBlock(bestMatchBlockIndex).block_width-1,i) = uint8(processedBlock.data);
                                 obj.OutputBitstream = [obj.OutputBitstream en.bitstream];
 
                          end
-                
+
                     end
 
 %                     deframe = DifferentialEncodingEngine();
@@ -278,8 +279,8 @@ classdef Encoder
                 end
             end
         end
-        
-        
+
+
         function subBlockList = VBStruncate(obj,blcok)
             %This function truncate the frame and to blocks.
             %from each truncated block in current frame, it gets the best

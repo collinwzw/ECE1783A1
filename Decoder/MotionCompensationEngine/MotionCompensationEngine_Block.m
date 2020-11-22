@@ -113,9 +113,9 @@ classdef MotionCompensationEngine_Block
                             Decoded_value=Intra_prediction.decoded_block;
                              matrixHeight = obj.BlockList(1,Listindex).top_height_index;
                              matrixWidth = obj.BlockList(1,Listindex).left_width_index;
-                             obj.predictedFrame(matrixHeight : matrixHeight+obj.Split_block_height - 1, matrixWidth : matrixWidth + obj.BlockList(1,Listindex).block_width - 1) = Decoded_value;
-                             referenceFrame_cal(matrixHeight : matrixHeight+obj.Split_block_height - 1, matrixWidth : matrixWidth + obj.BlockList(1,Listindex).block_width - 1)=int16(obj.predictedFrame(matrixHeight : matrixHeight+obj.BlockList(1,Listindex).block_height - 1, matrixWidth : matrixWidth + obj.BlockList(1,Listindex).block_width - 1))+int16(obj.residualVideo(matrixHeight : matrixHeight+obj.BlockList(1,Listindex).block_height - 1, matrixWidth : matrixWidth + obj.BlockList(1,Listindex).block_width - 1,Framecount+1));
-                             referenceFrame=uint8(referenceFrame_cal);
+                             obj.predictedFrame(matrixHeight:matrixHeight+obj.Split_block_height - 1, matrixWidth:matrixWidth + obj.Split_block_width - 1) = Decoded_value;
+                             referenceFrame_cal(matrixHeight:matrixHeight+obj.Split_block_height - 1, matrixWidth:matrixWidth + obj.Split_block_width - 1)=int16(obj.predictedFrame(matrixHeight:matrixHeight+obj.Split_block_height - 1, matrixWidth:matrixWidth + obj.Split_block_width - 1))+int16(abs(-obj.residualVideo(matrixHeight:matrixHeight+obj.Split_block_height - 1, matrixWidth:matrixWidth + obj.Split_block_width - 1,Framecount+1));
+                             referenceFrame=uint8(abs(referenceFrame_cal));
                              Listindex = Listindex +1;
                             end
                             Blockcount = Blockcount +1;
