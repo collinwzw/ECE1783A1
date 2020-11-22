@@ -102,13 +102,23 @@ classdef MotionCompensationEngine_Block
                              Decoded_value=Intra_prediction.decoded_block;
                              matrixHeight = obj.BlockList(1,Listindex).top_height_index;
                              matrixWidth = obj.BlockList(1,Listindex).left_width_index;
-                             obj.predictedFrame(matrixHeight : matrixHeight+obj.BlockList(1,Listindex).block_height - 1, matrixWidth : matrixWidth + obj.BlockList(1,Listindex).block_width - 1) = Decoded_value;
-                             referenceFrame_cal(matrixHeight : matrixHeight+obj.BlockList(1,Listindex).block_height - 1, matrixWidth : matrixWidth + obj.BlockList(1,Listindex).block_width - 1)=int16(obj.predictedFrame(matrixHeight : matrixHeight+obj.BlockList(1,Listindex).block_height - 1, matrixWidth : matrixWidth + obj.BlockList(1,Listindex).block_width - 1))+int16(obj.residualVideo(matrixHeight : matrixHeight+obj.BlockList(1,Listindex).block_height - 1, matrixWidth : matrixWidth + obj.BlockList(1,Listindex).block_width - 1,Framecount+1));
+                             obj.predictedFrame(matrixHeight:matrixHeight+obj.Split_block_height - 1, matrixWidth:matrixWidth + obj.Split_block_width - 1) = Decoded_value;
+                             referenceFrame_cal(matrixHeight:matrixHeight+obj.Split_block_height - 1, matrixWidth:matrixWidth + obj.Split_block_width - 1)=int16(obj.predictedFrame(matrixHeight:matrixHeight+obj.Split_block_height - 1, matrixWidth:matrixWidth + obj.Split_block_width - 1))+int16(obj.residualVideo(matrixHeight:matrixHeight+obj.Split_block_height - 1, matrixWidth:matrixWidth + obj.Split_block_width - 1,Framecount+1));
                              referenceFrame=uint8(referenceFrame_cal);
                              Blockcount = Blockcount +1;
                              Listindex = Listindex +1;
                         else
-
+for i=1:1:4
+                            Intra_prediction=IntraPredictionEngine_decode(obj.BlockList(1,Listindex),referenceFrame);
+                            Decoded_value=Intra_prediction.decoded_block;
+                             matrixHeight = obj.BlockList(1,Listindex).top_height_index;
+                             matrixWidth = obj.BlockList(1,Listindex).left_width_index;
+                             obj.predictedFrame(matrixHeight : matrixHeight+obj.Split_block_height - 1, matrixWidth : matrixWidth + obj.BlockList(1,Listindex).block_width - 1) = Decoded_value;
+                             referenceFrame_cal(matrixHeight : matrixHeight+obj.Split_block_height - 1, matrixWidth : matrixWidth + obj.BlockList(1,Listindex).block_width - 1)=int16(obj.predictedFrame(matrixHeight : matrixHeight+obj.BlockList(1,Listindex).block_height - 1, matrixWidth : matrixWidth + obj.BlockList(1,Listindex).block_width - 1))+int16(obj.residualVideo(matrixHeight : matrixHeight+obj.BlockList(1,Listindex).block_height - 1, matrixWidth : matrixWidth + obj.BlockList(1,Listindex).block_width - 1,Framecount+1));
+                             referenceFrame=uint8(referenceFrame_cal);
+                             Listindex = Listindex +1;
+                            end
+                            Blockcount = Blockcount +1;
                         end
 
                     end
@@ -202,7 +212,7 @@ classdef MotionCompensationEngine_Block
                     else % I frame
                         for i=0:1:(obj.video_height/obj.block_height) - 1
                             for j=0:1:obj.video_width/(obj.block_width) -1
-%                                     if SplitList1(1) == 0
+                                    if SplitList1(1) == 0
                                         matrixHeight = (i) * obj.block_height + 1;
                                         matrixWidth = (j) * obj.block_width + 1;
                                         obj.residualFrame(matrixHeight:matrixHeight+obj.BlockList(index).block_height - 1, matrixWidth:matrixWidth + obj.BlockList(index).block_width - 1) = BlockList1(1).data;
@@ -212,8 +222,41 @@ classdef MotionCompensationEngine_Block
                                         BlockList1 =  BlockList1(2:end);
                                         SplitList1 =  SplitList1(2:end);
                                         Blockcount = Blockcount + 1 ;
-%                                     end
+                                    else
+                                       matrixHeight = (i) * obj.block_height + 1;
+                                        matrixWidth = (j) * obj.block_width + 1;
+                                        obj.residualFrame(matrixHeight:matrixHeight+obj.Split_block_height - 1, matrixWidth:matrixWidth + obj.Split_block_width - 1) = BlockList1(1).data;
+                                        obj.BlockList(index).top_height_index = matrixHeight;
+                                        obj.BlockList(index).left_width_index = matrixWidth;
+                                        index = index +1;
+
+
+
+                                        matrixWidth = matrixWidth + obj.Split_block_width;
+                                        obj.residualFrame(matrixHeight:matrixHeight+obj.Split_block_height - 1, matrixWidth:matrixWidth + obj.Split_block_width - 1) = BlockList1(2).data;
+                                        obj.BlockList(index).top_height_index = matrixHeight;
+                                        obj.BlockList(index).left_width_index = matrixWidth;
+                                        index = index +1;
+
+                                        matrixHeight = matrixHeight + obj.Split_block_height;
+                                        matrixWidth = matrixWidth - obj.Split_block_width;
+                                        obj.residualFrame(matrixHeight:matrixHeight+obj.Split_block_height - 1, matrixWidth:matrixWidth + obj.Split_block_width - 1) = BlockList1(3).data;
+                                        obj.BlockList(index).top_height_index = matrixHeight;
+                                        obj.BlockList(index).left_width_index = matrixWidth;
+                                        index = index +1;
+
+                                        matrixWidth = matrixWidth + obj.Split_block_width;
+                                        obj.residualFrame(matrixHeight:matrixHeight+obj.Split_block_height - 1, matrixWidth:matrixWidth + obj.Split_block_width - 1) = BlockList1(4).data;
+                                        obj.BlockList(index).top_height_index = matrixHeight;
+                                        obj.BlockList(index).left_width_index = matrixWidth;
+                                        index = index +1;
+
+                                        BlockList1 =  BlockList1(5:end);
+                                        SplitList1 =  SplitList1(5:end);
+                                        Blockcount = Blockcount + 1 ;
+                                    end
                             end
+
                         end
                         obj.residualVideo(:,:,p) = obj.residualFrame;
                         obj.numberOfFrames = p;
