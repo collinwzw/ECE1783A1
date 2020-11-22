@@ -48,10 +48,10 @@ classdef MotionCompensationEngine_Block
             obj = obj.SplitListGenerator();
             obj = obj.residualFrameGenerator();      
                     
-            inputFilename = 'Z:\Semester 3\Design tradeoff\foremanY_cif.yuv';
-            v1 = YOnlyVideo(inputFilename, 352, 288);
-            [v1WithPadding,v1Averaged] = v1.block_creation(v1.Y,block_width,block_height);
-            ref1 = v1WithPadding.Y(:,:,1);
+%             inputFilename = 'Z:\Semester 3\Design tradeoff\foremanY_cif.yuv';
+%             v1 = YOnlyVideo(inputFilename, 352, 288);
+%             [v1WithPadding,v1Averaged] = v1.block_creation(v1.Y,block_width,block_height);
+%             ref1 = v1WithPadding.Y(:,:,1);
             referenceFrame=[];
             Blockcount = 0;
             Framecount = 0;
@@ -178,8 +178,6 @@ classdef MotionCompensationEngine_Block
                                         obj.BlockList(index).top_height_index = matrixHeight;
                                         obj.BlockList(index).left_width_index = matrixWidth;
                                         index = index +1;
-                                        
-
 
                                         matrixWidth = matrixWidth + obj.Split_block_width;
                                         obj.residualFrame(matrixHeight:matrixHeight+obj.Split_block_height - 1, matrixWidth:matrixWidth + obj.Split_block_width - 1) = BlockList1(2).data;

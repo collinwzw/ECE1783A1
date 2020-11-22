@@ -120,6 +120,7 @@ classdef Encoder
                              obj.OutputBitstream = [obj.OutputBitstream en.bitstream];
 
                          else
+                             temp_bitstream1=[];
                              predicted_value=intrapred.blocks;
                              predicted_value.data=intrapred.predictedblock;
                              predicted_value.split=0;
@@ -138,6 +139,8 @@ classdef Encoder
                                      predicted_value_4=intrapred_4.blocks;
                                      predicted_value_4.data=intrapred_4.smallblock_4;
                                      predicted_value_4.split=1;
+                                     predicted_value_4.QP=obj.QP-1;
+                                     predicted_value_4 = predicted_value_4.setframeType(type(i));
                                      [processedBlock, en] = obj.generateReconstructedFrame(i,predicted_value_4,deframe );
                                     temp_bitstream4=[temp_bitstream4 en.bitstream];
                                     curr_row=1+((row_i-1)*obj.block_height/2):(row_i)*obj.block_height/2;
@@ -147,6 +150,7 @@ classdef Encoder
                                     count=count+1;
                                     SAD4=[SAD4 intrapred_4.SAD_4];
                                     mode4=[mode4 predicted_value_4.Mode];
+                                    
                                 end
                              end
                              cost=RDO(predicted_value.data,predictedblock_4,obj.block_height,obj.block_width,intrapred.SAD,SAD4);
