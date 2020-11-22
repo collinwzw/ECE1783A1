@@ -39,7 +39,7 @@ e = Encoder(v1WithPadding,block_width, block_height,r ,n, QP, I_Period,nRefFrame
 c=ReverseEntropyEngine_Block(e.OutputBitstream,block_width,block_height,288,352);
 BlockList = c.BlockList;
 
-d=MotionCompensationEngine_Block(BlockList,block_width,block_height,288,352, FEMEnable);
+d=MotionCompensationEngine_Block(BlockList,block_width,block_height,288,352, FEMEnable,nRefFrame);
 % 
 % %write the residual bitstream and prediction info bitstream to file
 % writeEntropyToTxt(e,'.\output\entropyVideo.txt','.\output\predictionVideo.txt');

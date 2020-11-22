@@ -32,11 +32,14 @@ classdef MotionCompensationEngine_Block
         Split_block_width;
         Split_block_height;
         
-        FEMEnable
+        FEMEnable;
+        RefFramesBuffer;
+        nRefFrame;
+        CurRefFrame;
     end
 
     methods(Access = 'public')
-        function obj = MotionCompensationEngine_Block(BlockList,block_width,block_height,video_width,video_height,FEMEnable)
+        function obj = MotionCompensationEngine_Block(BlockList,block_width,block_height,video_width,video_height,FEMEnable,nRefFrame)
             obj.BlockList = BlockList;
             obj.BlockList_copy = BlockList;
             obj.block_width = block_width;
@@ -46,6 +49,8 @@ classdef MotionCompensationEngine_Block
             obj.video_width = video_width;
             obj.video_height = video_height;
             obj.FEMEnable = FEMEnable;
+            obj.nRefFrame = nRefFrame;
+            
             obj = obj.TypeListGenerator();
             obj = obj.SplitListGenerator();
             obj = obj.residualFrameGenerator();      
@@ -288,7 +293,35 @@ classdef MotionCompensationEngine_Block
             for p = 1:1:size (obj.BlockList,2)
                 obj.SplitList = [obj.SplitList obj.BlockList(1, p).split];
             end
-        end   
+        end
+        
+        function obj=RefFramesBufferGenerator(obj)
+            obj.RefFramesBuffer=[];
+            Temp = zeros( size(obj.residualFrame));
+            for i=1:1:obj.nRefFrame
+                obj.RefFramesBuffer(:,:,i)=Temp;
+            end
+        end
+        
+        function obj=AppendCurRefFrameToBuffer(obj)
+            k=obj.nRefFrame;
+            while k>1
+                obj.RefFramesBuffer(:,:,k)=obj.RefFramesBuffer(:,:,k-1);
+                k = k-1;
+            end
+            obj.RefFramesBuffer(:,:,1)=obj.CurRefFrame;
+        end
+        
+        
+        function obj=clearRefFrameBuffer(obj)
+            Temp = zeros( size(obj.residualFrame)); 
+            k=obj.nRefFrame;
+            while k>0
+                obj.RefFramesBuffer(:,:,k)=Temp;
+                k = k-1;
+            end
+        end
+        
       end
 end
 
