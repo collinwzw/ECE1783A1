@@ -95,9 +95,9 @@ classdef Encoder
             lastIFrame=-1;
             type = obj.generateTypeMatrix();
             %for i = 1: 1:obj.inputvideo.numberOfFrames
-            for i = 1: 1: 1
+            for i = 1: 1:2 
                 if type(i) == 1
-                    obj.reconstructedVideo.Y(:,:,i) = obj.inputvideo.Y(:,:,i);
+                    
                     obj.reconstructedVideo.Y(:,:,i) = zeros( obj.inputvideo.width , obj.inputvideo.height);
                     lastIFrame = i;
                     reference_frame1=[];
@@ -108,18 +108,16 @@ classdef Encoder
                       block_list = obj.truncateFrameToBlocks(i);
                       length = size(block_list,2);
                       for index=1:1:length
-                         intrapred=IntraPredictionEngine(block_list(index),obj.reconstructedVideo.Y);
+                         intrapred=IntraPredictionEngine(block_list(index),obj.reconstructedVideo.Y(:,:,i));
                          intrapred=intrapred.block_creation();
                          if(obj.VBSEnable==0)
                              predicted_value=intrapred.blocks;
                              predicted_value.data=intrapred.predictedblock;
                              predicted_value.split=0;
-                             obj.count = obj.count + 1;
                              predicted_value = predicted_value.setframeType(type(i));
                              [processedBlock, en] = obj.generateReconstructedFrame(i,predicted_value,deframe );
                              obj.reconstructedVideo.Y(processedBlock.top_height_index:processedBlock.top_height_index + obj.block_height-1,processedBlock.left_width_index:processedBlock.left_width_index + obj.block_width-1,i) = uint8(processedBlock.data);
                              obj.OutputBitstream = [obj.OutputBitstream en.bitstream];
-
                          else
                              temp_bitstream1=[];
                              predicted_value=intrapred.blocks;
@@ -127,7 +125,7 @@ classdef Encoder
                              predicted_value.split=0;
                              predicted_value = predicted_value.setframeType(type(i));
                              [processedBlock, en] = obj.generateReconstructedFrame(i,predicted_value,deframe );
-                             reference_frame1(processedBlock.top_height_index:processedBlock.top_height_index + obj.block_height-1,processedBlock.left_width_index:processedBlock.left_width_index + obj.block_width-1,i) = uint8(processedBlock.data);
+                             reference_frame1(processedBlock.top_height_index:processedBlock.top_height_index + obj.block_height-1,processedBlock.left_width_index:processedBlock.left_width_index + obj.block_width-1) = uint8(processedBlock.data);
                              temp_bitstream1=en.bitstream;
                               count=1;
                               SAD4=[];
