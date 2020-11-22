@@ -48,16 +48,16 @@ classdef MotionCompensationEngine_Block
             obj = obj.SplitListGenerator();
             obj = obj.residualFrameGenerator();      
                     
-            %inputFilename = 'Z:\Semester 3\Design tradeoff\foremanY_cif.yuv';
-            %v1 = YOnlyVideo(inputFilename, 352, 288);
-            %[v1WithPadding,v1Averaged] = v1.block_creation(v1.Y,block_width,block_height);
-            %ref1 = v1WithPadding.Y(:,:,1);
+            inputFilename = 'Z:\Semester 3\Design tradeoff\foremanY_cif.yuv';
+            v1 = YOnlyVideo(inputFilename, 352, 288);
+            [v1WithPadding,v1Averaged] = v1.block_creation(v1.Y,block_width,block_height);
+            ref1 = v1WithPadding.Y(:,:,1);
             referenceFrame=[];
             Blockcount = 0;
             Framecount = 0;
             Listindex = 1;
             while Framecount <obj.numberOfFrames
-                Previousmvx = 0;
+                                Previousmvx = 0;
                 Previousmvy = 0;
                 PreviousrefIn = 0;
                  while Blockcount < ((obj.video_height/obj.block_height))* (obj.video_width/(obj.block_width))
@@ -95,7 +95,7 @@ classdef MotionCompensationEngine_Block
                              end
                              Blockcount = Blockcount +1;    
                          end
-
+                         
                     else %I frame
                         if obj.BlockList(1,Listindex).split==0
                              Intra_prediction=IntraPredictionEngine_decode(obj.BlockList(1,Listindex),referenceFrame);
@@ -108,7 +108,7 @@ classdef MotionCompensationEngine_Block
                              Blockcount = Blockcount +1;
                              Listindex = Listindex +1;
                         else
-for i=1:1:4
+                            for i=1:1:4
                             Intra_prediction=IntraPredictionEngine_decode(obj.BlockList(1,Listindex),referenceFrame);
                             Decoded_value=Intra_prediction.decoded_block;
                              matrixHeight = obj.BlockList(1,Listindex).top_height_index;
@@ -120,10 +120,10 @@ for i=1:1:4
                             end
                             Blockcount = Blockcount +1;
                         end
-
+                         
                     end
                  end
-
+            
             if obj.BlockList(1,Listindex-1).frameType ==0
                     referenceFrame_cal=int16(obj.predictedFrame)+int16(obj.residualVideo(:,:,Framecount+1));
                     referenceFrame=uint8(referenceFrame_cal);
@@ -147,7 +147,7 @@ for i=1:1:4
 %             end
         
           
-%         end
+%         end    
    
         function obj = residualFrameGenerator(obj)
             p=1;
@@ -156,7 +156,7 @@ for i=1:1:4
             index = 1;
             while (isempty(BlockList1)~=1) 
                 Blockcount = 0;
-                while Blockcount < ((obj.video_height/obj.block_height))* (obj.video_width/(obj.block_width))
+                while Blockcount < ((obj.video_height/obj.block_height))* (obj.video_width/(obj.block_width))                   
                     if obj.BlockList(index).frameType ==0
                         %inter
                         for i=0:1:(obj.video_height/obj.block_height) - 1
@@ -229,7 +229,7 @@ for i=1:1:4
                                         obj.BlockList(index).top_height_index = matrixHeight;
                                         obj.BlockList(index).left_width_index = matrixWidth;
                                         index = index +1;
-
+                                        
 
 
                                         matrixWidth = matrixWidth + obj.Split_block_width;
@@ -256,7 +256,7 @@ for i=1:1:4
                                         Blockcount = Blockcount + 1 ;
                                     end
                             end
-
+                            
                         end
                         obj.residualVideo(:,:,p) = obj.residualFrame;
                         obj.numberOfFrames = p;
