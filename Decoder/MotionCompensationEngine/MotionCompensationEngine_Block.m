@@ -48,10 +48,10 @@ classdef MotionCompensationEngine_Block
             obj = obj.SplitListGenerator();
             obj = obj.residualFrameGenerator();      
                     
-            inputFilename = 'Z:\Semester 3\Design tradeoff\foremanY_cif.yuv';
-            v1 = YOnlyVideo(inputFilename, 352, 288);
-            [v1WithPadding,v1Averaged] = v1.block_creation(v1.Y,block_width,block_height);
-            ref1 = v1WithPadding.Y(:,:,1);
+            %inputFilename = 'Z:\Semester 3\Design tradeoff\foremanY_cif.yuv';
+            %v1 = YOnlyVideo(inputFilename, 352, 288);
+            %[v1WithPadding,v1Averaged] = v1.block_creation(v1.Y,block_width,block_height);
+            %ref1 = v1WithPadding.Y(:,:,1);
             referenceFrame=[];
             Blockcount = 0;
             Framecount = 0;
@@ -102,8 +102,8 @@ classdef MotionCompensationEngine_Block
                              Decoded_value=Intra_prediction.decoded_block;
                              matrixHeight = obj.BlockList(1,Listindex).top_height_index;
                              matrixWidth = obj.BlockList(1,Listindex).left_width_index;
-                             obj.predictedFrame(matrixHeight:matrixHeight+obj.Split_block_height - 1, matrixWidth:matrixWidth + obj.Split_block_width - 1) = Decoded_value;
-                             referenceFrame_cal(matrixHeight:matrixHeight+obj.Split_block_height - 1, matrixWidth:matrixWidth + obj.Split_block_width - 1)=int16(obj.predictedFrame(matrixHeight:matrixHeight+obj.Split_block_height - 1, matrixWidth:matrixWidth + obj.Split_block_width - 1))+int16(obj.residualVideo(matrixHeight:matrixHeight+obj.Split_block_height - 1, matrixWidth:matrixWidth + obj.Split_block_width - 1,Framecount+1));
+                             obj.predictedFrame(matrixHeight : matrixHeight+obj.block_height - 1, matrixWidth : matrixWidth + obj.block_width - 1) = Decoded_value;
+                             referenceFrame_cal(matrixHeight : matrixHeight+obj.block_height - 1, matrixWidth : matrixWidth + obj.block_width - 1)=int16(obj.predictedFrame(matrixHeight : matrixHeight+obj.block_height - 1, matrixWidth : matrixWidth + obj.block_width - 1))+int16(obj.residualVideo(matrixHeight : matrixHeight+obj.block_height - 1, matrixWidth : matrixWidth + obj.block_width - 1,Framecount+1));
                              referenceFrame=uint8(referenceFrame_cal);
                              Blockcount = Blockcount +1;
                              Listindex = Listindex +1;
