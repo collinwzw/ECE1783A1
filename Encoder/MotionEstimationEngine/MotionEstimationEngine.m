@@ -36,7 +36,7 @@ classdef MotionEstimationEngine
                 obj.differenceForBestMatchBlock = abs( currentBlock.getBlockSumValue() - bestMatchBlockUnprocessed.getBlockSumValue());
                 obj.bestMatchBlock = currentBlock;
                 obj.bestMatchBlock.data = bestMatchBlockUnprocessed.data;
-                obj.bestMatchBlock.MotionVector = referenceBlockList.MotionVector;
+                obj.bestMatchBlock.MotionVector = bestMatchBlockUnprocessed.MotionVector;
             end
         end
 
