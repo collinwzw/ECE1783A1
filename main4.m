@@ -14,6 +14,7 @@ v1 = YOnlyVideo(inputFilename, 352, 288);
 
 
 
+
 %I frame is 1
 %P frame is 0
 
@@ -27,7 +28,7 @@ I_Period = 10;
 nRefFrame = 1;
 FEMEnable = false;
 FastME = false;
-VBSEnable = false;
+VBSEnable = true;
 % 
 %pad the video if necessary
 [v1WithPadding,v1Averaged] = v1.block_creation(v1.Y,block_width,block_height);
@@ -37,7 +38,6 @@ e = Encoder(v1WithPadding,block_width, block_height,r ,n, QP, I_Period,nRefFrame
 
 c=ReverseEntropyEngine_Block(e.OutputBitstream,block_width,block_height,288,352);
 BlockList = c.BlockList;
-BlockList = BlockList(397:end);
 d=MotionCompensationEngine_Block(BlockList,block_width,block_height,288,352);
 % 
 % %write the residual bitstream and prediction info bitstream to file
