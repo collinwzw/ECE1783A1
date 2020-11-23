@@ -24,11 +24,11 @@ block_height = block_width;
 r = 2;
 n = 3;
 QP = 4;
-I_Period = 1;
+I_Period = 8;
 nRefFrame = 1;
 FEMEnable = false;
 FastME = false;
-VBSEnable = false;
+VBSEnable = true;
 % 
 %pad the video if necessary
 [v1WithPadding,v1Averaged] = v1.block_creation(v1.Y,block_width,block_height);
@@ -38,7 +38,7 @@ e = Encoder(v1WithPadding,block_width, block_height,r ,n, QP, I_Period,nRefFrame
 
 c=ReverseEntropyEngine_Block(e.OutputBitstream,block_width,block_height,288,352);
 BlockList = c.BlockList;
-
+%%
 d=MotionCompensationEngine_Block(BlockList,block_width,block_height,288,352, FEMEnable,nRefFrame);
 % 
 % %write the residual bitstream and prediction info bitstream to file
