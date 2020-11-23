@@ -54,6 +54,7 @@ fprintf(" configuration: i = %d, r = %d, QP = %d, IP = %d \n",block_width, r, QP
 fprintf(" number of bits for 10 frame = %d \n",totalBit );
 
 %%
+Blocks = c.BlockList;
 SplitList = [];
 for p = 1:1:size (Blocks,2)
     SplitList = [SplitList BlockList(1, p).split];
@@ -85,6 +86,31 @@ for k=1:1:d.numberOfFrames
     hold off;
     figure
 end
+
+%%
+%drawing boxes around blocks
+matrixWidth=0;
+matrixHeight=0;
+Blocklist= d.BlockList;
+blockIndex=0;
+for k=1:1:d.numberOfFrames
+    imshow(uint8(d.DecodedRefVideo(:,:,k)));
+    hold on;
+    for i=0:1:(d.video_height/block_height) - 1
+        for j=0:1:d.video_width/(block_width) -1
+            blockIndex=blockIndex+1;
+            matrixHeight = (i) * block_height + 1;
+            matrixWidth = (j) * block_width + 1;
+            if(Blocklist(blockIndex))
+                rectangle('Position',[160 160 16 16],'FaceColor',[0, 0, 1, 0.5])
+            end
+
+        end
+    end
+    hold off;
+    figure
+end
+
 %%
 %drawing lines for MV
 Framecount=0;

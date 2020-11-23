@@ -31,7 +31,7 @@ classdef MotionCompensationEngine_Block
         SplitList;
         Split_block_width;
         Split_block_height;
-
+        
         FEMEnable;
         RefFramesBuffer;
         nRefFrame;
@@ -50,7 +50,7 @@ classdef MotionCompensationEngine_Block
             obj.video_height = video_height;
             obj.FEMEnable = FEMEnable;
             obj.nRefFrame = nRefFrame;
-
+            
             obj = obj.TypeListGenerator();
             obj = obj.SplitListGenerator();
             obj = obj.residualFrameGenerator();      
@@ -81,10 +81,10 @@ classdef MotionCompensationEngine_Block
                              %Filling block to frame
                              matrixHeight = obj.BlockList(1,Listindex).top_height_index;
                              matrixWidth = obj.BlockList(1,Listindex).left_width_index;
-
-                             if (FEMEnable ==1)
+                             
+                             if (obj.FEMEnable ==1)
                                 if rem(mvx,2)==0 && rem(mvy,2)==0 %even even, look up mvx/2,mvy/2
-                                    obj.predictedFrame(matrixHeight : matrixHeight+obj.block_height - 1, matrixWidth : matrixWidth + obj.block_width - 1) = obj.DecodedRefVideo(matrixHeight+mvy/2:matrixHeight+mvy/2+obj.block_height - 1,matrixWidth+mvx/2:matrixWidth+mvx/2+obj.block_width - 1,  Framecount);
+                                    obj.predictedFrame(matrixHeight : matrixHeight+obj.block_height - 1, matrixWidth : matrixWidth + obj.block_width - 1) = ref1(matrixHeight+mvy/2:matrixHeight+mvy/2+obj.block_height - 1,matrixWidth+mvx/2:matrixWidth+mvx/2+obj.block_width - 1 );
 
                                 elseif rem(mvx,2)==0 && rem(mvy,2)==1  %even odd, look up average of (mvx,mvy-1) and (mvx,mvy+1)
                                     TempVal1 = ref1(matrixHeight+(mvy-1):matrixHeight+(mvy-1)+obj.block_height - 1,matrixWidth+mvx:matrixWidth+mvx+obj.block_width - 1 );
@@ -104,11 +104,11 @@ classdef MotionCompensationEngine_Block
                                     TempVal3 = ref1(matrixHeight+(mvy-1):matrixHeight+(mvy-1)+obj.block_height - 1,matrixWidth+mvx:matrixWidth+mvx+obj.block_width - 1 );
                                     TempVal4 = ref1(matrixHeight+(mvy+1):matrixHeight+(mvy+1)+obj.block_height - 1,matrixWidth+mvx:matrixWidth+mvx+obj.block_width - 1 );
                                     TempAvg = (TempVal1 + TempVal2 + TempVal3 + TempVal4) / 4;
-                                    obj.predictedFrame(matrixHeight : matrixHeight+obj.block_height - 1, matrixWidth : matrixWidth + obj.block_width - 1) = TempAvg;
+                                    obj.predictedFrame(matrixHeight : matrixHeight+obj.block_height - 1, matrixWidth : matrixWidth + obj.block_width - 1) = TempAvg;                                         
                                 end
-
+                                
                              else %%(FMEEnable ==0)
-                                obj.predictedFrame(matrixHeight : matrixHeight+obj.block_height - 1, matrixWidth : matrixWidth + obj.block_width - 1) = obj.DecodedRefVideo(matrixHeight+mvy:matrixHeight+mvy+obj.block_height - 1,matrixWidth+mvx:matrixWidth+mvx+obj.block_width - 1,  Framecount );
+                                obj.predictedFrame(matrixHeight : matrixHeight+obj.block_height - 1, matrixWidth : matrixWidth + obj.block_width - 1) = ref1(matrixHeight+mvy:matrixHeight+mvy+obj.block_height - 1,matrixWidth+mvx:matrixWidth+mvx+obj.block_width - 1 );
                              end
                              Blockcount = Blockcount +1;
                              Listindex = Listindex +1;
@@ -124,7 +124,7 @@ classdef MotionCompensationEngine_Block
 
                                  matrixHeight = obj.BlockList(1,Listindex).top_height_index;
                                  matrixWidth = obj.BlockList(1,Listindex).left_width_index;
-                                 if (FEMEnable ==1)
+                                 if (obj.FEMEnable ==1)
                                     if rem(mvx,2)==0 && rem(mvy,2)==0 %even even, look up mvx/2,mvy/2
                                         obj.predictedFrame(matrixHeight : matrixHeight+obj.Split_block_height - 1, matrixWidth : matrixWidth + obj.Split_block_width - 1) = ref1(matrixHeight+mvy/2:matrixHeight+mvy/2+obj.Split_block_height - 1,matrixWidth+mvx/2:matrixWidth+mvx/2+obj.Split_block_width - 1 );
 
@@ -146,17 +146,17 @@ classdef MotionCompensationEngine_Block
                                         TempVal3 = ref1(matrixHeight+(mvy-1):matrixHeight+(mvy-1)+obj.Split_block_height - 1,matrixWidth+mvx:matrixWidth+mvx+obj.Split_block_width - 1 );
                                         TempVal4 = ref1(matrixHeight+(mvy+1):matrixHeight+(mvy+1)+obj.Split_block_height - 1,matrixWidth+mvx:matrixWidth+mvx+obj.Split_block_width - 1 );
                                         TempAvg = (TempVal1 + TempVal2 + TempVal3 + TempVal4) / 4;
-                                        obj.predictedFrame(matrixHeight : matrixHeight+obj.Split_block_height - 1, matrixWidth : matrixWidth + obj.Split_block_width - 1) = TempAvg;
+                                        obj.predictedFrame(matrixHeight : matrixHeight+obj.Split_block_height - 1, matrixWidth : matrixWidth + obj.Split_block_width - 1) = TempAvg;                                         
                                     end
-
+                                
                                  else %%(FMEEnable ==0)
-                                    obj.predictedFrame(matrixHeight:matrixHeight+obj.Split_block_height - 1, matrixWidth:matrixWidth + obj.Split_block_width - 1) = ref1(matrixHeight+mvx:matrixHeight+mvx+obj.Split_block_height - 1,matrixWidth+mvy:matrixWidth+mvy+obj.Split_block_width - 1);
+                                    obj.predictedFrame(matrixHeight:matrixHeight+obj.Split_block_height - 1, matrixWidth:matrixWidth + obj.Split_block_width - 1) = ref1(matrixHeight+mvy:matrixHeight+mvy+obj.Split_block_height - 1,matrixWidth+mvx:matrixWidth+mvx+obj.Split_block_width - 1 );
                                  end
                                  Listindex = Listindex +1;
                              end
                              Blockcount = Blockcount +1;    
                          end
-
+                         
                     else %I frame
                         if obj.BlockList(1,Listindex).split==0
                              Intra_prediction=IntraPredictionEngine_decode(obj.BlockList(1,Listindex),referenceFrame);
@@ -183,24 +183,26 @@ classdef MotionCompensationEngine_Block
                             end
                             Blockcount = Blockcount +1;
                         end
-
+                         
                     end
                  end
-
+            
             if obj.BlockList(1,Listindex-1).frameType ==0
                     referenceFrame_cal=int16(obj.predictedFrame)+int16(obj.residualVideo(:,:,Framecount+1));
                     referenceFrame=uint8(referenceFrame_cal);
             end
-
+            
             obj.DecodedRefVideo(:,:,Framecount+1) = referenceFrame;
-            referenceFrame = [];
-            referenceFrame_cal = [];
             ref1 = referenceFrame;
+            referenceFrame = [];
+            obj.predictedFrame=[];
+            referenceFrame_cal = [];
+            
             Framecount = Framecount +1;
             Blockcount=0;
             end
         end
-%
+%             
 %             index = 1;
 %             count = 1;
 %             for count < ((obj.video_height/obj.block_height))* (obj.video_width/(obj.block_width))
@@ -213,7 +215,7 @@ classdef MotionCompensationEngine_Block
 %             end
         
           
-%         end
+%         end    
    
         function obj = residualFrameGenerator(obj)
             p=1;
@@ -293,7 +295,7 @@ classdef MotionCompensationEngine_Block
                 obj.SplitList = [obj.SplitList obj.BlockList(1, p).split];
             end
         end
-
+        
         function obj=RefFramesBufferGenerator(obj)
             obj.RefFramesBuffer=[];
             Temp = zeros( size(obj.residualFrame));
@@ -301,7 +303,7 @@ classdef MotionCompensationEngine_Block
                 obj.RefFramesBuffer(:,:,i)=Temp;
             end
         end
-
+        
         function obj=AppendCurRefFrameToBuffer(obj)
             k=obj.nRefFrame;
             while k>1
@@ -310,17 +312,17 @@ classdef MotionCompensationEngine_Block
             end
             obj.RefFramesBuffer(:,:,1)=obj.CurRefFrame;
         end
-
-
+        
+        
         function obj=clearRefFrameBuffer(obj)
-            Temp = zeros( size(obj.residualFrame));
+            Temp = zeros( size(obj.residualFrame)); 
             k=obj.nRefFrame;
             while k>0
                 obj.RefFramesBuffer(:,:,k)=Temp;
                 k = k-1;
             end
         end
-
+        
       end
 end
 
