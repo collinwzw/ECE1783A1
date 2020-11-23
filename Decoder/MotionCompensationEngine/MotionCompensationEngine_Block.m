@@ -36,6 +36,8 @@ classdef MotionCompensationEngine_Block
         RefFramesBuffer;
         nRefFrame;
         CurRefFrame;
+        
+       
     end
 
     methods(Access = 'public')
@@ -53,8 +55,12 @@ classdef MotionCompensationEngine_Block
             
             obj = obj.TypeListGenerator();
             obj = obj.SplitListGenerator();
-            obj = obj.residualFrameGenerator();      
-                    
+            obj = obj.residualFrameGenerator();    
+            
+            obj = obj.RefFramesBufferGenerator();
+            
+%             obj = obj.AppendCurRefFrameToBuffer(obj.residualFrame);
+%             obj = obj.clearRefFrameBuffer();
 %             inputFilename = 'Z:\Semester 3\Design tradeoff\foremanY_cif.yuv';
 %             v1 = YOnlyVideo(inputFilename, 352, 288);
 %             [v1WithPadding,v1Averaged] = v1.block_creation(v1.Y,block_width,block_height);
@@ -63,47 +69,59 @@ classdef MotionCompensationEngine_Block
             Blockcount = 0;
             Framecount = 0;
             Listindex = 1;
+            
             while Framecount <obj.numberOfFrames
                 Previousmvx = 0;
                 Previousmvy = 0;
-                PreviousrefIn = 0;
+                PreviousRefIn = 0;
                  while Blockcount < ((obj.video_height/obj.block_height))* (obj.video_width/(obj.block_width))
                     if obj.BlockList(1,Listindex).frameType ==0
                          if obj.BlockList(1,Listindex).split==0
-                             %differential decoding for motion vector
+                             %differential decoding for MV/Ref
                              mvx = obj.BlockList(1,Listindex).MotionVector.x;
                              mvy = obj.BlockList(1,Listindex).MotionVector.y;
+                             RefIn = obj.BlockList(1,Listindex).referenceFrameIndex;
+                             
                              mvx = Previousmvx - mvx;
                              mvy = Previousmvy - mvy;
+                             RefIn = PreviousRefIn - RefIn;
                              Previousmvx = mvx;
                              Previousmvy = mvy;
-
+                             PreviousRefIn = RefIn;
+                             
+                             %getting Ref Frame from Buffer
+                             ref1 = obj.RefFramesBuffer(:,:,RefIn);
+                             
                              %Filling block to frame
                              matrixHeight = obj.BlockList(1,Listindex).top_height_index;
                              matrixWidth = obj.BlockList(1,Listindex).left_width_index;
                              
-                             if (obj.FEMEnable ==1)
-                                if rem(mvx,2)==0 && rem(mvy,2)==0 %even even, look up mvx/2,mvy/2
+                             if obj.FEMEnable ==1
+                                if abs(rem(mvx,2))==0 && abs(rem(mvy,2))==0 %even even, look up mvx/2,mvy/2
                                     obj.predictedFrame(matrixHeight : matrixHeight+obj.block_height - 1, matrixWidth : matrixWidth + obj.block_width - 1) = ref1(matrixHeight+mvy/2:matrixHeight+mvy/2+obj.block_height - 1,matrixWidth+mvx/2:matrixWidth+mvx/2+obj.block_width - 1 );
 
-                                elseif rem(mvx,2)==0 && rem(mvy,2)==1  %even odd, look up average of (mvx,mvy-1) and (mvx,mvy+1)
-                                    TempVal1 = ref1(matrixHeight+(mvy-1):matrixHeight+(mvy-1)+obj.block_height - 1,matrixWidth+mvx:matrixWidth+mvx+obj.block_width - 1 );
-                                    TempVal2 = ref1(matrixHeight+(mvy+1):matrixHeight+(mvy+1)+obj.block_height - 1,matrixWidth+mvx:matrixWidth+mvx+obj.block_width - 1 );
+                                elseif abs(rem(mvx,2))==0 && abs(rem(mvy,2))==1  %even odd, look up average of (mvx,mvy-1) and (mvx,mvy+1)
+                                    TempVal1 = ref1(matrixHeight+(mvy-1)/2:matrixHeight+(mvy-1)/2+obj.block_height - 1,matrixWidth+mvx/2:matrixWidth+mvx/2+obj.block_width - 1 );
+                                    TempVal2 = ref1(matrixHeight+(mvy+1)/2:matrixHeight+(mvy+1)/2+obj.block_height - 1,matrixWidth+mvx/2:matrixWidth+mvx/2+obj.block_width - 1 );
                                     TempAvg = (TempVal1 + TempVal2) / 2;
                                     obj.predictedFrame(matrixHeight : matrixHeight+obj.block_height - 1, matrixWidth : matrixWidth + obj.block_width - 1) = TempAvg;
 
-                                elseif rem(mvx,2)==0 && rem(mvy,2)==0 %odd even, look up average of (mvx-1,mvy) and (mvx+1,mvy)
-                                    TempVal1 = ref1(matrixHeight+mvy:matrixHeight+mvy+obj.block_height - 1,matrixWidth+(mvx-1):matrixWidth+(mvx-1)+obj.block_width - 1 );
-                                    TempVal2 = ref1(matrixHeight+mvy:matrixHeight+mvy+obj.block_height - 1,matrixWidth+(mvx+1):matrixWidth+(mvx+1)+obj.block_width - 1 );
+                                elseif abs(rem(mvx,2))==1 && abs(rem(mvy,2))==0 %odd even, look up average of (mvx-1,mvy) and (mvx+1,mvy)
+                                    TempVal1 = ref1(matrixHeight+mvy/2:matrixHeight+mvy/2+obj.block_height - 1,matrixWidth+(mvx-1)/2:matrixWidth+(mvx-1)/2+obj.block_width - 1 );
+                                    TempVal2 = ref1(matrixHeight+mvy/2:matrixHeight+mvy/2+obj.block_height - 1,matrixWidth+(mvx+1)/2:matrixWidth+(mvx+1)/2+obj.block_width - 1 );
                                     TempAvg = (TempVal1 + TempVal2) / 2;
                                     obj.predictedFrame(matrixHeight : matrixHeight+obj.block_height - 1, matrixWidth : matrixWidth + obj.block_width - 1) = TempAvg;
 
-                                elseif rem(mvx,2)==0 && rem(mvy,2)==0 %odd odd
-                                    TempVal1 = ref1(matrixHeight+mvy:matrixHeight+mvy+obj.block_height - 1,matrixWidth+(mvx-1):matrixWidth+(mvx-1)+obj.block_width - 1 );
-                                    TempVal2 = ref1(matrixHeight+mvy:matrixHeight+mvy+obj.block_height - 1,matrixWidth+(mvx+1):matrixWidth+(mvx+1)+obj.block_width - 1 );
-                                    TempVal3 = ref1(matrixHeight+(mvy-1):matrixHeight+(mvy-1)+obj.block_height - 1,matrixWidth+mvx:matrixWidth+mvx+obj.block_width - 1 );
-                                    TempVal4 = ref1(matrixHeight+(mvy+1):matrixHeight+(mvy+1)+obj.block_height - 1,matrixWidth+mvx:matrixWidth+mvx+obj.block_width - 1 );
-                                    TempAvg = (TempVal1 + TempVal2 + TempVal3 + TempVal4) / 4;
+                                elseif abs(rem(mvx,2))==1 && abs(rem(mvy,2))==1 %odd odd
+                                        OrigVal1 = ref1(matrixHeight+(mvy-1)/2:matrixHeight+(mvy-1)/2+obj.block_height - 1,matrixWidth+(mvx-1)/2:matrixWidth+(mvx-1)/2+obj.block_width - 1 );
+                                        OrigVal2 = ref1(matrixHeight+(mvy-1)/2:matrixHeight+(mvy-1)/2+obj.block_height - 1,matrixWidth+(mvx+1)/2:matrixWidth+(mvx+1)/2+obj.block_width - 1 );
+                                        OrigVal3 = ref1(matrixHeight+(mvy+1)/2:matrixHeight+(mvy+1)/2+obj.block_height - 1,matrixWidth+(mvx-1)/2:matrixWidth+(mvx-1)/2+obj.block_width - 1 );
+                                        OrigVal4 = ref1(matrixHeight+(mvy+1)/2:matrixHeight+(mvy+1)/2+obj.block_height - 1,matrixWidth+(mvx+1)/2:matrixWidth+(mvx+1)/2+obj.block_width - 1 );
+                                        TempAvg1 = (OrigVal1 + OrigVal2) / 2;
+                                        TempAvg2 = (OrigVal2 + OrigVal4) / 2;
+                                        TempAvg3 = (OrigVal1 + OrigVal3) / 2;
+                                        TempAvg4 = (OrigVal3 + OrigVal4) / 2;
+                                        TempAvg = (TempAvg1 + TempAvg2 + TempAvg3 + TempAvg4) / 4;
                                     obj.predictedFrame(matrixHeight : matrixHeight+obj.block_height - 1, matrixWidth : matrixWidth + obj.block_width - 1) = TempAvg;                                         
                                 end
                                 
@@ -117,40 +135,51 @@ classdef MotionCompensationEngine_Block
                                  %differential decoding for motion vector
                                  mvx = obj.BlockList(1,Listindex).MotionVector.x;
                                  mvy = obj.BlockList(1,Listindex).MotionVector.y;
+                                 RefIn = obj.BlockList(1,Listindex).referenceFrameIndex;
+
                                  mvx = Previousmvx - mvx;
                                  mvy = Previousmvy - mvy;
+                                 RefIn = PreviousRefIn - RefIn;
                                  Previousmvx = mvx;
                                  Previousmvy = mvy;
+                                 PreviousRefIn = RefIn;
 
+                                 %getting Ref Frame from Buffer
+                                 ref1 = obj.RefFramesBuffer(:,:,RefIn);
+                             
                                  matrixHeight = obj.BlockList(1,Listindex).top_height_index;
                                  matrixWidth = obj.BlockList(1,Listindex).left_width_index;
                                  if (obj.FEMEnable ==1)
-                                    if rem(mvx,2)==0 && rem(mvy,2)==0 %even even, look up mvx/2,mvy/2
+                                    if abs(rem(mvx,2))==0 && abs(rem(mvy,2))==0 %even even, look up mvx/2,mvy/2
                                         obj.predictedFrame(matrixHeight : matrixHeight+obj.Split_block_height - 1, matrixWidth : matrixWidth + obj.Split_block_width - 1) = ref1(matrixHeight+mvy/2:matrixHeight+mvy/2+obj.Split_block_height - 1,matrixWidth+mvx/2:matrixWidth+mvx/2+obj.Split_block_width - 1 );
 
-                                    elseif rem(mvx,2)==0 && rem(mvy,2)==1  %even odd, look up average of (mvx,mvy-1) and (mvx,mvy+1)
-                                        TempVal1 = ref1(matrixHeight+(mvy-1):matrixHeight+(mvy-1)+obj.Split_block_height - 1,matrixWidth+mvx:matrixWidth+mvx+obj.Split_block_width - 1 );
-                                        TempVal2 = ref1(matrixHeight+(mvy+1):matrixHeight+(mvy+1)+obj.Split_block_height - 1,matrixWidth+mvx:matrixWidth+mvx+obj.Split_block_width - 1 );
+                                    elseif abs(rem(mvx,2))==0 && abs(rem(mvy,2))==1  %even odd, look up average of (mvx,mvy-1) and (mvx,mvy+1)
+                                        TempVal1 = ref1(matrixHeight+(mvy-1)/2:matrixHeight+(mvy-1)/2+obj.Split_block_height - 1,matrixWidth+mvx/2:matrixWidth+mvx/2+obj.Split_block_width - 1 );
+                                        TempVal2 = ref1(matrixHeight+(mvy+1)/2:matrixHeight+(mvy+1)/2+obj.Split_block_height - 1,matrixWidth+mvx/2:matrixWidth+mvx/2+obj.Split_block_width - 1 );
                                         TempAvg = (TempVal1 + TempVal2) / 2;
                                         obj.predictedFrame(matrixHeight : matrixHeight+obj.Split_block_height - 1, matrixWidth : matrixWidth + obj.Split_block_width - 1) = TempAvg;
 
-                                    elseif rem(mvx,2)==0 && rem(mvy,2)==0 %odd even, look up average of (mvx-1,mvy) and (mvx+1,mvy)
-                                        TempVal1 = ref1(matrixHeight+mvy:matrixHeight+mvy+obj.Split_block_height - 1,matrixWidth+(mvx-1):matrixWidth+(mvx-1)+obj.Split_block_width - 1 );
-                                        TempVal2 = ref1(matrixHeight+mvy:matrixHeight+mvy+obj.Split_block_height - 1,matrixWidth+(mvx+1):matrixWidth+(mvx+1)+obj.Split_block_width - 1 );
+                                    elseif abs(rem(mvx,2))==1 && abs(rem(mvy,2))==0 %odd even, look up average of (mvx-1,mvy) and (mvx+1,mvy)
+                                        TempVal1 = ref1(matrixHeight+mvy/2:matrixHeight+mvy/2+obj.Split_block_height - 1,matrixWidth+(mvx-1)/2:matrixWidth+(mvx-1)/2+obj.Split_block_width - 1 );
+                                        TempVal2 = ref1(matrixHeight+mvy/2:matrixHeight+mvy/2+obj.Split_block_height - 1,matrixWidth+(mvx+1)/2:matrixWidth+(mvx+1)/2+obj.Split_block_width - 1 );
                                         TempAvg = (TempVal1 + TempVal2) / 2;
                                         obj.predictedFrame(matrixHeight : matrixHeight+obj.Split_block_height - 1, matrixWidth : matrixWidth + obj.Split_block_width - 1) = TempAvg;
 
-                                    elseif rem(mvx,2)==0 && rem(mvy,2)==0 %odd odd
-                                        TempVal1 = ref1(matrixHeight+mvy:matrixHeight+mvy+obj.Split_block_height - 1,matrixWidth+(mvx-1):matrixWidth+(mvx-1)+obj.Split_block_width - 1 );
-                                        TempVal2 = ref1(matrixHeight+mvy:matrixHeight+mvy+obj.Split_block_height - 1,matrixWidth+(mvx+1):matrixWidth+(mvx+1)+obj.Split_block_width - 1 );
-                                        TempVal3 = ref1(matrixHeight+(mvy-1):matrixHeight+(mvy-1)+obj.Split_block_height - 1,matrixWidth+mvx:matrixWidth+mvx+obj.Split_block_width - 1 );
-                                        TempVal4 = ref1(matrixHeight+(mvy+1):matrixHeight+(mvy+1)+obj.Split_block_height - 1,matrixWidth+mvx:matrixWidth+mvx+obj.Split_block_width - 1 );
-                                        TempAvg = (TempVal1 + TempVal2 + TempVal3 + TempVal4) / 4;
+                                    elseif abs(rem(mvx,2))==1 && abs(rem(mvy,2))==1 %odd odd
+                                        OrigVal1 = ref1(matrixHeight+(mvy-1)/2:matrixHeight+(mvy-1)/2+obj.Split_block_height - 1,matrixWidth+(mvx-1)/2:matrixWidth+(mvx-1)/2+obj.Split_block_width - 1 );
+                                        OrigVal2 = ref1(matrixHeight+(mvy-1)/2:matrixHeight+(mvy-1)/2+obj.Split_block_height - 1,matrixWidth+(mvx+1)/2:matrixWidth+(mvx+1)/2+obj.Split_block_width - 1 );
+                                        OrigVal3 = ref1(matrixHeight+(mvy+1)/2:matrixHeight+(mvy+1)/2+obj.Split_block_height - 1,matrixWidth+(mvx-1)/2:matrixWidth+(mvx-1)/2+obj.Split_block_width - 1 );
+                                        OrigVal4 = ref1(matrixHeight+(mvy+1)/2:matrixHeight+(mvy+1)/2+obj.Split_block_height - 1,matrixWidth+(mvx+1)/2:matrixWidth+(mvx+1)/2+obj.Split_block_width - 1 );
+                                        TempAvg1 = (OrigVal1 + OrigVal2) / 2;
+                                        TempAvg2 = (OrigVal2 + OrigVal4) / 2;
+                                        TempAvg3 = (OrigVal1 + OrigVal3) / 2;
+                                        TempAvg4 = (OrigVal3 + OrigVal4) / 2;
+                                        TempAvg = (TempAvg1 + TempAvg2 + TempAvg3 + TempAvg4) / 4;
                                         obj.predictedFrame(matrixHeight : matrixHeight+obj.Split_block_height - 1, matrixWidth : matrixWidth + obj.Split_block_width - 1) = TempAvg;                                         
                                     end
                                 
                                  else %%(FMEEnable ==0)
-                                    obj.predictedFrame(matrixHeight:matrixHeight+obj.Split_block_height - 1, matrixWidth:matrixWidth + obj.Split_block_width - 1) = ref1(matrixHeight+mvx:matrixHeight+mvx+obj.Split_block_height - 1,matrixWidth+mvy:matrixWidth+mvy+obj.Split_block_width - 1 );
+                                    obj.predictedFrame(matrixHeight:matrixHeight+obj.Split_block_height - 1, matrixWidth:matrixWidth + obj.Split_block_width - 1) = ref1(matrixHeight+mvy:matrixHeight+mvy+obj.Split_block_height - 1,matrixWidth+mvx:matrixWidth+mvx+obj.Split_block_width - 1 );
                                  end
                                  Listindex = Listindex +1;
                              end
@@ -193,6 +222,10 @@ classdef MotionCompensationEngine_Block
             end
             
             obj.DecodedRefVideo(:,:,Framecount+1) = referenceFrame;
+            
+            %Append RefFrame into Buffer
+            obj = obj.AppendCurRefFrameToBuffer(referenceFrame);
+            
             ref1 = referenceFrame;
             referenceFrame = [];
             obj.predictedFrame=[];
@@ -304,13 +337,13 @@ classdef MotionCompensationEngine_Block
             end
         end
         
-        function obj=AppendCurRefFrameToBuffer(obj)
+        function obj=AppendCurRefFrameToBuffer(obj, RefFrame)
             k=obj.nRefFrame;
             while k>1
                 obj.RefFramesBuffer(:,:,k)=obj.RefFramesBuffer(:,:,k-1);
                 k = k-1;
             end
-            obj.RefFramesBuffer(:,:,1)=obj.CurRefFrame;
+            obj.RefFramesBuffer(:,:,1)=RefFrame;
         end
         
         

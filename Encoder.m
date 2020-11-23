@@ -21,7 +21,6 @@ classdef Encoder
         OutputBitstream=[];
         VBSEnable;
         count = 0;
-        Blocklist;
     end
     
     methods (Access = 'public')
@@ -196,13 +195,11 @@ classdef Encoder
                                     SAD4=0;
                                     SubBlockList = [];
                                     previousMVSubBlock = previousMV;
-                                    for row_i =1:1:2
-                                       for col_i=1:1:2
-                                           %truncate the original block to
-                                           %four sub blocks
-                                           subBlock_list = obj.VBStruncate(block_list(index));
-                                       end
-                                    end
+
+                                   %truncate the original block to
+                                   %four sub blocks
+                                    subBlock_list = obj.VBStruncate(block_list(index));
+
                                     for subBlockIndex = 1:1:size(subBlock_list,2)
                                         %for each block, doing the Motion
                                         %Estimation
@@ -288,12 +285,20 @@ classdef Encoder
             subBlockList = [];
             height = blcok.block_height;
             width = blcok.block_width;
-            for i=1:obj.block_height/2:height
-                for j=1:obj.block_width/2:width
+
+
+            col = 0;
+            for j=1:obj.block_width/2:width
+                row = 0;
+                for i=1:obj.block_height/2:height
                     currentSubBlock = Block(blcok.data, j,i, obj.block_width/2, obj.block_height/2 );
+                    currentSubBlock.top_height_index = blcok.top_height_index + (col) * obj.block_width/2;
+                    currentSubBlock.left_width_index = blcok.left_width_index + (row) * obj.block_height/2;
                     currentSubBlock = currentSubBlock.setQP(obj.QP - 1);
                     subBlockList = [subBlockList, currentSubBlock];
+                    row = row + 1;
                 end
+                col = col + 1;
             end
         end
     end

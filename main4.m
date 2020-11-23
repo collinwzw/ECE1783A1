@@ -12,9 +12,6 @@ v1.writeToFile(outputFilename, y_only);
 inputFilename = '.\data\foremanY_cif.yuv';
 v1 = YOnlyVideo(inputFilename, 352, 288);
 
-
-
-
 %I frame is 1
 %P frame is 0
 
@@ -25,10 +22,10 @@ r = 2;
 n = 3;
 QP = 4;
 I_Period = 8;
-nRefFrame = 1;
+nRefFrame = 2;
 FEMEnable = true;
-FastME = false;
-VBSEnable = false;
+FastME = true;
+VBSEnable = true;
 % 
 %pad the video if necessary
 [v1WithPadding,v1Averaged] = v1.block_creation(v1.Y,block_width,block_height);
@@ -38,57 +35,87 @@ e = Encoder(v1WithPadding,block_width, block_height,r ,n, QP, I_Period,nRefFrame
 
 c=ReverseEntropyEngine_Block(e.OutputBitstream,block_width,block_height,288,352);
 BlockList = c.BlockList;
+
 %%
-d=MotionCompensationEngine_Block(BlockList,block_width,block_height,288,352, FEMEnable,nRefFrame);
-% 
-% %write the residual bitstream and prediction info bitstream to file
-% writeEntropyToTxt(e,'.\output\entropyVideo.txt','.\output\predictionVideo.txt');
-% 
-% %read the residual bitstream and prediction info bitstream from file
-% fid = fopen('.\output\entropyVideo.txt', 'r');
-% entropyVideo=fread(fid,'*char');
-% entropyVideo=transpose(entropyVideo);
-% fclose(fid); 
-% 
-% fid = fopen('.\output\predictionVideo.txt', 'r');
-% predictionVideo=fread(fid,'*char');
-% predictionVideo=transpose(predictionVideo);
-% fclose(fid); 
-%  
-%  
-% % reverse the residual data back to residual video
-% dT = ReverseEntropyEngine(entropyVideo,block_width,block_height,v1.height, v1.width,QP);
-% 
-% % reverse the prediction info back to prediction video
-% dB = ReverseEntropyPredictionInfoEngine(predictionVideo,block_width,block_height,v1.height, v1.width);
-% 
-% %combine the decoded resudual data and prediction infomation, generate
-% %decoded video.
-% d = MotionCompensationEngine(dT.residualVideo,dB.motionvector,dB.frameType,block_width, block_height,size(dT.residualVideo,1),size(dT.residualVideo,2),dB.motionvector_width,dB.motionvector_height,size(dT.residualVideo,3));
-% 
-% %                 subplot(2,5,1), imshow(uint8(d.Temp_v.Y(:,:,1)))
-% %                 subplot(2,5,2), imshow(uint8(d.Temp_v.Y(:,:,2)))
-% %                 subplot(2,5,3), imshow(uint8(d.Temp_v.Y(:,:,3)))
-% %                 subplot(2,5,4), imshow(uint8(d.Temp_v.Y(:,:,4)))
-% %                 subplot(2,5,5), imshow(uint8(d.Temp_v.Y(:,:,5))) 
-% %                 subplot(2,5,6), imshow(uint8(d.Temp_v.Y(:,:,7)))
-% %                 subplot(2,5,7), imshow(uint8(d.Temp_v.Y(:,:,8)))
-% %                 subplot(2,5,8), imshow(uint8(d.Temp_v.Y(:,:,9)))
-% %                 subplot(2,5,9), imshow(uint8(d.Temp_v.Y(:,:,10)))
-% %                 subplot(2,5,10), imshow(uint8(d.Temp_v.Y(:,:,11))) 
-%  
-% outputDecodeRefFilename = '.\output\foremanY_cif.yuv';
-% DecodedRefVideo = d.getDecodedRefVideo();
-% DecodedRefVideo.writeToFile(outputDecodeRefFilename);
-% 
-% toc 
-% acc_PSNR = 0;
-% for k=1:1:10
-%     acc_PSNR = acc_PSNR + psnr(DecodedRefVideo.Y(:,:,k),double(v1WithPadding.Y(:,:,k)));
-% end
-% 
-% 
-% totalBit = size(e.entropyVideo) + size(e.predictionVideo);
-% fprintf(" configuration: i = %d, r = %d, QP = %d, IP = %d \n",block_width, r, QP, I_Period);
+d=MotionCompensationEngine_Block(BlockList,block_width,block_height,288,352,FEMEnable,nRefFrame);
+
+toc 
+acc_PSNR = 0;
+for k=1:1:10
+    acc_PSNR = acc_PSNR + psnr(d.DecodedRefVideo(:,:,k),double(v1WithPadding.Y(:,:,k)));
+end
+
+totalBit = size(e.OutputBitstream);
+fprintf(" configuration: i = %d, r = %d, QP = %d, IP = %d \n",block_width, r, QP, I_Period);
 % fprintf(" PSNR = %d \n",acc_PSNR );
-% fprintf(" number of bits for 10 frame = %d \n",totalBit );
+fprintf(" number of bits for 10 frame = %d \n",totalBit );
+
+%%
+Blocks = c.BlockList;
+SplitList = [];
+for p = 1:1:size (Blocks,2)
+    SplitList = [SplitList BlockList(1, p).split];
+end
+%%
+%drawing boxes around blocks
+matrixWidth=0;
+matrixHeight=0;
+p=0;
+for k=1:1:d.numberOfFrames
+    imshow(uint8(d.DecodedRefVideo(:,:,k)));
+    hold on;
+    for i=0:1:(d.video_height/block_height) - 1
+        for j=0:1:d.video_width/(block_width) -1
+            p=p+1;
+            matrixHeight = (i) * block_height + 1;
+            matrixWidth = (j) * block_width + 1;
+            plot([matrixWidth,matrixWidth+block_width],[matrixHeight,matrixHeight],'Color','k')
+            plot([matrixWidth,matrixWidth],[matrixHeight,matrixHeight+block_height],'Color','k')
+            plot([matrixWidth+block_width,matrixWidth+block_width],[matrixHeight,matrixHeight+block_height],'Color','k')
+            plot([matrixWidth,matrixWidth+block_width],[matrixHeight+block_height,matrixHeight+block_height],'Color','k')
+            if(SplitList(p)==1)
+                plot([matrixWidth+(block_width/2),matrixWidth+(block_width/2)],[matrixHeight,matrixHeight+block_height],'Color','k')
+                plot([matrixWidth,matrixWidth+block_width],[matrixHeight+(block_height/2),matrixHeight+(block_height/2)],'Color','k')
+            end
+
+        end
+    end
+    hold off;
+    figure
+end
+
+%%
+%drawing boxes around blocks
+matrixWidth=0;
+matrixHeight=0;
+Blocklist= d.BlockList;
+blockIndex=0;
+for k=1:1:d.numberOfFrames
+    imshow(uint8(d.DecodedRefVideo(:,:,k)));
+    hold on;
+    for i=0:1:(d.video_height/block_height) - 1
+        for j=0:1:d.video_width/(block_width) -1
+            blockIndex=blockIndex+1;
+            matrixHeight = (i) * block_height + 1;
+            matrixWidth = (j) * block_width + 1;
+            if(Blocklist(blockIndex))
+                rectangle('Position',[160 160 16 16],'FaceColor',[0, 0, 1, 0.5])
+            end
+
+        end
+    end
+    hold off;
+    figure
+end
+
+%%
+%drawing lines for MV
+Framecount=0;
+while Framecount <d.numberOfFrames
+     while Blockcount < ((d.video_height/block_height))* (d.video_width/(block_width))
+        if obj.BlockList(1,Listindex).frameType ==0
+             if obj.BlockList(1,Listindex).split==0
+             end
+        end
+     end
+end
