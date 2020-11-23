@@ -25,7 +25,7 @@ I_Period = 8;
 nRefFrame = 1;
 FEMEnable = false;
 FastME = false;
-VBSEnable = true;
+VBSEnable = false;
 % 
 %pad the video if necessary
 [v1WithPadding,v1Averaged] = v1.block_creation(v1.Y,block_width,block_height);
@@ -41,7 +41,7 @@ d=MotionCompensationEngine_Block(BlockList,block_width,block_height,288,352,FEME
 
 toc 
 acc_PSNR = 0;
-for k=1:1:10
+for k=1:1:2
     acc_PSNR = acc_PSNR + psnr(d.DecodedRefVideo(:,:,k),double(v1WithPadding.Y(:,:,k)));
 end
 
@@ -85,37 +85,68 @@ for k=1:1:d.numberOfFrames
 end
 
 %%
+%drawing boxes for different reference frame
+% matrixWidth=0;
+% matrixHeight=0;
+% Blocklist= d.BlockList;
+% blockIndex=0;
+% for k=1:1:d.numberOfFrames
+%     imshow(uint8(d.DecodedRefVideo(:,:,k)));
+%     hold on;
+%     for i=0:1:(d.video_height/block_height) - 1
+%         for j=0:1:d.video_width/(block_width) -1
+%             blockIndex=blockIndex+1;
+%             matrixHeight = (i) * block_height + 1;
+%             matrixWidth = (j) * block_width + 1;
+%             if(Blocklist(blockIndex))
+%                 rectangle('Position',[160 160 16 16],'FaceColor',[0, 0, 1, 0.5])
+%             end
+% 
+%         end
+%     end
+%     hold off;
+%     figure
+% end
+
+%%
 %drawing boxes around blocks
 matrixWidth=0;
 matrixHeight=0;
 Blocklist= d.BlockList;
 blockIndex=0;
 for k=1:1:d.numberOfFrames
+    
     imshow(uint8(d.DecodedRefVideo(:,:,k)));
+set(gcf,'MenuBar','none')
+set(gca,'DataAspectRatioMode','auto')
+set(gca,'Position',[0 0 1 1])
     hold on;
+    Previousmvx = 0;
+    Previousmvy = 0;
     for i=0:1:(d.video_height/block_height) - 1
         for j=0:1:d.video_width/(block_width) -1
             blockIndex=blockIndex+1;
+            mvx = Blocklist(blockIndex).MotionVector.x;
+            mvy = Blocklist(blockIndex).MotionVector.y;
+            mvx = Previousmvx - mvx;
+            mvy = Previousmvy - mvy;
+            Previousmvx = mvx;
+            Previousmvy = mvy;
             matrixHeight = (i) * block_height + 1;
             matrixWidth = (j) * block_width + 1;
-            if(Blocklist(blockIndex))
-                rectangle('Position',[160 160 16 16],'FaceColor',[0, 0, 1, 0.5])
+            xstart = (matrixWidth+Blocklist(blockIndex).block_width/2)/d.video_width;
+            xend = (matrixWidth+Blocklist(blockIndex).block_width/2 + mvx)/d.video_width;
+            ystart = (matrixHeight+Blocklist(blockIndex).block_height/2)/d.video_height;
+            yend = (matrixHeight+Blocklist(blockIndex).block_height/2 + mvy)/d.video_height;
+            if (Blocklist(blockIndex).frameType == 0)
+                ar = annotation('arrow',[xstart xend],[ystart yend]);
+                ar.HeadStyle = 'vback3';
+                ar.HeadLength = 1;
+                ar.HeadWidth = 5;
             end
 
         end
     end
     hold off;
     figure
-end
-
-%%
-%drawing lines for MV
-Framecount=0;
-while Framecount <d.numberOfFrames
-     while Blockcount < ((d.video_height/block_height))* (d.video_width/(block_width))
-        if obj.BlockList(1,Listindex).frameType ==0
-             if obj.BlockList(1,Listindex).split==0
-             end
-        end
-     end
 end
