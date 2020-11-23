@@ -53,56 +53,46 @@ fprintf(" configuration: i = %d, r = %d, QP = %d, IP = %d \n",block_width, r, QP
 % fprintf(" PSNR = %d \n",acc_PSNR );
 fprintf(" number of bits for 10 frame = %d \n",totalBit );
 
+%%
+SplitList = [];
+for p = 1:1:size (Blocks,2)
+    SplitList = [SplitList BlockList(1, p).split];
+end
+%%
+%drawing boxes around blocks
+matrixWidth=0;
+matrixHeight=0;
+p=0;
+for k=1:1:d.numberOfFrames
+    imshow(uint8(d.DecodedRefVideo(:,:,k)));
+    hold on;
+    for i=0:1:(d.video_height/block_height) - 1
+        for j=0:1:d.video_width/(block_width) -1
+            p=p+1;
+            matrixHeight = (i) * block_height + 1;
+            matrixWidth = (j) * block_width + 1;
+            plot([matrixWidth,matrixWidth+block_width],[matrixHeight,matrixHeight],'Color','k')
+            plot([matrixWidth,matrixWidth],[matrixHeight,matrixHeight+block_height],'Color','k')
+            plot([matrixWidth+block_width,matrixWidth+block_width],[matrixHeight,matrixHeight+block_height],'Color','k')
+            plot([matrixWidth,matrixWidth+block_width],[matrixHeight+block_height,matrixHeight+block_height],'Color','k')
+            if(SplitList(p)==1)
+                plot([matrixWidth+(block_width/2),matrixWidth+(block_width/2)],[matrixHeight,matrixHeight+block_height],'Color','k')
+                plot([matrixWidth,matrixWidth+block_width],[matrixHeight+(block_height/2),matrixHeight+(block_height/2)],'Color','k')
+            end
 
-% 
-% %write the residual bitstream and prediction info bitstream to file
-% writeEntropyToTxt(e,'.\output\entropyVideo.txt','.\output\predictionVideo.txt');
-% 
-% %read the residual bitstream and prediction info bitstream from file
-% fid = fopen('.\output\entropyVideo.txt', 'r');
-% entropyVideo=fread(fid,'*char');
-% entropyVideo=transpose(entropyVideo);
-% fclose(fid); 
-% 
-% fid = fopen('.\output\predictionVideo.txt', 'r');
-% predictionVideo=fread(fid,'*char');
-% predictionVideo=transpose(predictionVideo);
-% fclose(fid); 
-%  
-%  
-% % reverse the residual data back to residual video
-% dT = ReverseEntropyEngine(entropyVideo,block_width,block_height,v1.height, v1.width,QP);
-% 
-% % reverse the prediction info back to prediction video
-% dB = ReverseEntropyPredictionInfoEngine(predictionVideo,block_width,block_height,v1.height, v1.width);
-% 
-% %combine the decoded resudual data and prediction infomation, generate
-% %decoded video.
-% d = MotionCompensationEngine(dT.residualVideo,dB.motionvector,dB.frameType,block_width, block_height,size(dT.residualVideo,1),size(dT.residualVideo,2),dB.motionvector_width,dB.motionvector_height,size(dT.residualVideo,3));
-% 
-% %                 subplot(2,5,1), imshow(uint8(d.Temp_v.Y(:,:,1)))
-% %                 subplot(2,5,2), imshow(uint8(d.Temp_v.Y(:,:,2)))
-% %                 subplot(2,5,3), imshow(uint8(d.Temp_v.Y(:,:,3)))
-% %                 subplot(2,5,4), imshow(uint8(d.Temp_v.Y(:,:,4)))
-% %                 subplot(2,5,5), imshow(uint8(d.Temp_v.Y(:,:,5))) 
-% %                 subplot(2,5,6), imshow(uint8(d.Temp_v.Y(:,:,7)))
-% %                 subplot(2,5,7), imshow(uint8(d.Temp_v.Y(:,:,8)))
-% %                 subplot(2,5,8), imshow(uint8(d.Temp_v.Y(:,:,9)))
-% %                 subplot(2,5,9), imshow(uint8(d.Temp_v.Y(:,:,10)))
-% %                 subplot(2,5,10), imshow(uint8(d.Temp_v.Y(:,:,11))) 
-%  
-% outputDecodeRefFilename = '.\output\foremanY_cif.yuv';
-% DecodedRefVideo = d.getDecodedRefVideo();
-% DecodedRefVideo.writeToFile(outputDecodeRefFilename);
-% 
-% toc 
-% acc_PSNR = 0;
-% for k=1:1:10
-%     acc_PSNR = acc_PSNR + psnr(DecodedRefVideo.Y(:,:,k),double(v1WithPadding.Y(:,:,k)));
-% end
-% 
-% 
-% totalBit = size(e.entropyVideo) + size(e.predictionVideo);
-% fprintf(" configuration: i = %d, r = %d, QP = %d, IP = %d \n",block_width, r, QP, I_Period);
-% fprintf(" PSNR = %d \n",acc_PSNR );
-% fprintf(" number of bits for 10 frame = %d \n",totalBit );
+        end
+    end
+    hold off;
+    figure
+end
+%%
+%drawing lines for MV
+Framecount=0;
+while Framecount <d.numberOfFrames
+     while Blockcount < ((d.video_height/block_height))* (d.video_width/(block_width))
+        if obj.BlockList(1,Listindex).frameType ==0
+             if obj.BlockList(1,Listindex).split==0
+             end
+        end
+     end
+end
