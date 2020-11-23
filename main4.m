@@ -21,14 +21,14 @@ v1 = YOnlyVideo(inputFilename, 352, 288);
 % %parameter section
 block_width = 16;
 block_height = block_width;
-r = 2;
+r = 4;
 n = 3;
 QP = 4;
-I_Period = 10;
+I_Period = 8;
 nRefFrame = 1;
 FEMEnable = false;
 FastME = false;
-VBSEnable = false;
+VBSEnable = true;
 % 
 %pad the video if necessary
 [v1WithPadding,v1Averaged] = v1.block_creation(v1.Y,block_width,block_height);
@@ -39,19 +39,16 @@ e = Encoder(v1WithPadding,block_width, block_height,r ,n, QP, I_Period,nRefFrame
 c=ReverseEntropyEngine_Block(e.OutputBitstream,block_width,block_height,288,352);
 BlockList = c.BlockList;
 
-
-d=MotionCompensationEngine_Block(BlockList,block_width,block_height,288,352);
-
-
+%%
+d=MotionCompensationEngine_Block(BlockList,block_width,block_height,288,352,FEMEnable,nRefFrame);
 
 toc 
-% acc_PSNR = 0;
-% for k=1:1:10
-%     acc_PSNR = acc_PSNR + psnr(DecodedRefVideo.Y(:,:,k),double(v1WithPadding.Y(:,:,k)));
-% end
-% 
-% 
-totalBit = size(e.entropyVideo) + size(e.predictionVideo);
+acc_PSNR = 0;
+for k=1:1:10
+    acc_PSNR = acc_PSNR + psnr(d.DecodedRefVideo(:,:,k),double(v1WithPadding.Y(:,:,k)));
+end
+
+totalBit = size(e.OutputBitstream);
 fprintf(" configuration: i = %d, r = %d, QP = %d, IP = %d \n",block_width, r, QP, I_Period);
 % fprintf(" PSNR = %d \n",acc_PSNR );
 fprintf(" number of bits for 10 frame = %d \n",totalBit );

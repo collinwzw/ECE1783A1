@@ -82,9 +82,9 @@ classdef MotionCompensationEngine_Block
                              matrixHeight = obj.BlockList(1,Listindex).top_height_index;
                              matrixWidth = obj.BlockList(1,Listindex).left_width_index;
 
-                             if (FMEEnable ==1)
+                             if (FEMEnable ==1)
                                 if rem(mvx,2)==0 && rem(mvy,2)==0 %even even, look up mvx/2,mvy/2
-                                    obj.predictedFrame(matrixHeight : matrixHeight+obj.block_height - 1, matrixWidth : matrixWidth + obj.block_width - 1) = ref1(matrixHeight+mvy/2:matrixHeight+mvy/2+obj.block_height - 1,matrixWidth+mvx/2:matrixWidth+mvx/2+obj.block_width - 1 );
+                                    obj.predictedFrame(matrixHeight : matrixHeight+obj.block_height - 1, matrixWidth : matrixWidth + obj.block_width - 1) = obj.DecodedRefVideo(matrixHeight+mvy/2:matrixHeight+mvy/2+obj.block_height - 1,matrixWidth+mvx/2:matrixWidth+mvx/2+obj.block_width - 1,  Framecount);
 
                                 elseif rem(mvx,2)==0 && rem(mvy,2)==1  %even odd, look up average of (mvx,mvy-1) and (mvx,mvy+1)
                                     TempVal1 = ref1(matrixHeight+(mvy-1):matrixHeight+(mvy-1)+obj.block_height - 1,matrixWidth+mvx:matrixWidth+mvx+obj.block_width - 1 );
@@ -108,7 +108,7 @@ classdef MotionCompensationEngine_Block
                                 end
 
                              else %%(FMEEnable ==0)
-                                obj.predictedFrame(matrixHeight : matrixHeight+obj.block_height - 1, matrixWidth : matrixWidth + obj.block_width - 1) = ref1(matrixHeight+mvy:matrixHeight+mvy+obj.block_height - 1,matrixWidth+mvx:matrixWidth+mvx+obj.block_width - 1 );
+                                obj.predictedFrame(matrixHeight : matrixHeight+obj.block_height - 1, matrixWidth : matrixWidth + obj.block_width - 1) = obj.DecodedRefVideo(matrixHeight+mvy:matrixHeight+mvy+obj.block_height - 1,matrixWidth+mvx:matrixWidth+mvx+obj.block_width - 1, Framecount );
                              end
                              Blockcount = Blockcount +1;
                              Listindex = Listindex +1;
