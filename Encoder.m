@@ -21,6 +21,7 @@ classdef Encoder
         OutputBitstream=[];
         VBSEnable;
         count = 0;
+        Blocklist;
     end
     
     methods (Access = 'public')
