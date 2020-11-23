@@ -12,9 +12,6 @@ v1.writeToFile(outputFilename, y_only);
 inputFilename = '.\data\foremanY_cif.yuv';
 v1 = YOnlyVideo(inputFilename, 352, 288);
 
-
-
-
 %I frame is 1
 %P frame is 0
 
