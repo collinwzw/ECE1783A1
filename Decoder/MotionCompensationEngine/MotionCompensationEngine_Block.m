@@ -74,7 +74,7 @@ classdef MotionCompensationEngine_Block
                              %Filling block to frame
                              matrixHeight = obj.BlockList(1,Listindex).top_height_index;
                              matrixWidth = obj.BlockList(1,Listindex).left_width_index;
-                             obj.predictedFrame(matrixHeight : matrixHeight+obj.block_height - 1, matrixWidth : matrixWidth + obj.block_width - 1) = ref1(matrixHeight+mvy:matrixHeight+mvy+obj.block_height - 1,matrixWidth+mvx:matrixWidth+mvx+obj.block_width - 1 );
+                             obj.predictedFrame(matrixHeight : matrixHeight+obj.block_height - 1, matrixWidth : matrixWidth + obj.block_width - 1) = obj.DecodedRefVideo(matrixHeight+mvy:matrixHeight+mvy+obj.block_height - 1,matrixWidth+mvx:matrixWidth+mvx+obj.block_width - 1,Framecount );
 
                              Blockcount = Blockcount +1;
                              Listindex = Listindex +1;
