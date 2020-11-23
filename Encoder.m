@@ -97,7 +97,6 @@ classdef Encoder
             %for i = 1: 1:obj.inputvideo.numberOfFrames
             for i = 1: 1:10
                 if type(i) == 1
-
                     obj.reconstructedVideo.Y(:,:,i) = zeros( obj.inputvideo.width , obj.inputvideo.height);
                     lastIFrame = i;
                     reference_frame1=[];
