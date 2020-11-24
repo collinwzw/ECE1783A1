@@ -96,7 +96,7 @@ classdef Encoder
             lastIFrame=-1;
             type = obj.generateTypeMatrix();
             %for i = 1: 1:obj.inputvideo.numberOfFrames
-            for i = 1: 1:10
+            for i = 1: 1:8
                 if type(i) == 1
                     obj.reconstructedVideo.Y(:,:,i) = zeros( obj.inputvideo.width , obj.inputvideo.height);
                     lastIFrame = i;
@@ -153,7 +153,7 @@ classdef Encoder
 
                                 end
                              end
-                             cost=RDO(predicted_value.data,predictedblock_4,obj.block_height,obj.block_width,intrapred.SAD,SAD4);
+                             cost=RDO(predicted_value.data,predictedblock_4,obj.block_height,obj.block_width,intrapred.SAD,SAD4,obj.QP);
                              if(cost.flag==0)
                                  obj.reconstructedVideo.Y(predicted_value.top_height_index:predicted_value.top_height_index + obj.block_height-1,predicted_value.left_width_index:predicted_value.left_width_index + obj.block_width-1,i) = reference_frame1(predicted_value.top_height_index:predicted_value.top_height_index + obj.block_height-1,predicted_value.left_width_index:predicted_value.left_width_index + obj.block_width-1);
                                  obj.OutputBitstream = [obj.OutputBitstream temp_bitstream1];
@@ -200,26 +200,36 @@ classdef Encoder
                                 end
                                 if obj.VBSEnable == true
                                     % variable block size
-                                    SAD4=0;
+                                    SAD4=[];
                                     SubBlockList = [];
                                     previousMVSubBlock = previousMV;
 
                                    %truncate the original block to
                                    %four sub blocks
                                     subBlock_list = obj.VBStruncate(block_list(index));
-
+                                    row_i = 1;
+                                    col_i = 1;
                                     for subBlockIndex = 1:1:size(subBlock_list,2)
                                         %for each block, doing the Motion
                                         %Estimation
                                         SubBlockME_result = MotionEstimationEngine(obj.r,subBlock_list(subBlockIndex), uint8(obj.reconstructedVideo.Y(:,:,referenceframe_index)), obj.block_width/2, obj.block_height/2,obj.FEMEnable, obj.FastME, previousMVSubBlock);
-                                        SAD4 = SAD4 + SubBlockME_result.differenceForBestMatchBlock;
+                                        SAD4 = [SAD4 SubBlockME_result.differenceForBestMatchBlock];
                                         SubBlockME_result.bestMatchBlock.referenceFrameIndex = referenceframe_index;
                                         SubBlockME_result.bestMatchBlock.split=1;
-                                        previousMVSubBlock = SubBlockME_result.bestMatchBlock.MotionVector;
+                                        previousMVSubBlock = SubBlockME_result.bestMatchBlock.MotionVector;    
+                                        curr_row=1+((row_i-1)*obj.block_height/2):(row_i)*obj.block_height/2;
+                                        curr_col=1+((col_i-1)*obj.block_width/2):(col_i)*obj.block_width/2;
+                                        predictedblock_4(curr_row,curr_col)=SubBlockME_result.bestMatchBlock.data;
                                         SubBlockList = [SubBlockList SubBlockME_result.bestMatchBlock];
+                                        col_i = col_i + 1;
+                                        if col_i > 2
+                                            row_i = row_i + 1;
+                                            col_i = 1;
+                                        end
                                     end
-                                    if SAD4 < min_value
-                                        %compare to the minvalue
+                                    
+                                    cost=RDO(bestMatchBlock.data,predictedblock_4,obj.block_height,obj.block_width,ME_result.differenceForBestMatchBlock,SAD4,obj.QP);
+                                    if(cost.flag~=0)
                                         min_value = SAD4;
                                         bestMatchBlock = SubBlockList;
                                     end

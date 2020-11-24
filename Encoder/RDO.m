@@ -79,7 +79,7 @@ classdef RDO
                     end
                     bitsize4=size(bits);
                     %obj.RDO_cost4=obj.RDO_cost4+obj.SAD_4(k)+obj.lambda*bytes4.bytes;
-                    cost4=cost4+obj.SAD_4(k)+obj.lambda*bitsize4;;
+                    cost4=cost4+obj.SAD_4(k)+obj.lambda*bitsize4;
                 end
             end
             obj.RDO_cost4=cost4;

@@ -20,11 +20,11 @@ block_width = 16;
 block_height = block_width;
 r = 4;
 n = 3;
-QP = 7;
+QP = 4;
 I_Period = 8;
 nRefFrame = 1;
-FEMEnable = true;
-FastME = true;
+FEMEnable = false;
+FastME = false;
 VBSEnable = true;
 % 
 %pad the video if necessary
@@ -47,7 +47,7 @@ end
 
 totalBit = size(e.OutputBitstream);
 fprintf(" configuration: i = %d, r = %d, QP = %d, IP = %d \n",block_width, r, QP, I_Period);
-% fprintf(" PSNR = %d \n",acc_PSNR );
+fprintf(" PSNR = %d \n",acc_PSNR );
 fprintf(" number of bits for 10 frame = %d \n",totalBit );
 
 %%
@@ -76,6 +76,7 @@ for k=1:1:d.numberOfFrames
             if(SplitList(p)==1)
                 plot([matrixWidth+(block_width/2),matrixWidth+(block_width/2)],[matrixHeight,matrixHeight+block_height],'Color','k')
                 plot([matrixWidth,matrixWidth+block_width],[matrixHeight+(block_height/2),matrixHeight+(block_height/2)],'Color','k')
+                p = p + 3;
             end
 
         end
