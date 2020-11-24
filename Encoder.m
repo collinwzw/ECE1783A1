@@ -96,7 +96,7 @@ classdef Encoder
             lastIFrame=-1;
             type = obj.generateTypeMatrix();
             %for i = 1: 1:obj.inputvideo.numberOfFrames
-            for i = 1: 1:5
+            for i = 1: 1:10
                 if type(i) == 1
                     obj.reconstructedVideo.Y(:,:,i) = zeros( obj.inputvideo.width , obj.inputvideo.height);
                     lastIFrame = i;
@@ -127,20 +127,21 @@ classdef Encoder
                              [processedBlock, en] = obj.generateReconstructedFrame(i,predicted_value,deframe );
                              reference_frame1(processedBlock.top_height_index:processedBlock.top_height_index + obj.block_height-1,processedBlock.left_width_index:processedBlock.left_width_index + obj.block_width-1) = uint8(processedBlock.data);
                              temp_bitstream1=en.bitstream;
-                              count=1;
-                              SAD4=[];
-                              mode4=[];
-                              temp_bitstream4=[];
+                             count=1;
+                             SAD4=[];
+                             mode4=[];
+                             temp_bitstream4=[];
+                             reference_frame4 = obj.reconstructedVideo.Y(:,:,i);
                              for row_i =1:1:2
                                 for col_i=1:1:2
-                                     intrapred_4=IntraPredictionEngine(block_list(index),reference_frame4);
-                                     intrapred_4=intrapred_4.block_creation4(count);
-                                     predicted_value_4=intrapred_4.blocks;
-                                     predicted_value_4.data=intrapred_4.smallblock_4;
-                                     predicted_value_4.split=1;
-                                     predicted_value_4.QP=obj.QP-1;
-                                     predicted_value_4 = predicted_value_4.setframeType(type(i));
-                                     [processedBlock, en] = obj.generateReconstructedFrame(i,predicted_value_4,deframe );
+                                    intrapred_4=IntraPredictionEngine(block_list(index),reference_frame4);
+                                    intrapred_4=intrapred_4.block_creation4(count);
+                                    predicted_value_4=intrapred_4.blocks;
+                                    predicted_value_4.data=intrapred_4.smallblock_4;
+                                    predicted_value_4.split=1;
+                                    predicted_value_4.QP=obj.QP-1;
+                                    predicted_value_4 = predicted_value_4.setframeType(type(i));
+                                    [processedBlock, en] = obj.generateReconstructedFrame(i,predicted_value_4,deframe );
                                     temp_bitstream4=[temp_bitstream4 en.bitstream];
                                     curr_row=1+((row_i-1)*obj.block_height/2):(row_i)*obj.block_height/2;
                                     curr_col=1+((col_i-1)*obj.block_width/2):(col_i)*obj.block_width/2;
@@ -156,9 +157,14 @@ classdef Encoder
                              if(cost.flag==0)
                                  obj.reconstructedVideo.Y(predicted_value.top_height_index:predicted_value.top_height_index + obj.block_height-1,predicted_value.left_width_index:predicted_value.left_width_index + obj.block_width-1,i) = reference_frame1(predicted_value.top_height_index:predicted_value.top_height_index + obj.block_height-1,predicted_value.left_width_index:predicted_value.left_width_index + obj.block_width-1);
                                  obj.OutputBitstream = [obj.OutputBitstream temp_bitstream1];
+                                 %obj.predictionVideo(processedBlock.top_height_index:processedBlock.top_height_index + 16-1,processedBlock.left_width_index:processedBlock.left_width_index + 16-1,i) = uint8(predicted_value.data);
+
                              else
                                  obj.reconstructedVideo.Y(predicted_value.top_height_index:predicted_value.top_height_index + obj.block_height-1,predicted_value.left_width_index:predicted_value.left_width_index + obj.block_width-1,i) = reference_frame4(predicted_value.top_height_index:predicted_value.top_height_index + obj.block_height-1,predicted_value.left_width_index:predicted_value.left_width_index + obj.block_width-1);
                                  obj.OutputBitstream = [obj.OutputBitstream temp_bitstream4];
+                                 %obj.predictionVideo(1:processedBlock.top_height_index + 16-1,processedBlock.left_width_index:processedBlock.left_width_index + 16-1,i) = uint8(predictedblock_4);
+
+                                 
                              end
 %                              reference_frame(:,:)=obj.reconstructedVideo.Y;
                          end
@@ -235,7 +241,7 @@ classdef Encoder
                                 bestMatchBlock(bestMatchBlockIndex).referenceFrameIndex = previousFrameIndex - bestMatchBlock(bestMatchBlockIndex).referenceFrameIndex;
                                 previousFrameIndex = tempPreviousFrameIndex;
                                 
-                                obj.predictionVideo(processedBlock.top_height_index:processedBlock.top_height_index + bestMatchBlock(bestMatchBlockIndex).block_height-1,processedBlock.left_width_index:processedBlock.left_width_index + bestMatchBlock(bestMatchBlockIndex).block_width-1,i) = uint8(bestMatchBlock.data);
+                                obj.predictionVideo(processedBlock.top_height_index:processedBlock.top_height_index + bestMatchBlock(bestMatchBlockIndex).block_height-1,processedBlock.left_width_index:processedBlock.left_width_index + bestMatchBlock(bestMatchBlockIndex).block_width-1,i) = uint8(bestMatchBlock(bestMatchBlockIndex).data);
 
                                 [processedBlock, en] = obj.generateReconstructedFrame(i,bestMatchBlock(bestMatchBlockIndex),deframe );
                                 obj.reconstructedVideo.Y(processedBlock.top_height_index:processedBlock.top_height_index + bestMatchBlock(bestMatchBlockIndex).block_height-1,processedBlock.left_width_index:processedBlock.left_width_index + bestMatchBlock(bestMatchBlockIndex).block_width-1,i) = uint8(processedBlock.data);

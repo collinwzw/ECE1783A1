@@ -20,12 +20,12 @@ block_width = 16;
 block_height = block_width;
 r = 4;
 n = 3;
-QP = 4;
+QP = 7;
 I_Period = 8;
-nRefFrame = 4;
-FEMEnable = false;
+nRefFrame = 1;
+FEMEnable = true;
 FastME = true;
-VBSEnable = false;
+VBSEnable = true;
 % 
 %pad the video if necessary
 [v1WithPadding,v1Averaged] = v1.block_creation(v1.Y,block_width,block_height);
@@ -41,7 +41,7 @@ d=MotionCompensationEngine_Block(BlockList,block_width,block_height,288,352,FEME
 
 toc 
 acc_PSNR = 0;
-for k=1:1:2
+for k=1:1:10
     acc_PSNR = acc_PSNR + psnr(d.DecodedRefVideo(:,:,k),double(v1WithPadding.Y(:,:,k)));
 end
 
@@ -109,7 +109,7 @@ end
 % end
 
 %%
-%drawing boxes around blocks
+%drawing arrows around blocks
 matrixWidth=0;
 matrixHeight=0;
 Blocklist= d.BlockList;

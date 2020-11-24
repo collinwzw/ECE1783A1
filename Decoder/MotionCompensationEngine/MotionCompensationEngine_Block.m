@@ -201,15 +201,15 @@ classdef MotionCompensationEngine_Block
                              Listindex = Listindex +1;
                         else
                             for i=1:1:4
-                            Intra_prediction=IntraPredictionEngine_decode(obj.BlockList(1,Listindex),referenceFrame);
-                            Decoded_value=int16(Intra_prediction.decoded_block);
-                             matrixHeight = obj.BlockList(1,Listindex).top_height_index;
-                             matrixWidth = obj.BlockList(1,Listindex).left_width_index;
-                             obj.predictedFrame(matrixHeight:matrixHeight+obj.Split_block_height - 1, matrixWidth:matrixWidth + obj.Split_block_width - 1) = int16(Decoded_value);
-                             referenceFrame_cal(matrixHeight:matrixHeight+obj.Split_block_height - 1, matrixWidth:matrixWidth + obj.Split_block_width - 1)= int16(obj.predictedFrame(matrixHeight:matrixHeight+obj.Split_block_height - 1, matrixWidth:matrixWidth + obj.Split_block_width - 1))+int16(obj.residualVideo(matrixHeight:matrixHeight+obj.Split_block_height - 1, matrixWidth:matrixWidth + obj.Split_block_width - 1,Framecount+1));
-                             %referenceFrame=uint8(referenceFrame_cal);
-                             referenceFrame=(referenceFrame_cal);
-                             Listindex = Listindex +1;
+                                Intra_prediction=IntraPredictionEngine_decode(obj.BlockList(1,Listindex),referenceFrame);
+                                Decoded_value=int16(Intra_prediction.decoded_block);
+                                matrixHeight = obj.BlockList(1,Listindex).top_height_index;
+                                matrixWidth = obj.BlockList(1,Listindex).left_width_index;
+                                obj.predictedFrame(matrixHeight:matrixHeight+obj.Split_block_height - 1, matrixWidth:matrixWidth + obj.Split_block_width - 1) = int16(Decoded_value);
+                                referenceFrame_cal(matrixHeight:matrixHeight+obj.Split_block_height - 1, matrixWidth:matrixWidth + obj.Split_block_width - 1)= int16(obj.predictedFrame(matrixHeight:matrixHeight+obj.Split_block_height - 1, matrixWidth:matrixWidth + obj.Split_block_width - 1))+int16(obj.residualVideo(matrixHeight:matrixHeight+obj.Split_block_height - 1, matrixWidth:matrixWidth + obj.Split_block_width - 1,Framecount+1));
+                                %referenceFrame=uint8(referenceFrame_cal);
+                                referenceFrame=(referenceFrame_cal);
+                                Listindex = Listindex +1;
                             end
                             Blockcount = Blockcount +1;
                         end
@@ -229,7 +229,7 @@ classdef MotionCompensationEngine_Block
             
             ref1 = referenceFrame;
             referenceFrame = [];
-            obj.predictedFrame=[];
+            %obj.predictedFrame=[];
             referenceFrame_cal = [];
             
             Framecount = Framecount +1;
