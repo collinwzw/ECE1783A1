@@ -57,26 +57,26 @@ classdef IntraPredictionEngine
             obj.blocks.block_height=8;
             obj.blocks.block_width=8;
                     if(count==1)
-                        bl4_i=1;
-                        bl4_j=1;
+                        bl4_i=obj.blocks.top_height_index;
+                        bl4_j=obj.blocks.left_width_index;
                         row_i=1;
                         col_i=1;
                     end
                     if(count==2)
-                        bl4_i=1;
-                        bl4_j=1+obj.blocks.block_width;
+                        bl4_i=obj.blocks.top_height_index;
+                        bl4_j=obj.blocks.left_width_index + obj.blocks.block_width;
                         row_i=1;
                         col_i=2;
                     end
                     if(count==3)
-                        bl4_i=1+obj.blocks.block_height;
-                        bl4_j=1;
+                        bl4_i=obj.blocks.top_height_index + obj.blocks.block_height;
+                        bl4_j=obj.blocks.left_width_index;
                         row_i=2;
                         col_i=1;
                     end
                     if(count==4)
-                        bl4_i=1+obj.blocks.block_width;
-                        bl4_j=1+obj.blocks.block_height;
+                        bl4_i=obj.blocks.top_height_index+obj.blocks.block_width;
+                        bl4_j=obj.blocks.left_width_index+obj.blocks.block_height;
                         row_i=2;
                         col_i=2;
                     end
@@ -94,7 +94,7 @@ classdef IntraPredictionEngine
                     if(bl4_i~=1)
                         prev_row=obj.reference_frame(bl4_i-1,bl4_j:bl4_j+(obj.blocks.block_width)-1);
                     end
-                    obj.curr_block=obj.blocks.data(bl4_i:bl4_i+(obj.blocks.block_height)-1,bl4_j:(bl4_j+obj.blocks.block_height)-1);
+                    obj.curr_block=obj.blocks.data((row_i-1)*obj.blocks.block_height + 1: (row_i)*obj.blocks.block_height,(col_i-1)*obj.blocks.block_width + 1:(col_i-1)*obj.blocks.block_width + 1);
                     obj = obj.intraPredictBlock(obj.curr_block,prev_row,prev_col);
                     curr_row=1+((row_i-1)*obj.blocks.block_height):(row_i)*obj.blocks.block_height;
                     curr_col=1+((col_i-1)*obj.blocks.block_width):(col_i)*obj.blocks.block_width;
