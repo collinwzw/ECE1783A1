@@ -259,14 +259,14 @@ classdef MotionEstimationEngine
                             blockMatrix(i - i_start + 1,j - j_start + 1) =blockMatrix(i - i_start,j - j_start + 1);
                             block1 = blockMatrix(i - i_start,j - j_start + 1).class.data;
                             block2 = blockMatrix(i - i_start + 2,j - j_start + 1).class.data;
-                            blockMatrix(i - i_start + 1,j - j_start + 1).class = blockMatrix(i - i_start + 1,j - j_start + 1).class.setData(uint8((uint16(block1) + uint16(block2))/2));
+                            blockMatrix(i - i_start + 1,j - j_start + 1).class = blockMatrix(i - i_start + 1,j - j_start + 1).class.setData(uint8((int16(block1) + int16(block2))/2));
                             blockMatrix(i - i_start + 1,j - j_start + 1).class.MotionVector =blockMatrix(i - i_start + 1,j - j_start + 1).class.MotionVector.changeY( blockMatrix(i - i_start + 1,j - j_start + 1).class.MotionVector.y + 1);
                         end
                         if rem( abs(i - row), 2)==0 && rem( abs(j - col), 2) ~= 0
                             blockMatrix(i - i_start + 1,j - j_start + 1) =blockMatrix(i - i_start + 1,j - j_start);
                             block1 = blockMatrix(i - i_start + 1,j - j_start).class.data;
                             block2 = blockMatrix(i - i_start + 1,j - j_start + 2).class.data;
-                            blockMatrix(i - i_start + 1,j - j_start + 1).class = blockMatrix(i - i_start + 1,j - j_start + 1).class.setData(uint8((uint16(block1) + uint16(block2))/2));
+                            blockMatrix(i - i_start + 1,j - j_start + 1).class = blockMatrix(i - i_start + 1,j - j_start + 1).class.setData(uint8((int16(block1) + int16(block2))/2));
                             blockMatrix(i - i_start + 1,j - j_start + 1).class.MotionVector =blockMatrix(i - i_start + 1,j - j_start + 1).class.MotionVector.changeX( blockMatrix(i - i_start + 1,j - j_start + 1).class.MotionVector.x + 1);
                         end
                     end
@@ -279,7 +279,7 @@ classdef MotionEstimationEngine
                             block2 = blockMatrix(i - i_start + 2,j - j_start + 1).class.data;
                             block3 = blockMatrix(i - i_start + 1,j - j_start).class.data;
                             block4 = blockMatrix(i - i_start + 1,j - j_start + 2).class.data;
-                            blockMatrix(i - i_start + 1,j - j_start + 1).class = blockMatrix(i - i_start + 1,j - j_start + 1).class.setData(uint8((uint16(block1) + uint16(block2) + (uint16(block3) + uint16(block4))/4)));
+                            blockMatrix(i - i_start + 1,j - j_start + 1).class = blockMatrix(i - i_start + 1,j - j_start + 1).class.setData(uint8((int16(block1) + int16(block2) + int16(block3) + int16(block4))/4));
                             blockMatrix(i - i_start + 1,j - j_start + 1).class.MotionVector =blockMatrix(i - i_start + 1,j - j_start + 1).class.MotionVector.changeY( blockMatrix(i - i_start + 1,j - j_start + 1).class.MotionVector.y + 1);
                         end
                     end
@@ -358,22 +358,26 @@ classdef MotionEstimationEngine
                     end
 
                 end
-
-                bestBlock = obj.findBestPredictedBlockSAD(blockList, currentBlock.getBlockSumValue());
-                if isobject(blk)== 1
-                    r = originBlock;
-                    break;
-                else
-                    if abs(currentBlock.getBlockSumValue() -bestBlock.getBlockSumValue()) < minimumValue
-                        minimumValue = abs(currentBlock.getBlockSumValue() -bestBlock.getBlockSumValue());
-                        originBlock = bestBlock;
-                        MV = originBlock.MotionVector;
-                    else
-
+                if size(blockList,2) ~= 0
+                    bestBlock = obj.findBestPredictedBlockSAD(blockList, currentBlock.getBlockSumValue());
+                    if isobject(blk)== 1
                         r = originBlock;
                         break;
+                    else
+                        if abs(currentBlock.getBlockSumValue() -bestBlock.getBlockSumValue()) < minimumValue
+                            minimumValue = abs(currentBlock.getBlockSumValue() -bestBlock.getBlockSumValue());
+                            originBlock = bestBlock;
+                            MV = originBlock.MotionVector;
+                        else
+                            r = originBlock;
+                            break;
+                        end
                     end
+                else
+                     r = originBlock;
+                    break;
                 end
+
 
             end
 %

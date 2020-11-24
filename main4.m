@@ -22,9 +22,9 @@ r = 4;
 n = 3;
 QP = 4;
 I_Period = 8;
-nRefFrame = 1;
-FEMEnable = true;
-FastME = false;
+nRefFrame = 4;
+FEMEnable = false;
+FastME = true;
 VBSEnable = false;
 % 
 %pad the video if necessary
