@@ -25,7 +25,7 @@ I_Period = 8;
 nRefFrame = 1;
 FEMEnable = false;
 FastME = false;
-VBSEnable = true;
+VBSEnable = false;
 % 
 %pad the video if necessary
 [v1WithPadding,v1Averaged] = v1.block_creation(v1.Y,block_width,block_height);

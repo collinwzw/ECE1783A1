@@ -21,6 +21,7 @@ classdef Encoder
         OutputBitstream=[];
         VBSEnable;
         count = 0;
+        SADPerFrame;
 
     end
     
@@ -39,6 +40,7 @@ classdef Encoder
             obj.FEMEnable=FEMEnable;
             obj.FastME = FastME;
             obj.VBSEnable=VBSEnable;
+            obj.SADPerFrame = [];
             obj = obj.encodeVideo();
 
         end
@@ -169,7 +171,6 @@ classdef Encoder
 %                              reference_frame(:,:)=obj.reconstructedVideo.Y;
                          end
                       end
-
                 else
                     %inter
                     block_list = obj.truncateFrameToBlocks(i);
@@ -272,6 +273,8 @@ classdef Encoder
 %                     k = k + 1;
                     % realationship between i, j, k
                 end
+                obj.SADPerFrame = [obj.SADPerFrame abs(sum(obj.reconstructedVideo.Y(:,:,i), 'all') - sum(obj.inputvideo.Y(:,:,i), 'all'))];
+
 %                obj.numberOfBitsList = [obj.numberOfBitsList size(entropyQTC,2) + size(entropyPredictionInfo,2) ];
                 fprintf("frame number %d is done\n", i);
             end
