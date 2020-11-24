@@ -22,8 +22,8 @@ r = 4;
 n = 3;
 QP = 4;
 I_Period = 8;
-nRefFrame = 4;
-FEMEnable = false;
+nRefFrame = 1;
+FEMEnable = true;
 FastME = false;
 VBSEnable = false;
 % 
