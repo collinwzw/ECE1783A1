@@ -18,11 +18,11 @@ v1 = YOnlyVideo(inputFilename, 352, 288);
 % %parameter section
 block_width = 16;
 block_height = block_width;
-r = 2;
+r = 4;
 n = 3;
 QP = 4;
 I_Period = 8;
-nRefFrame = 2;
+nRefFrame = 4;
 FEMEnable = true;
 FastME = true;
 VBSEnable = true;
@@ -39,6 +39,8 @@ BlockList = c.BlockList;
 %%
 d=MotionCompensationEngine_Block(BlockList,block_width,block_height,288,352,FEMEnable,nRefFrame);
 
+
+%%
 toc 
 acc_PSNR = 0;
 for k=1:1:10

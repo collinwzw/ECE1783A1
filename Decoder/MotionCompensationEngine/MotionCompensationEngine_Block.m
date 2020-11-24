@@ -57,7 +57,7 @@ classdef MotionCompensationEngine_Block
             obj = obj.SplitListGenerator();
             obj = obj.residualFrameGenerator();    
             
-            obj = obj.RefFramesBufferGenerator();
+%           obj = obj.RefFramesBufferGenerator();
             
 %             obj = obj.AppendCurRefFrameToBuffer(obj.residualFrame);
 %             obj = obj.clearRefFrameBuffer();
@@ -88,9 +88,10 @@ classdef MotionCompensationEngine_Block
                              Previousmvx = mvx;
                              Previousmvy = mvy;
                              PreviousRefIn = RefIn;
-                             
+                            
                              %getting Ref Frame from Buffer
-                             ref1 = obj.RefFramesBuffer(:,:,RefIn);
+                             %ref1 = obj.RefFramesBuffer(:,:,RefIn);
+                             ref1 = obj.DecodedRefVideo(:,:,Framecount + 1 - RefIn );
                              
                              %Filling block to frame
                              matrixHeight = obj.BlockList(1,Listindex).top_height_index;
@@ -145,7 +146,7 @@ classdef MotionCompensationEngine_Block
                                  PreviousRefIn = RefIn;
 
                                  %getting Ref Frame from Buffer
-                                 ref1 = obj.RefFramesBuffer(:,:,RefIn);
+                                 ref1 = obj.DecodedRefVideo(:,:,Framecount + 1 - RefIn );
                              
                                  matrixHeight = obj.BlockList(1,Listindex).top_height_index;
                                  matrixWidth = obj.BlockList(1,Listindex).left_width_index;
@@ -224,7 +225,7 @@ classdef MotionCompensationEngine_Block
             obj.DecodedRefVideo(:,:,Framecount+1) = referenceFrame;
             
             %Append RefFrame into Buffer
-            obj = obj.AppendCurRefFrameToBuffer(referenceFrame);
+            %obj = obj.AppendCurRefFrameToBuffer(referenceFrame);
             
             ref1 = referenceFrame;
             referenceFrame = [];
@@ -339,11 +340,10 @@ classdef MotionCompensationEngine_Block
         
         function obj=AppendCurRefFrameToBuffer(obj, RefFrame)
             k=obj.nRefFrame;
-            while k>1
-                obj.RefFramesBuffer(:,:,k)=obj.RefFramesBuffer(:,:,k-1);
-                k = k-1;
+            for j = 2:1:k
+                obj.RefFramesBuffer(:,:,j-1)=obj.RefFramesBuffer(:,:,j);
             end
-            obj.RefFramesBuffer(:,:,1)=RefFrame;
+            obj.RefFramesBuffer(:,:,k)=RefFrame;
         end
         
         

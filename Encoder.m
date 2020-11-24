@@ -21,6 +21,7 @@ classdef Encoder
         OutputBitstream=[];
         VBSEnable;
         count = 0;
+
     end
     
     methods (Access = 'public')
@@ -188,7 +189,8 @@ classdef Encoder
                                 if ME_result.differenceForBestMatchBlock < min_value
                                     min_value = ME_result.differenceForBestMatchBlock;
                                     bestMatchBlock = ME_result.bestMatchBlock;
-                                    bestMatchBlock.referenceFrameIndex = referenceframe_index;
+                                    bestMatchBlock.referenceFrameIndex = i - referenceframe_index;
+
                                 end
                                 if obj.VBSEnable == true
                                     % variable block size
@@ -232,6 +234,8 @@ classdef Encoder
                                 tempPreviousFrameIndex = bestMatchBlock(bestMatchBlockIndex).referenceFrameIndex;
                                 bestMatchBlock(bestMatchBlockIndex).referenceFrameIndex = previousFrameIndex - bestMatchBlock(bestMatchBlockIndex).referenceFrameIndex;
                                 previousFrameIndex = tempPreviousFrameIndex;
+                                
+                                obj.predictionVideo(processedBlock.top_height_index:processedBlock.top_height_index + bestMatchBlock(bestMatchBlockIndex).block_height-1,processedBlock.left_width_index:processedBlock.left_width_index + bestMatchBlock(bestMatchBlockIndex).block_width-1,i) = uint8(bestMatchBlock.data);
 
                                 [processedBlock, en] = obj.generateReconstructedFrame(i,bestMatchBlock(bestMatchBlockIndex),deframe );
                                 obj.reconstructedVideo.Y(processedBlock.top_height_index:processedBlock.top_height_index + bestMatchBlock(bestMatchBlockIndex).block_height-1,processedBlock.left_width_index:processedBlock.left_width_index + bestMatchBlock(bestMatchBlockIndex).block_width-1,i) = uint8(processedBlock.data);

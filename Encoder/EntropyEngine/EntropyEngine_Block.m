@@ -33,7 +33,9 @@ classdef EntropyEngine_Block
             B_bitStream=B.bitStream;
             B_referenceFrameIndex=B.referenceFrameIndex;
             B_split=B.split;
-            
+            if B_referenceFrameIndex^=0
+                acc=1;
+            end
             %Type
             obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_frameType)];
             %   Mode /   RefF+Mv
