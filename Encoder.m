@@ -98,7 +98,7 @@ classdef Encoder
             lastIFrame=-1;
             type = obj.generateTypeMatrix();
             %for i = 1: 1:obj.inputvideo.numberOfFrames
-            for i = 1: 1:8
+            for i = 1: 1:5
                 if type(i) == 1
                     obj.reconstructedVideo.Y(:,:,i) = zeros( obj.inputvideo.width , obj.inputvideo.height);
                     lastIFrame = i;
@@ -192,14 +192,19 @@ classdef Encoder
                          for referenceframe_index = i - obj.nRefFrame: 1 : i-1
                              % check starts from last I frame or input parameter nRefFrame.
                              if referenceframe_index >= lastIFrame
-                                ME_result = MotionEstimationEngine(obj.r,block_list(index), uint8(obj.reconstructedVideo.Y(:,:,referenceframe_index)), obj.block_width, obj.block_height,obj.FEMEnable, obj.FastME, previousMV);
-                                if ME_result.differenceForBestMatchBlock < min_value
-                                    min_value = ME_result.differenceForBestMatchBlock;
-                                    bestMatchBlock = ME_result.bestMatchBlock;
-                                    bestMatchBlock.referenceFrameIndex = i - referenceframe_index;
+                                if obj.VBSEnable == false
+                                    ME_result = MotionEstimationEngine(obj.r,block_list(index), uint8(obj.reconstructedVideo.Y(:,:,referenceframe_index)), obj.block_width, obj.block_height,obj.FEMEnable, obj.FastME, previousMV);
+                                    if ME_result.differenceForBestMatchBlock < min_value
+                                        min_value = ME_result.differenceForBestMatchBlock;
+                                        bestMatchBlockNoSplit = ME_result.bestMatchBlock;
+                                        bestMatchBlockNoSplit.referenceFrameIndex = i - referenceframe_index;
 
-                                end
-                                if obj.VBSEnable == true
+                                    end
+                                else
+                                    ME_result = MotionEstimationEngine(obj.r,block_list(index), uint8(obj.reconstructedVideo.Y(:,:,referenceframe_index)), obj.block_width, obj.block_height,obj.FEMEnable, obj.FastME, previousMV);
+                                    bestMatchBlockNoSplit = ME_result.bestMatchBlock;
+                                    bestMatchBlockNoSplit.referenceFrameIndex = i - referenceframe_index;
+                                    
                                     % variable block size
                                     SAD4=[];
                                     SubBlockList = [];
@@ -227,12 +232,20 @@ classdef Encoder
                                             row_i = row_i + 1;
                                             col_i = 1;
                                         end
-                                    end
-                                    
-                                    cost=RDO(bestMatchBlock.data,predictedblock_4,obj.block_height,obj.block_width,ME_result.differenceForBestMatchBlock,SAD4,obj.QP);
+                                    end                                    
+                                    cost=RDO(bestMatchBlockNoSplit.data,predictedblock_4,obj.block_height,obj.block_width,ME_result.differenceForBestMatchBlock,SAD4,obj.QP);
                                     if(cost.flag~=0)
-                                        min_value = SAD4;
-                                        bestMatchBlock = SubBlockList;
+                                        % split has smaller RDO
+                                        if cost.RDO_cost4 < min_value
+                                            min_value = cost.RDO_cost4;
+                                            bestMatchBlock = SubBlockList;
+                                        end
+                                    else
+                                        % no split has smaller RDO
+                                        if cost.RDO_cost1 < min_value
+                                            min_value = cost.RDO_cost1;
+                                            bestMatchBlock = bestMatchBlockNoSplit;
+                                        end
                                     end
                                 end
                              end

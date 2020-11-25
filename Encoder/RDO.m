@@ -56,7 +56,7 @@ classdef RDO
                     bits=[bits dec2bin(s(i,j))];
                 end
             end
-            bitsize=size(bits);
+            bitsize=size(bits,2);
             %obj.RDO_cost1=obj.SAD+obj.lambda*bytes1.bytes;
             %bits used for testing
             obj.RDO_cost1=obj.SAD+obj.lambda*bitsize;
@@ -77,7 +77,7 @@ classdef RDO
                             bits=[bits dec2bin(block(l,m))];
                         end
                     end
-                    bitsize4=size(bits);
+                    bitsize4=size(bits,2);
                     %obj.RDO_cost4=obj.RDO_cost4+obj.SAD_4(k)+obj.lambda*bytes4.bytes;
                     cost4=cost4+obj.SAD_4(k)+obj.lambda*bitsize4;
                 end
