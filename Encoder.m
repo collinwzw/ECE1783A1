@@ -98,7 +98,7 @@ classdef Encoder
             lastIFrame=-1;
             type = obj.generateTypeMatrix();
             %for i = 1: 1:obj.inputvideo.numberOfFrames
-            for i = 1: 1:5
+            for i = 1: 1:10
                 if type(i) == 1
                     obj.reconstructedVideo.Y(:,:,i) = zeros( obj.inputvideo.width , obj.inputvideo.height);
                     lastIFrame = i;
@@ -220,7 +220,7 @@ classdef Encoder
                                         %Estimation
                                         SubBlockME_result = MotionEstimationEngine(obj.r,subBlock_list(subBlockIndex), uint8(obj.reconstructedVideo.Y(:,:,referenceframe_index)), obj.block_width/2, obj.block_height/2,obj.FEMEnable, obj.FastME, previousMVSubBlock);
                                         SAD4 = [SAD4 SubBlockME_result.differenceForBestMatchBlock];
-                                        SubBlockME_result.bestMatchBlock.referenceFrameIndex = referenceframe_index;
+                                        SubBlockME_result.bestMatchBlock.referenceFrameIndex = i - referenceframe_index;
                                         SubBlockME_result.bestMatchBlock.split=1;
                                         previousMVSubBlock = SubBlockME_result.bestMatchBlock.MotionVector;    
                                         curr_row=1+((row_i-1)*obj.block_height/2):(row_i)*obj.block_height/2;
