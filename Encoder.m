@@ -7,22 +7,14 @@ classdef Encoder
         n;
         QP;
         reconstructedVideo;
-        modes;
-        MV;
-        diff_modes;
-        diff_MV;
         I_Period;
-        entropyVideo;
         predictionVideo;
-        numberOfBitsList;
         nRefFrame;
         FEMEnable;
         FastME;
         OutputBitstream=[];
         VBSEnable;
-        count = 0;
         SADPerFrame;
-
     end
     
     methods (Access = 'public')
