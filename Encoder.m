@@ -18,7 +18,7 @@ classdef Encoder
     end
     
     methods (Access = 'public')
-        function obj = Encoder(inputvideo,block_width, block_height,r ,n, QP, I_Period,nRefFrame,FEMEnable,FastME, VBSEnable)
+        function obj = Encoder(inputvideo,block_width, block_height,r , QP, I_Period,nRefFrame,FEMEnable,FastME, VBSEnable)
             %UNTITLED2 Construct an instance of this class
             %   Detailed explanation goes here
             obj.inputvideo = inputvideo;
@@ -26,7 +26,6 @@ classdef Encoder
             obj.block_width=block_width;
             obj.block_height=block_height;
             obj.r=r;
-            obj.n = n;
             obj.QP = QP;
             obj.nRefFrame=nRefFrame;
             obj.FEMEnable=FEMEnable;
