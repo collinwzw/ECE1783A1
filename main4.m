@@ -4,12 +4,12 @@ systemSetUp();
 
 tic
 inputFilename = '.\data\foreman_cif.yuv';
-outputFilename = '.\data\foremanY_cif.yuv';
+outputFilename = '.\data\foreman_cifY.yuv';
 v1 = YUVVideo(inputFilename, 352, 288 , 420);
 y_only = true;
 v1.writeToFile(outputFilename, y_only);
 
-inputFilename = '.\data\foremanY_cif.yuv';
+inputFilename = '.\data\foreman_cifY.yuv';
 v1 = YOnlyVideo(inputFilename, 352, 288);
 
 %I frame is 1
@@ -20,12 +20,12 @@ block_width = 16;
 block_height = block_width;
 r = 4;
 n = 3;
-QP = 4;
+QP = 7 ;
 I_Period = 8;
-nRefFrame = 1;
+nRefFrame =4;
 FEMEnable = true;
-FastME = false;
-VBSEnable = false;
+FastME = true;
+VBSEnable = true;
 % 
 %pad the video if necessary
 [v1WithPadding,v1Averaged] = v1.block_creation(v1.Y,block_width,block_height);
@@ -49,7 +49,16 @@ totalBit = size(e.OutputBitstream);
 fprintf(" configuration: i = %d, r = %d, QP = %d, IP = %d \n",block_width, r, QP, I_Period);
 fprintf(" PSNR = %d \n",acc_PSNR );
 fprintf(" number of bits for 10 frame = %d \n",totalBit );
-
+% fprintf(" SAD for frame 1= %d \n",e.SADPerFrame(1) );
+% fprintf(" SAD for frame 2= %d \n",e.SADPerFrame(2) );
+% fprintf(" SAD for frame 3= %d \n",e.SADPerFrame(3) );
+% fprintf(" SAD for frame 4= %d \n",e.SADPerFrame(4) );
+% fprintf(" SAD for frame 5= %d \n",e.SADPerFrame(5) );
+% fprintf(" SAD for frame 6= %d \n",e.SADPerFrame(6) );
+% fprintf(" SAD for frame 7= %d \n",e.SADPerFrame(7) );
+% fprintf(" SAD for frame 8= %d \n",e.SADPerFrame(8) );
+% fprintf(" SAD for frame 9= %d \n",e.SADPerFrame(9) );
+% fprintf(" SAD for frame 10= %d \n",e.SADPerFrame(10) );
 %%
 Blocks = c.BlockList;
 SplitList = [];

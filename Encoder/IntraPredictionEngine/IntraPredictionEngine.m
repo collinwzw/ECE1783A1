@@ -94,7 +94,7 @@ classdef IntraPredictionEngine
                     if(bl4_i~=1)
                         prev_row=obj.reference_frame(bl4_i-1,bl4_j:bl4_j+(obj.blocks.block_width)-1);
                     end
-                    obj.curr_block=obj.blocks.data((row_i-1)*obj.blocks.block_height + 1: (row_i)*obj.blocks.block_height,(col_i-1)*obj.blocks.block_width + 1:(col_i-1)*obj.blocks.block_width + 1);
+                    obj.curr_block=obj.blocks.data((row_i-1)*obj.blocks.block_height + 1: (row_i)*obj.blocks.block_height,(col_i-1)*obj.blocks.block_width + 1:(col_i)*obj.blocks.block_width );
                     obj = obj.intraPredictBlock(obj.curr_block,prev_row,prev_col);
                     curr_row=1+((row_i-1)*obj.blocks.block_height):(row_i)*obj.blocks.block_height;
                     curr_col=1+((col_i-1)*obj.blocks.block_width):(col_i)*obj.blocks.block_width;
