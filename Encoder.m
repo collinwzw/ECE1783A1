@@ -7,26 +7,18 @@ classdef Encoder
         n;
         QP;
         reconstructedVideo;
-        modes;
-        MV;
-        diff_modes;
-        diff_MV;
         I_Period;
-        entropyVideo;
         predictionVideo;
-        numberOfBitsList;
         nRefFrame;
         FEMEnable;
         FastME;
         OutputBitstream=[];
         VBSEnable;
-        count = 0;
         SADPerFrame;
-
     end
     
     methods (Access = 'public')
-        function obj = Encoder(inputvideo,block_width, block_height,r ,n, QP, I_Period,nRefFrame,FEMEnable,FastME, VBSEnable)
+        function obj = Encoder(inputvideo,block_width, block_height,r , QP, I_Period,nRefFrame,FEMEnable,FastME, VBSEnable)
             %UNTITLED2 Construct an instance of this class
             %   Detailed explanation goes here
             obj.inputvideo = inputvideo;
@@ -34,7 +26,6 @@ classdef Encoder
             obj.block_width=block_width;
             obj.block_height=block_height;
             obj.r=r;
-            obj.n = n;
             obj.QP = QP;
             obj.nRefFrame=nRefFrame;
             obj.FEMEnable=FEMEnable;
@@ -42,10 +33,9 @@ classdef Encoder
             obj.VBSEnable=VBSEnable;
             obj.SADPerFrame = [];
             obj = obj.encodeVideo();
-
         end
     
-        function [processedBlock, en] = generateReconstructedFrame(obj,frameIndex, predicted_block,Diffencoded_frame)
+        function [processedBlock, en] = generateReconstructedFrame(obj,frameIndex, predicted_block)
             %calculating residual frame
             residualBlockData =  int16(obj.inputvideo.Y(predicted_block.top_height_index: predicted_block.top_height_index + predicted_block.block_height-1, predicted_block.left_width_index: predicted_block.left_width_index + predicted_block.block_width-1,frameIndex)) -int16(predicted_block.data);
             processedBlock = predicted_block;
@@ -93,89 +83,94 @@ classdef Encoder
         end
         
         function obj = encodeVideo(obj)
-            j = 1;
-            k = 1;
+            %initialize parameter for memorize the lastIFrame
             lastIFrame=-1;
+            %generating the type list according to input parameter I_Period
             type = obj.generateTypeMatrix();
+            
             %for i = 1: 1:obj.inputvideo.numberOfFrames
+            % go through the each frame
             for i = 1: 1:10
                 if type(i) == 1
+                    %if intra frame
+                    %initialized the empty reconstructed frame for current
+                    %index i with zero.
                     obj.reconstructedVideo.Y(:,:,i) = zeros( obj.inputvideo.width , obj.inputvideo.height);
                     lastIFrame = i;
                     reference_frame1=[];
                     reference_frame4=[];
-%                     %use intra prediction
-                    deframe = DifferentialEncodingEngine();
-
-                      block_list = obj.truncateFrameToBlocks(i);
-                      length = size(block_list,2);
-                      for index=1:1:length
+                    %truncate current frame to fix size block list
+                    %according to the input block size
+                    block_list = obj.truncateFrameToBlocks(i);
+                    length = size(block_list,2);
+                    for index=1:1:length
                          intrapred=IntraPredictionEngine(block_list(index),obj.reconstructedVideo.Y(:,:,i));
                          intrapred=intrapred.block_creation();
                          if(obj.VBSEnable==0)
-                             predicted_value=intrapred.blocks;
-                             predicted_value.data=intrapred.predictedblock;
-                             predicted_value.split=0;
-                             predicted_value = predicted_value.setframeType(type(i));
-                             [processedBlock, en] = obj.generateReconstructedFrame(i,predicted_value,deframe );
+                             % if no VBS required, just direct do the intra
+                             % prediction on the blocks
+                             predicted_block=intrapred.blocks;
+                             predicted_block.data=intrapred.predictedblock;
+                             predicted_block.split=0;
+                             predicted_block = predicted_block.setframeType(type(i));
+                             [processedBlock, en] = obj.generateReconstructedFrame(i,predicted_block );
                              obj.reconstructedVideo.Y(processedBlock.top_height_index:processedBlock.top_height_index + obj.block_height-1,processedBlock.left_width_index:processedBlock.left_width_index + obj.block_width-1,i) = uint8(processedBlock.data);
                              obj.OutputBitstream = [obj.OutputBitstream en.bitstream];
                          else
+                             %VBS required
+                             %first do the full block prediction
                              temp_bitstream1=[];
-                             predicted_value=intrapred.blocks;
-                             predicted_value.data=intrapred.predictedblock;
-                             predicted_value.split=0;
-                             predicted_value = predicted_value.setframeType(type(i));
-                             [processedBlock, en] = obj.generateReconstructedFrame(i,predicted_value,deframe );
+                             predicted_block=intrapred.blocks;
+                             predicted_block.data=intrapred.predictedblock;
+                             predicted_block.split=0;
+                             predicted_block = predicted_block.setframeType(type(i));
+                             [processedBlock, en] = obj.generateReconstructedFrame(i,predicted_block );
                              reference_frame1(processedBlock.top_height_index:processedBlock.top_height_index + obj.block_height-1,processedBlock.left_width_index:processedBlock.left_width_index + obj.block_width-1) = uint8(processedBlock.data);
                              temp_bitstream1=en.bitstream;
+                             
+                             %do the sub block prediction
                              count=1;
-                             SAD4=[];
-                             mode4=[];
+                             SAD4=zeros( 1 ,4);
+                             mode4=zeros( 1 ,4);
                              temp_bitstream4=[];
+                             predictedblock_4 = zeros( obj.block_width,obj.block_height);
                              reference_frame4 = obj.reconstructedVideo.Y(:,:,i);
                              for row_i =1:1:2
                                 for col_i=1:1:2
                                     intrapred_4=IntraPredictionEngine(block_list(index),reference_frame4);
                                     intrapred_4=intrapred_4.block_creation4(count);
-                                    predicted_value_4=intrapred_4.blocks;
-                                    predicted_value_4.data=intrapred_4.smallblock_4;
-                                    predicted_value_4.split=1;
-                                    predicted_value_4.QP=obj.QP-1;
-                                    predicted_value_4 = predicted_value_4.setframeType(type(i));
-                                    [processedBlock, en] = obj.generateReconstructedFrame(i,predicted_value_4,deframe );
+                                    predicted_sub_block=intrapred_4.blocks;
+                                    predicted_sub_block.data=intrapred_4.smallblock_4;
+                                    predicted_sub_block.split=1;
+                                    predicted_sub_block.QP=obj.QP-1;
+                                    predicted_sub_block = predicted_sub_block.setframeType(type(i));
+                                    [processedBlock, en] = obj.generateReconstructedFrame(i,predicted_sub_block );
                                     temp_bitstream4=[temp_bitstream4 en.bitstream];
                                     curr_row=1+((row_i-1)*obj.block_height/2):(row_i)*obj.block_height/2;
                                     curr_col=1+((col_i-1)*obj.block_width/2):(col_i)*obj.block_width/2;
                                     predictedblock_4(curr_row,curr_col)=intrapred_4.smallblock_4;
-                                    reference_frame4(predicted_value_4.top_height_index: predicted_value_4.top_height_index + predicted_value_4.block_height-1, predicted_value_4.left_width_index: predicted_value_4.left_width_index + predicted_value_4.block_width-1) = uint8(processedBlock.data);
+                                    reference_frame4(predicted_sub_block.top_height_index: predicted_sub_block.top_height_index + predicted_sub_block.block_height-1, predicted_sub_block.left_width_index: predicted_sub_block.left_width_index + predicted_sub_block.block_width-1) = uint8(processedBlock.data);
+                                    SAD4(count)= intrapred_4.SAD_4;
+                                    mode4(count)=predicted_sub_block.Mode;
                                     count=count+1;
-                                    SAD4=[SAD4 intrapred_4.SAD_4];
-                                    mode4=[mode4 predicted_value_4.Mode];
-
                                 end
-                             end
-                             cost=RDO(predicted_value.data,predictedblock_4,obj.block_height,obj.block_width,intrapred.SAD,SAD4,obj.QP);
-                             if(cost.flag==0)
-                                 obj.reconstructedVideo.Y(predicted_value.top_height_index:predicted_value.top_height_index + obj.block_height-1,predicted_value.left_width_index:predicted_value.left_width_index + obj.block_width-1,i) = reference_frame1(predicted_value.top_height_index:predicted_value.top_height_index + obj.block_height-1,predicted_value.left_width_index:predicted_value.left_width_index + obj.block_width-1);
+                            end
+                             cost=RDO(predicted_block.data,predictedblock_4,obj.block_height,obj.block_width,intrapred.SAD,SAD4,obj.QP);
+                            if(cost.flag==0)
+                                 obj.reconstructedVideo.Y(predicted_block.top_height_index:predicted_block.top_height_index + obj.block_height-1,predicted_block.left_width_index:predicted_block.left_width_index + obj.block_width-1,i) = reference_frame1(predicted_block.top_height_index:predicted_block.top_height_index + obj.block_height-1,predicted_block.left_width_index:predicted_block.left_width_index + obj.block_width-1);
                                  obj.OutputBitstream = [obj.OutputBitstream temp_bitstream1];
-                                 %obj.predictionVideo(processedBlock.top_height_index:processedBlock.top_height_index + 16-1,processedBlock.left_width_index:processedBlock.left_width_index + 16-1,i) = uint8(predicted_value.data);
-
-                             else
-                                 obj.reconstructedVideo.Y(predicted_value.top_height_index:predicted_value.top_height_index + obj.block_height-1,predicted_value.left_width_index:predicted_value.left_width_index + obj.block_width-1,i) = reference_frame4(predicted_value.top_height_index:predicted_value.top_height_index + obj.block_height-1,predicted_value.left_width_index:predicted_value.left_width_index + obj.block_width-1);
+                                 %obj.predictionVideo(processedBlock.top_height_index:processedBlock.top_height_index + 16-1,processedBlock.left_width_index:processedBlock.left_width_index + 16-1,i) = uint8(predicted_block.data);
+                            else
+                                 obj.reconstructedVideo.Y(predicted_block.top_height_index:predicted_block.top_height_index + obj.block_height-1,predicted_block.left_width_index:predicted_block.left_width_index + obj.block_width-1,i) = reference_frame4(predicted_block.top_height_index:predicted_block.top_height_index + obj.block_height-1,predicted_block.left_width_index:predicted_block.left_width_index + obj.block_width-1);
                                  obj.OutputBitstream = [obj.OutputBitstream temp_bitstream4];
-                                 %obj.predictionVideo(1:processedBlock.top_height_index + 16-1,processedBlock.left_width_index:processedBlock.left_width_index + 16-1,i) = uint8(predictedblock_4);
-
-                                 
-                             end
-%                              reference_frame(:,:)=obj.reconstructedVideo.Y;
-                         end
-                      end
+                                 %obj.predictionVideo(1:processedBlock.top_height_index + 16-1,processedBlock.left_width_index:processedBlock.left_width_index + 16-1,i) = uint8(predictedblock_4); 
+                            end
+                        end
+                    end
                 else
                     %inter
                     block_list = obj.truncateFrameToBlocks(i);
                     length = size(block_list,2);
-                    deframe = DifferentialEncodingEngine();
                     previousMV = MotionVector(0,0);
                     previousFrameIndex = 0;
                     %for loop to go through all blocks
@@ -196,8 +191,8 @@ classdef Encoder
                                     ME_result = MotionEstimationEngine(obj.r,block_list(index), uint8(obj.reconstructedVideo.Y(:,:,referenceframe_index)), obj.block_width, obj.block_height,obj.FEMEnable, obj.FastME, previousMV);
                                     if ME_result.differenceForBestMatchBlock < min_value
                                         min_value = ME_result.differenceForBestMatchBlock;
-                                        bestMatchBlockNoSplit = ME_result.bestMatchBlock;
-                                        bestMatchBlockNoSplit.referenceFrameIndex = i - referenceframe_index;
+                                        bestMatchBlock = ME_result.bestMatchBlock;
+                                        bestMatchBlock.referenceFrameIndex = i - referenceframe_index;
 
                                     end
                                 else
@@ -206,7 +201,7 @@ classdef Encoder
                                     bestMatchBlockNoSplit.referenceFrameIndex = i - referenceframe_index;
                                     
                                     % variable block size
-                                    SAD4=[];
+                                    SAD4=zeros( 1 ,4);
                                     SubBlockList = [];
                                     previousMVSubBlock = previousMV;
 
@@ -219,7 +214,7 @@ classdef Encoder
                                         %for each block, doing the Motion
                                         %Estimation
                                         SubBlockME_result = MotionEstimationEngine(obj.r,subBlock_list(subBlockIndex), uint8(obj.reconstructedVideo.Y(:,:,referenceframe_index)), obj.block_width/2, obj.block_height/2,obj.FEMEnable, obj.FastME, previousMVSubBlock);
-                                        SAD4 = [SAD4 SubBlockME_result.differenceForBestMatchBlock];
+                                        SAD4(col_i + (row_i - 1) * 2)= SubBlockME_result.differenceForBestMatchBlock;
                                         SubBlockME_result.bestMatchBlock.referenceFrameIndex = i - referenceframe_index;
                                         SubBlockME_result.bestMatchBlock.split=1;
                                         previousMVSubBlock = SubBlockME_result.bestMatchBlock.MotionVector;    
@@ -267,28 +262,13 @@ classdef Encoder
                                 
                                 obj.predictionVideo(processedBlock.top_height_index:processedBlock.top_height_index + bestMatchBlock(bestMatchBlockIndex).block_height-1,processedBlock.left_width_index:processedBlock.left_width_index + bestMatchBlock(bestMatchBlockIndex).block_width-1,i) = uint8(bestMatchBlock(bestMatchBlockIndex).data);
 
-                                [processedBlock, en] = obj.generateReconstructedFrame(i,bestMatchBlock(bestMatchBlockIndex),deframe );
+                                [processedBlock, en] = obj.generateReconstructedFrame(i,bestMatchBlock(bestMatchBlockIndex) );
                                 obj.reconstructedVideo.Y(processedBlock.top_height_index:processedBlock.top_height_index + bestMatchBlock(bestMatchBlockIndex).block_height-1,processedBlock.left_width_index:processedBlock.left_width_index + bestMatchBlock(bestMatchBlockIndex).block_width-1,i) = uint8(processedBlock.data);
                                 obj.OutputBitstream = [obj.OutputBitstream en.bitstream];
-
                          end
-
                     end
-
-%                     deframe = DifferentialEncodingEngine();
-%                     deframe = deframe.differentialEncodingMotionVector(frame.blocks);
-%                     [reconstructedFrame,entropyQTC,entropyPredictionInfo] = obj.generateReconstructedFrame(i,frame,deframe );
-%                     obj.reconstructedVideo(:,:,i) = uint8(reconstructedFrame);
-%                     obj.entropyVideo = [obj.entropyVideo entropyQTC];
-%                     obj.predictionVideo = [obj.predictionVideo entropyPredictionInfo];
-%                     obj.diff_MV(:,:,k) = deframe.diff_motionvector;
-%                     obj.MV(:,:,k)=frame.blocks;
-%                     k = k + 1;
-                    % realationship between i, j, k
                 end
                 obj.SADPerFrame = [obj.SADPerFrame abs(sum(obj.reconstructedVideo.Y(:,:,i), 'all') - sum(obj.inputvideo.Y(:,:,i), 'all'))];
-
-%                obj.numberOfBitsList = [obj.numberOfBitsList size(entropyQTC,2) + size(entropyPredictionInfo,2) ];
                 fprintf("frame number %d is done\n", i);
             end
         end
