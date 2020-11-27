@@ -3,14 +3,14 @@ clear all;
 systemSetUp();
 
 tic
-inputFilename = '.\data\foreman_cif.yuv';
-outputFilename = '.\data\foremanY_cif.yuv';
-v1 = YUVVideo(inputFilename, 352, 288 , 420);
-y_only = true;
-v1.writeToFile(outputFilename, y_only);
-
-inputFilename = '.\data\foremanY_cif.yuv';
-v1 = YOnlyVideo(inputFilename, 352, 288);
+% inputFilename = '.\data\foreman_cif.yuv';
+% outputFilename = '.\data\foremanY_cif.yuv';
+% v1 = YUVVideo(inputFilename, 352, 288 , 420);
+% y_only = true;
+% v1.writeToFile(outputFilename, y_only);
+% 
+% inputFilename = '.\data\foremanY_cif.yuv';
+% v1 = YOnlyVideo(inputFilename, 352, 288);
 
 %I frame is 1
 %P frame is 0
@@ -28,19 +28,21 @@ FastME = true;
 VBSEnable = true;
 % 
 %pad the video if necessary
-[v1WithPadding,v1Averaged] = v1.block_creation(v1.Y,block_width,block_height);
+%[v1WithPadding,v1Averaged] = v1.block_creation(v1.Y,block_width,block_height);
 
 createQPTable = true;
 if createQPTable == 1
     %creating QP table
     QPinputFilename = '.\data\CIF.yuv';
-    outputFilename = '.\data\CIFY.yuv';
-    video = YUVVideo(inputFilename, 352, 288 , 420);
+    QPouputFilename = '.\data\CIFY.yuv';
+    video = YUVVideo(QPinputFilename, 352, 288 , 420);
     y_only = true;
-    video.writeToFile(outputFilename, y_only);
-    video = YOnlyVideo(outputFilename, 352, 288);
+    video.writeToFile(QPouputFilename, y_only);
+    video = YOnlyVideo(QPouputFilename, 352, 288);
     [videoWithPadding,v1Averaged] = video.block_creation(video.Y,block_width,block_height);
-    c = createQPTable(videoWithPadding,block_width, block_height,r,nRefFrame, FEMEnable, FastME, VBSEnable);
+    intra = false;
+    CIF = true;
+    c = CreateQPTable(videoWithPadding,block_width, block_height,r,nRefFrame, FEMEnable, FastME, VBSEnable, intra, CIF);
     return;
 end
 

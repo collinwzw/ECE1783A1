@@ -15,7 +15,7 @@ classdef EncoderBuildQPTable
         OutputBitstream=[];
         VBSEnable;
         SADPerFrame;
-        
+        bitCountVideo;
     end
     
     methods (Access = 'public')
@@ -33,6 +33,7 @@ classdef EncoderBuildQPTable
             obj.FastME = FastME;
             obj.VBSEnable=VBSEnable;
             obj.SADPerFrame = [];
+            obj.bitCountVideo = zeros(obj.inputvideo.width/block_width,obj.inputvideo.height/block_height, obj.inputvideo.numberOfFrames);
             obj = obj.encodeVideo();
         end
     
@@ -89,9 +90,9 @@ classdef EncoderBuildQPTable
             %generating the type list according to input parameter I_Period
             type = obj.generateTypeMatrix();
             
-            %for i = 1: 1:obj.inputvideo.numberOfFrames
+            for i = 1: 1:obj.inputvideo.numberOfFrames
             % go through the each frame
-            for i = 1: 1:10
+            %for i = 1: 1:
                 if type(i) == 1
                     %if intra frame
                     %initialized the empty reconstructed frame for current
@@ -159,11 +160,14 @@ classdef EncoderBuildQPTable
                              cost=RDO(predicted_block.data,predictedblock_4,obj.block_height,obj.block_width,intrapred.SAD,SAD4,obj.QP);
                             if(cost.flag==0)
                                  obj.reconstructedVideo.Y(predicted_block.top_height_index:predicted_block.top_height_index + obj.block_height-1,predicted_block.left_width_index:predicted_block.left_width_index + obj.block_width-1,i) = reference_frame1(predicted_block.top_height_index:predicted_block.top_height_index + obj.block_height-1,predicted_block.left_width_index:predicted_block.left_width_index + obj.block_width-1);
-                                 obj.OutputBitstream = [obj.OutputBitstream temp_bitstream1];
+                                 obj.bitCountVideo(int16(block_list(index).top_height_index/obj.block_height) + 1, int16(block_list(index).left_width_index/obj.block_width) + 1, i ) = size(temp_bitstream1,2);
+                                 %obj.OutputBitstream = [obj.OutputBitstream temp_bitstream1];
                                  %obj.predictionVideo(processedBlock.top_height_index:processedBlock.top_height_index + 16-1,processedBlock.left_width_index:processedBlock.left_width_index + 16-1,i) = uint8(predicted_block.data);
                             else
                                  obj.reconstructedVideo.Y(predicted_block.top_height_index:predicted_block.top_height_index + obj.block_height-1,predicted_block.left_width_index:predicted_block.left_width_index + obj.block_width-1,i) = reference_frame4(predicted_block.top_height_index:predicted_block.top_height_index + obj.block_height-1,predicted_block.left_width_index:predicted_block.left_width_index + obj.block_width-1);
-                                 obj.OutputBitstream = [obj.OutputBitstream temp_bitstream4];
+                                 obj.bitCountVideo(int16(block_list(index).top_height_index/obj.block_height) + 1, int16(block_list(index).left_width_index/obj.block_width) + 1, i ) = size(temp_bitstream4,2);
+
+                                 %obj.OutputBitstream = [obj.OutputBitstream temp_bitstream4];
                                  %obj.predictionVideo(1:processedBlock.top_height_index + 16-1,processedBlock.left_width_index:processedBlock.left_width_index + 16-1,i) = uint8(predictedblock_4); 
                             end
                         end
@@ -235,6 +239,7 @@ classdef EncoderBuildQPTable
                                         if cost.RDO_cost4 < min_value
                                             min_value = cost.RDO_cost4;
                                             bestMatchBlock = SubBlockList;
+
                                         end
                                     else
                                         % no split has smaller RDO
@@ -265,7 +270,9 @@ classdef EncoderBuildQPTable
 
                                 [processedBlock, en] = obj.generateReconstructedFrame(i,bestMatchBlock(bestMatchBlockIndex) );
                                 obj.reconstructedVideo.Y(processedBlock.top_height_index:processedBlock.top_height_index + bestMatchBlock(bestMatchBlockIndex).block_height-1,processedBlock.left_width_index:processedBlock.left_width_index + bestMatchBlock(bestMatchBlockIndex).block_width-1,i) = uint8(processedBlock.data);
-                                obj.OutputBitstream = [obj.OutputBitstream en.bitstream];
+                                %obj.OutputBitstream = [obj.OutputBitstream en.bitstream];
+                                obj.bitCountVideo(int16(block_list(index).top_height_index/obj.block_height) + 1, int16(block_list(index).left_width_index/obj.block_width) + 1, i ) = size(en.bitstream,2);
+
                          end
                     end
                 end

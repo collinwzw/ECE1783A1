@@ -111,7 +111,7 @@ classdef YUVVideo
             if (fid < 0) 
                 error('Could not open the file!');
             end
-             for i=50:obj.numberOfFrames
+             for i=1:obj.numberOfFrames
                 fwrite(fid,uint8(obj.Y(:,:,i)),'uchar');
                 if (~Y_only)
                     fwrite(fid,uint8(obj.U(:,:,i)),'uchar');
