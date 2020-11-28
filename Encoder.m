@@ -90,7 +90,7 @@ classdef Encoder
             
             %for i = 1: 1:obj.inputvideo.numberOfFrames
             % go through the each frame
-            for i = 1: 1:10
+            for i = 1: 1:2
                 if type(i) == 1
                     %if intra frame
                     %initialized the empty reconstructed frame for current
@@ -181,7 +181,7 @@ classdef Encoder
                          %doing the truncation
                          %split or not
                          %
-                         min_value = 9999999;
+                         min_value = -9999999;
                          % for loop to go through multiple reference frame
                          % to get best matched block
                          for referenceframe_index = i - obj.nRefFrame: 1 : i-1
@@ -189,7 +189,7 @@ classdef Encoder
                              if referenceframe_index >= lastIFrame
                                 if obj.VBSEnable == false
                                     ME_result = MotionEstimationEngine(obj.r,block_list(index), uint8(obj.reconstructedVideo.Y(:,:,referenceframe_index)), obj.block_width, obj.block_height,obj.FEMEnable, obj.FastME, previousMV);
-                                    if ME_result.differenceForBestMatchBlock < min_value
+                                    if ME_result.differenceForBestMatchBlock > min_value
                                         min_value = ME_result.differenceForBestMatchBlock;
                                         bestMatchBlock = ME_result.bestMatchBlock;
                                         bestMatchBlock.referenceFrameIndex = i - referenceframe_index;
@@ -260,7 +260,7 @@ classdef Encoder
                                 bestMatchBlock(bestMatchBlockIndex).referenceFrameIndex = previousFrameIndex - bestMatchBlock(bestMatchBlockIndex).referenceFrameIndex;
                                 previousFrameIndex = tempPreviousFrameIndex;
                                 
-                                obj.predictionVideo(processedBlock.top_height_index:processedBlock.top_height_index + bestMatchBlock(bestMatchBlockIndex).block_height-1,processedBlock.left_width_index:processedBlock.left_width_index + bestMatchBlock(bestMatchBlockIndex).block_width-1,i) = uint8(bestMatchBlock(bestMatchBlockIndex).data);
+                                obj.predictionVideo(bestMatchBlock(bestMatchBlockIndex).top_height_index:bestMatchBlock(bestMatchBlockIndex).top_height_index + bestMatchBlock(bestMatchBlockIndex).block_height-1,bestMatchBlock(bestMatchBlockIndex).left_width_index:bestMatchBlock(bestMatchBlockIndex).left_width_index + bestMatchBlock(bestMatchBlockIndex).block_width-1,i) = uint8(bestMatchBlock(bestMatchBlockIndex).data);
 
                                 [processedBlock, en] = obj.generateReconstructedFrame(i,bestMatchBlock(bestMatchBlockIndex) );
                                 obj.reconstructedVideo.Y(processedBlock.top_height_index:processedBlock.top_height_index + bestMatchBlock(bestMatchBlockIndex).block_height-1,processedBlock.left_width_index:processedBlock.left_width_index + bestMatchBlock(bestMatchBlockIndex).block_width-1,i) = uint8(processedBlock.data);

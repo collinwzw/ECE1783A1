@@ -3,14 +3,14 @@ clear all;
 systemSetUp();
 
 tic
-% inputFilename = '.\data\foreman_cif.yuv';
-% outputFilename = '.\data\foremanY_cif.yuv';
-% v1 = YUVVideo(inputFilename, 352, 288 , 420);
-% y_only = true;
-% v1.writeToFile(outputFilename, y_only);
-% 
-% inputFilename = '.\data\foremanY_cif.yuv';
-% v1 = YOnlyVideo(inputFilename, 352, 288);
+inputFilename = '.\data\foreman_cif.yuv';
+outputFilename = '.\data\foremanY_cif.yuv';
+v1 = YUVVideo(inputFilename, 352, 288 , 420);
+y_only = true;
+v1.writeToFile(outputFilename, y_only);
+
+inputFilename = '.\data\foremanY_cif.yuv';
+v1 = YOnlyVideo(inputFilename, 352, 288);
 
 %I frame is 1
 %P frame is 0
@@ -18,19 +18,19 @@ tic
 % %parameter section
 block_width = 16;
 block_height = block_width;
-r = 16;
+r = 4;
 n = 3;
-QP = 1;
+QP = 4;
 I_Period = 8;
 nRefFrame = 1;
-FEMEnable = true;
-FastME = true;
-VBSEnable = true;
+FEMEnable = false;
+FastME = false;
+VBSEnable = false;
 % 
 %pad the video if necessary
-%[v1WithPadding,v1Averaged] = v1.block_creation(v1.Y,block_width,block_height);
+[v1WithPadding,v1Averaged] = v1.block_creation(v1.Y,block_width,block_height);
 
-createQPTable = true;
+createQPTable = false;
 if createQPTable == 1
     %creating QP table
     QPinputFilename = '.\data\CIF.yuv';

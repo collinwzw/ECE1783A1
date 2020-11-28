@@ -32,8 +32,8 @@ classdef MotionEstimationEngine
                 else
                     referenceBlockList = obj.getAllBlocksFME( currentBlock.left_width_index, currentBlock.top_height_index);
                 end
-                bestMatchBlockUnprocessed = obj.findBestPredictedBlockSAD(referenceBlockList,currentBlock.getBlockSumValue());
-                obj.differenceForBestMatchBlock = abs( currentBlock.getBlockSumValue() - bestMatchBlockUnprocessed.getBlockSumValue());
+                bestMatchBlockUnprocessed = obj.findBestPredictedBlockSAD(referenceBlockList,currentBlock);
+                obj.differenceForBestMatchBlock =  ssim(bestMatchBlockUnprocessed.data, currentBlock.data);
                 obj.bestMatchBlock = currentBlock;
                 obj.bestMatchBlock.data = bestMatchBlockUnprocessed.data;
                 obj.bestMatchBlock.MotionVector = bestMatchBlockUnprocessed.MotionVector;
@@ -292,11 +292,11 @@ classdef MotionEstimationEngine
             end
         end
         
-        function r = findBestPredictedBlockSAD(obj, referenceBlockList, currentBlockSum)
-            minimumValue = 9999999;
+        function r = findBestPredictedBlockSAD(obj, referenceBlockList, currentBlock)
+            minimumValue = -9999999;
             for i = 1: 1 : length(referenceBlockList)
-                diff = abs( currentBlockSum - referenceBlockList(i).getBlockSumValue());
-                if (diff < minimumValue)
+                diff = ssim(referenceBlockList(i).data, currentBlock.data);
+                if (diff > minimumValue)
                     minimumValue = diff;
                     r = referenceBlockList(i);
                 elseif diff == minimumValue %case of tie
@@ -359,7 +359,7 @@ classdef MotionEstimationEngine
 
                 end
                 if size(blockList,2) ~= 0
-                    bestBlock = obj.findBestPredictedBlockSAD(blockList, currentBlock.getBlockSumValue());
+                    bestBlock = obj.findBestPredictedBlockSAD(blockList, currentBlock);
                     if isobject(blk)== 1
                         r = originBlock;
                         break;
