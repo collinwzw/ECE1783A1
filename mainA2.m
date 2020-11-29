@@ -3,17 +3,18 @@ clear all;
 systemSetUp();
 
 tic
-% inputFilename = '.\data\foreman_cif.yuv';
-% outputFilename = '.\data\foremanY_cif.yuv';
-% v1 = YUVVideo(inputFilename, 352, 288 , 420);
-% y_only = true;
-% v1.writeToFile(outputFilename, y_only);
-% 
-% inputFilename = '.\data\foremanY_cif.yuv';
-% v1 = YOnlyVideo(inputFilename, 352, 288);
+inputFilename = '.\data\foreman_cif.yuv';
+outputFilename = '.\data\foremanY_cif.yuv';
+v1 = YUVVideo(inputFilename, 352, 288 , 420);
+y_only = true;
+v1.writeToFile(outputFilename, y_only);
+
+inputFilename = '.\data\foremanY_cif.yuv';
+v1 = YOnlyVideo(inputFilename, 352, 288);
 
 %I frame is 1
 %P frame is 0
+
 
 % %parameter section
 block_width = 16;
@@ -26,11 +27,15 @@ nRefFrame = 1;
 FEMEnable = true;
 FastME = true;
 VBSEnable = true;
+RCflag = true;
+targetBPPerSecond=2400000;
+framePerSecond = 30;
 % 
 %pad the video if necessary
-%[v1WithPadding,v1Averaged] = v1.block_creation(v1.Y,block_width,block_height);
+[v1WithPadding,v1Averaged] = v1.block_creation(v1.Y,block_width,block_height);
 
-createQPTable = true;
+%creating QP table section
+createQPTable = false;
 if createQPTable == 1
     %creating QP table
     QPinputFilename = '.\data\CIF.yuv';
@@ -46,8 +51,17 @@ if createQPTable == 1
     return;
 end
 
+%calculating budget
+QPTableInterFilename = '.\result\CIFQPTableInter.txt';
+QPTableIntraFilename = '.\result\CIFQPTableIntra.txt';
+bitBudget = BitBudget(targetBPPerSecond, framePerSecond,v1WithPadding.height, block_height, QPTableInterFilename, QPTableIntraFilename );
+
+
+
+%* (v1WithPadding.width/block_width);
+
 %encode the video
-e = Encoder(v1WithPadding,block_width, block_height,r , QP, I_Period,nRefFrame, FEMEnable, FastME, VBSEnable);
+e = Encoder(v1WithPadding,block_width, block_height,r , QP, I_Period,nRefFrame, FEMEnable, FastME, VBSEnable,RCflag, bitBudget);
 %%
 c=ReverseEntropyEngine_Block(e.OutputBitstream,block_width,block_height,288,352);
 BlockList = c.BlockList;
