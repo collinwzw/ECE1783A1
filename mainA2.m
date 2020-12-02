@@ -15,6 +15,7 @@ v1 = YOnlyVideo(inputFilename, 352, 288);
 %I frame is 1
 %P frame is 0
 
+
 % %parameter section
 block_width = 16;
 block_height = block_width;
@@ -26,26 +27,41 @@ nRefFrame = 1;
 FEMEnable = true;
 FastME = true;
 VBSEnable = true;
+RCflag = true;
+targetBPPerSecond=2400000;
+framePerSecond = 30;
 % 
 %pad the video if necessary
 [v1WithPadding,v1Averaged] = v1.block_creation(v1.Y,block_width,block_height);
 
-createQPTable = true;
+%creating QP table section
+createQPTable = false;
 if createQPTable == 1
     %creating QP table
     QPinputFilename = '.\data\CIF.yuv';
-    outputFilename = '.\data\CIFY.yuv';
-    video = YUVVideo(inputFilename, 352, 288 , 420);
+    QPouputFilename = '.\data\CIFY.yuv';
+    video = YUVVideo(QPinputFilename, 352, 288 , 420);
     y_only = true;
-    video.writeToFile(outputFilename, y_only);
-    video = YOnlyVideo(outputFilename, 352, 288);
+    video.writeToFile(QPouputFilename, y_only);
+    video = YOnlyVideo(QPouputFilename, 352, 288);
     [videoWithPadding,v1Averaged] = video.block_creation(video.Y,block_width,block_height);
-    c = createQPTable(videoWithPadding,block_width, block_height,r,nRefFrame, FEMEnable, FastME, VBSEnable);
+    intra = false;
+    CIF = true;
+    c = CreateQPTable(videoWithPadding,block_width, block_height,r,nRefFrame, FEMEnable, FastME, VBSEnable, intra, CIF);
     return;
 end
 
+%calculating budget
+QPTableInterFilename = '.\result\CIFQPTableInter.txt';
+QPTableIntraFilename = '.\result\CIFQPTableIntra.txt';
+bitBudget = BitBudget(targetBPPerSecond, framePerSecond,v1WithPadding.height, block_height, QPTableInterFilename, QPTableIntraFilename );
+
+
+
+%* (v1WithPadding.width/block_width);
+
 %encode the video
-e = Encoder(v1WithPadding,block_width, block_height,r , QP, I_Period,nRefFrame, FEMEnable, FastME, VBSEnable);
+e = Encoder(v1WithPadding,block_width, block_height,r , QP, I_Period,nRefFrame, FEMEnable, FastME, VBSEnable,RCflag, bitBudget);
 %%
 c=ReverseEntropyEngine_Block(e.OutputBitstream,block_width,block_height,288,352);
 BlockList = c.BlockList;
