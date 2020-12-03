@@ -53,7 +53,7 @@ classdef ReverseEntropyEngine_Block
             obj = obj.decodeBitstream();
             obj = obj.invRLE();
             obj = obj.generateFrameResInv();  
-            obj = obj.BlockIndex();
+            %obj = obj.BlockIndex();
             %%%%%%%%%%%%%%%%%%%%%%%%
         end
         

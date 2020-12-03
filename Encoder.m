@@ -17,6 +17,7 @@ classdef Encoder
         SADPerFrame;
         RCflag;
         bitBudget;
+        blockList;
     end
     
     methods (Access = 'public')
@@ -68,7 +69,7 @@ classdef Encoder
 %                 entropyQTCBlock = entropyFrame.bitstream;
 %                 entropyPredictionInfoBlock = entropyFrame.predictionInfoBitstream;
 %             end
-
+            obj.blockList = [obj.blockList predicted_block];
             %input quantized transformed frame to rescaling engine    
             processedBlock.data = RescalingEngine(processedBlock).rescalingResult;
             %input rescal transformed frame to inverse transformation engine    
@@ -160,7 +161,11 @@ classdef Encoder
                                     predicted_sub_block=intrapred_4.blocks;
                                     predicted_sub_block.data=intrapred_4.smallblock_4;
                                     predicted_sub_block.split=1;
-                                    predicted_sub_block.QP=obj.QP-1;
+                                    if obj.QP >= 1
+                                        predicted_sub_block.QP=obj.QP-1;
+                                    else
+                                        predicted_sub_block.QP=obj.QP;
+                                    end
                                     predicted_sub_block = predicted_sub_block.setframeType(type(i));
                                     [processedBlock, en] = obj.generateReconstructedFrame(i,predicted_sub_block );
                                     temp_bitstream4=[temp_bitstream4 en.bitstream];
@@ -215,13 +220,13 @@ classdef Encoder
                                         min_value = ME_result.differenceForBestMatchBlock;
                                         bestMatchBlock = ME_result.bestMatchBlock;
                                         bestMatchBlock.referenceFrameIndex = i - referenceframe_index;
-
+                                        bestMatchBlock.split=0;
                                     end
                                 else
                                     ME_result = MotionEstimationEngine(obj.r,block_list(index), uint8(obj.reconstructedVideo.Y(:,:,referenceframe_index)), obj.block_width, obj.block_height,obj.FEMEnable, obj.FastME, previousMV);
                                     bestMatchBlockNoSplit = ME_result.bestMatchBlock;
                                     bestMatchBlockNoSplit.referenceFrameIndex = i - referenceframe_index;
-                                    
+                                    bestMatchBlockNoSplit.split = 0;
                                     % variable block size
                                     SAD4=zeros( 1 ,4);
                                     SubBlockList = [];
@@ -272,8 +277,12 @@ classdef Encoder
                                 %set the frame type for the block
                                 bestMatchBlock(bestMatchBlockIndex) = bestMatchBlock(bestMatchBlockIndex).setframeType(type(i));
                                 
+                                if (size(bestMatchBlock,2) > 1) && obj.QP >= 1
+                                    bestMatchBlock(bestMatchBlockIndex) = bestMatchBlock(bestMatchBlockIndex).setQP(obj.QP - 1);
+                                else
+                                    bestMatchBlock(bestMatchBlockIndex) = bestMatchBlock(bestMatchBlockIndex).setQP(obj.QP - 1);
+                                end
                                 %set QP for the block
-                                bestMatchBlock(bestMatchBlockIndex) = bestMatchBlock(bestMatchBlockIndex).setQP(obj.QP);
 
                                 %differential encoding for motion vector
                                 tempPreviousMV = bestMatchBlock(bestMatchBlockIndex).MotionVector;
@@ -284,6 +293,9 @@ classdef Encoder
                                 tempPreviousFrameIndex = bestMatchBlock(bestMatchBlockIndex).referenceFrameIndex;
                                 bestMatchBlock(bestMatchBlockIndex).referenceFrameIndex = previousFrameIndex - bestMatchBlock(bestMatchBlockIndex).referenceFrameIndex;
                                 previousFrameIndex = tempPreviousFrameIndex;
+                                if bestMatchBlock(bestMatchBlockIndex).top_height_index == 289
+                                    a=1;
+                                end
                                 
                                 obj.predictionVideo(processedBlock.top_height_index:processedBlock.top_height_index + bestMatchBlock(bestMatchBlockIndex).block_height-1,processedBlock.left_width_index:processedBlock.left_width_index + bestMatchBlock(bestMatchBlockIndex).block_width-1,i) = uint8(bestMatchBlock(bestMatchBlockIndex).data);
 

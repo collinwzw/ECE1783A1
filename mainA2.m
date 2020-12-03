@@ -70,6 +70,7 @@ BlockList = c.BlockList;
 d=MotionCompensationEngine_Block(BlockList,block_width,block_height,288,352,FEMEnable,nRefFrame);
 
 toc 
+%%
 acc_PSNR = 0;
 for k=1:1:10
     acc_PSNR = acc_PSNR + psnr(d.DecodedRefVideo(:,:,k),double(v1WithPadding.Y(:,:,k)));
