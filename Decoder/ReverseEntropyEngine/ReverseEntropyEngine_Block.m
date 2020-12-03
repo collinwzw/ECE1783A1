@@ -16,7 +16,7 @@ classdef ReverseEntropyEngine_Block
         count1 = 0;
         Split_block_width; %type int
         Split_block_height;%type int
-        
+        SplitList;
         NumofBlockinARow;
         NumofBlockinACol
         FirstBlockCounter;
@@ -31,6 +31,8 @@ classdef ReverseEntropyEngine_Block
         SplitLi;
         QPLi;
         DataLi;
+        QPLiBig;
+        QPLiSub;
     end
     
     methods(Access = 'public')
@@ -50,7 +52,8 @@ classdef ReverseEntropyEngine_Block
             %%%%%%%%%%%%%%%%%%%
             obj = obj.decodeBitstream();
             obj = obj.invRLE();
-            obj = obj.generateFrameResInv();               
+            obj = obj.generateFrameResInv();  
+            obj = obj.BlockIndex();
             %%%%%%%%%%%%%%%%%%%%%%%%
         end
         
@@ -163,6 +166,16 @@ classdef ReverseEntropyEngine_Block
                     ind = ind + 1;
                     %obj.QPLi = PreviousQP - obj.QPLi;
                     %PreviousQP = obj.QPLi;
+                    if obj.SplitLi == 0 && obj.QPLi==0
+                        obj.QPLiBig = obj.QPLi;
+                        obj.QPLiSub = obj.QPLi;
+                    elseif obj.SplitLi == 0 && obj.QPLi ~=0
+                        obj.QPLiBig = obj.QPLi;
+                        obj.QPLiSub = obj.QPLi - 1;
+                    elseif obj.SplitLi == 1
+                        obj.QPLiBig = obj.QPLi + 1;
+                        obj.QPLiSub = obj.QPLi;
+                    end
                 end
                                
                 obj.decodedList=obj.decodedList(ind:end);
@@ -212,7 +225,13 @@ classdef ReverseEntropyEngine_Block
                 tempBlock.MotionVector.y = obj.yLi;
                 tempBlock.referenceFrameIndex = obj.RefLi;
                 tempBlock.split = obj.SplitLi;
-                tempBlock.QP = obj.QPLi;
+                
+                if obj.SplitLi==0
+                    tempBlock.QP = obj.QPLiBig;
+                else
+                    tempBlock.QP = obj.QPLiSub;
+                end
+                    
                 tempBlock.data = obj.DataLi;
                 
                 obj.BlockList = [obj.BlockList tempBlock];
@@ -247,6 +266,8 @@ classdef ReverseEntropyEngine_Block
             end
 
         end
+        
+
     
         
     end
