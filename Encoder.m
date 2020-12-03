@@ -55,7 +55,7 @@ classdef Encoder
             
             %call entropy engine to encode the quantized transformed frame
             %and save it.
-            en = EntropyEngine_Block(processedBlock);
+            en = EntropyEngine_Block(processedBlock, obj.QP);
             
 
 %             if (rem(frameIndex - 1,obj.I_Period)) == 0
@@ -69,7 +69,7 @@ classdef Encoder
 %                 entropyQTCBlock = entropyFrame.bitstream;
 %                 entropyPredictionInfoBlock = entropyFrame.predictionInfoBitstream;
 %             end
-            obj.blockList = [obj.blockList predicted_block];
+            
             %input quantized transformed frame to rescaling engine    
             processedBlock.data = RescalingEngine(processedBlock).rescalingResult;
             %input rescal transformed frame to inverse transformation engine    
@@ -178,16 +178,22 @@ classdef Encoder
                                     count=count+1;
                                 end
                             end
-                             cost=RDO(predicted_block.data,predictedblock_4,obj.block_height,obj.block_width,intrapred.SAD,SAD4,obj.QP);
+                            cost=RDO(predicted_block.data,predictedblock_4,obj.block_height,obj.block_width,intrapred.SAD,SAD4,obj.QP);
                             if(cost.flag==0)
                                  obj.reconstructedVideo.Y(predicted_block.top_height_index:predicted_block.top_height_index + obj.block_height-1,predicted_block.left_width_index:predicted_block.left_width_index + obj.block_width-1,i) = reference_frame1(predicted_block.top_height_index:predicted_block.top_height_index + obj.block_height-1,predicted_block.left_width_index:predicted_block.left_width_index + obj.block_width-1);
                                  obj.OutputBitstream = [obj.OutputBitstream temp_bitstream1];
                                  actualBitSpentCurrentRow = actualBitSpentCurrentRow + size(temp_bitstream1,2);
+                                 actualBitSpentCurrentRow = actualBitSpentCurrentRow + size(temp_bitstream4,2);%obj.predictionVideo(1:processedBlock.top_height_index + 16-1,processedBlock.left_width_index:processedBlock.left_width_index + 16-1,i) = uint8(predictedblock_4); 
+                                 obj.blockList = [obj.blockList predicted_block];
                                  %obj.predictionVideo(processedBlock.top_height_index:processedBlock.top_height_index + 16-1,processedBlock.left_width_index:processedBlock.left_width_index + 16-1,i) = uint8(predicted_block.data);
                             else
                                  obj.reconstructedVideo.Y(predicted_block.top_height_index:predicted_block.top_height_index + obj.block_height-1,predicted_block.left_width_index:predicted_block.left_width_index + obj.block_width-1,i) = reference_frame4(predicted_block.top_height_index:predicted_block.top_height_index + obj.block_height-1,predicted_block.left_width_index:predicted_block.left_width_index + obj.block_width-1);
                                  obj.OutputBitstream = [obj.OutputBitstream temp_bitstream4];
-                                 actualBitSpentCurrentRow = actualBitSpentCurrentRow + size(temp_bitstream4,2);%obj.predictionVideo(1:processedBlock.top_height_index + 16-1,processedBlock.left_width_index:processedBlock.left_width_index + 16-1,i) = uint8(predictedblock_4); 
+
+                                 obj.blockList = [obj.blockList predicted_sub_block];
+                                 obj.blockList = [obj.blockList predicted_sub_block];
+                                 obj.blockList = [obj.blockList predicted_sub_block];
+                                 obj.blockList = [obj.blockList predicted_sub_block];
                             end
                         end
                     end
@@ -300,6 +306,8 @@ classdef Encoder
                                 obj.predictionVideo(processedBlock.top_height_index:processedBlock.top_height_index + bestMatchBlock(bestMatchBlockIndex).block_height-1,processedBlock.left_width_index:processedBlock.left_width_index + bestMatchBlock(bestMatchBlockIndex).block_width-1,i) = uint8(bestMatchBlock(bestMatchBlockIndex).data);
 
                                 [processedBlock, en] = obj.generateReconstructedFrame(i,bestMatchBlock(bestMatchBlockIndex) );
+                                obj.blockList = [obj.blockList bestMatchBlock(bestMatchBlockIndex)];
+
                                 obj.reconstructedVideo.Y(processedBlock.top_height_index:processedBlock.top_height_index + bestMatchBlock(bestMatchBlockIndex).block_height-1,processedBlock.left_width_index:processedBlock.left_width_index + bestMatchBlock(bestMatchBlockIndex).block_width-1,i) = uint8(processedBlock.data);
                                 obj.OutputBitstream = [obj.OutputBitstream en.bitstream];
                                 actualBitSpentCurrentRow = actualBitSpentCurrentRow + size(en.bitstream,2);

@@ -12,12 +12,13 @@ classdef EntropyEngine_Block
         BlockList;
         splitindex;
         B;
+        rowQP
     end
     
     methods(Access = 'public')
-        function obj = EntropyEngine_Block(B)
+        function obj = EntropyEngine_Block(B, rowQP)
             obj.B=B;
-           
+            obj.rowQP=rowQP;
             obj.splitindex=0;
    
             B_left_width_index=B.left_width_index;
