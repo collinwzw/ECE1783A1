@@ -166,16 +166,21 @@ classdef ReverseEntropyEngine_Block
                     ind = ind + 1;
                     %obj.QPLi = PreviousQP - obj.QPLi;
                     %PreviousQP = obj.QPLi;
-                    if obj.SplitLi == 0 && obj.QPLi==0
+%                     if obj.SplitLi == 0 && obj.QPLi==0
+%                         obj.QPLiBig = obj.QPLi;
+%                         obj.QPLiSub = obj.QPLi;
+%                     elseif obj.SplitLi == 0 && obj.QPLi ~=0
+%                         obj.QPLiBig = obj.QPLi;
+%                         obj.QPLiSub = obj.QPLi - 1;
+%                     elseif obj.SplitLi == 1
                         obj.QPLiBig = obj.QPLi;
-                        obj.QPLiSub = obj.QPLi;
-                    elseif obj.SplitLi == 0 && obj.QPLi ~=0
-                        obj.QPLiBig = obj.QPLi;
-                        obj.QPLiSub = obj.QPLi - 1;
-                    elseif obj.SplitLi == 1
-                        obj.QPLiBig = obj.QPLi + 1;
-                        obj.QPLiSub = obj.QPLi;
-                    end
+                        if obj.QPLiBig == 0
+                            obj.QPLiSub = obj.QPLi;
+                        else
+                            obj.QPLiSub = obj.QPLi - 1;
+                        end
+                        
+%                     end
                 end
                                
                 obj.decodedList=obj.decodedList(ind:end);

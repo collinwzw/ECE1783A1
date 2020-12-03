@@ -103,6 +103,7 @@ for k=1:1:d.numberOfFrames
     hold on;
     for i=0:1:(d.video_height/block_height) - 1
         for j=0:1:d.video_width/(block_width) -1
+
             p=p+1;
             matrixHeight = (i) * block_height + 1;
             matrixWidth = (j) * block_width + 1;
@@ -113,8 +114,8 @@ for k=1:1:d.numberOfFrames
             if(SplitList(p)==1)
                 plot([matrixWidth+(block_width/2),matrixWidth+(block_width/2)],[matrixHeight,matrixHeight+block_height],'Color','k')
                 plot([matrixWidth,matrixWidth+block_width],[matrixHeight+(block_height/2),matrixHeight+(block_height/2)],'Color','k')
-                
                 p = p + 3;
+
             end
 
         end

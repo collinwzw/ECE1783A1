@@ -12,12 +12,13 @@ classdef EntropyEngine_Block
         BlockList;
         splitindex;
         B;
+        rowQP;
     end
     
     methods(Access = 'public')
-        function obj = EntropyEngine_Block(B)
+        function obj = EntropyEngine_Block(B,rowQP)
             obj.B=B;
-           
+            obj.rowQP = rowQP;
             obj.splitindex=0;
    
             B_left_width_index=B.left_width_index;
@@ -33,9 +34,7 @@ classdef EntropyEngine_Block
             B_bitStream=B.bitStream;
             B_referenceFrameIndex=B.referenceFrameIndex;
             B_split=B.split;
-            if B_referenceFrameIndex^=0
-                acc=1;
-            end
+
             %Type
             obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_frameType)];
             %   Mode /   RefF+Mv
@@ -57,8 +56,14 @@ classdef EntropyEngine_Block
             %QP
             if B_left_width_index == 1
                 if B_split ==1 %The Block is a sub block
-                    if mod(B_top_height_index+15/(block_height*2),1)==0 % 1st or 3rd sub block? 
-                        obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_QP)];
+                    if mod((B_top_height_index+15)/(obj.block_height*2),1)==0 % 1st or 3rd sub block? 
+                        obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(rowQP)];  
+                        % i pass 1 to you, in reverse you should realized
+                        % this is row QP and if the sub block, you should
+                        % -1 for split block;
+                        % I pass 0 to you, you should realize whole row QP
+                        % should all be 0;
+
                     end
                 else %First Block is big block, encode QP directly
                     obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_QP)];
