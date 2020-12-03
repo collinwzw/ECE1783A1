@@ -113,6 +113,7 @@ for k=1:1:d.numberOfFrames
             if(SplitList(p)==1)
                 plot([matrixWidth+(block_width/2),matrixWidth+(block_width/2)],[matrixHeight,matrixHeight+block_height],'Color','k')
                 plot([matrixWidth,matrixWidth+block_width],[matrixHeight+(block_height/2),matrixHeight+(block_height/2)],'Color','k')
+                
                 p = p + 3;
             end
 

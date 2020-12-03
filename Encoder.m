@@ -17,6 +17,7 @@ classdef Encoder
         SADPerFrame;
         RCflag;
         bitBudget;
+        blockList;
     end
     
     methods (Access = 'public')
@@ -68,7 +69,7 @@ classdef Encoder
 %                 entropyQTCBlock = entropyFrame.bitstream;
 %                 entropyPredictionInfoBlock = entropyFrame.predictionInfoBitstream;
 %             end
-
+            obj.blockList = [obj.blockList predicted_block];
             %input quantized transformed frame to rescaling engine    
             processedBlock.data = RescalingEngine(processedBlock).rescalingResult;
             %input rescal transformed frame to inverse transformation engine    
@@ -160,7 +161,11 @@ classdef Encoder
                                     predicted_sub_block=intrapred_4.blocks;
                                     predicted_sub_block.data=intrapred_4.smallblock_4;
                                     predicted_sub_block.split=1;
-                                    predicted_sub_block.QP=obj.QP-1;
+                                    if obj.QP >= 1
+                                        predicted_sub_block.QP=obj.QP-1;
+                                    else
+                                        predicted_sub_block.QP=obj.QP;
+                                    end
                                     predicted_sub_block = predicted_sub_block.setframeType(type(i));
                                     [processedBlock, en] = obj.generateReconstructedFrame(i,predicted_sub_block );
                                     temp_bitstream4=[temp_bitstream4 en.bitstream];
@@ -272,8 +277,12 @@ classdef Encoder
                                 %set the frame type for the block
                                 bestMatchBlock(bestMatchBlockIndex) = bestMatchBlock(bestMatchBlockIndex).setframeType(type(i));
                                 
+                                if (size(bestMatchBlock,2) > 1) && obj.QP >= 1
+                                    bestMatchBlock(bestMatchBlockIndex) = bestMatchBlock(bestMatchBlockIndex).setQP(obj.QP - 1);
+                                else
+                                    bestMatchBlock(bestMatchBlockIndex) = bestMatchBlock(bestMatchBlockIndex).setQP(obj.QP - 1);
+                                end
                                 %set QP for the block
-                                bestMatchBlock(bestMatchBlockIndex) = bestMatchBlock(bestMatchBlockIndex).setQP(obj.QP);
 
                                 %differential encoding for motion vector
                                 tempPreviousMV = bestMatchBlock(bestMatchBlockIndex).MotionVector;
