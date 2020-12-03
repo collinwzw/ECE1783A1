@@ -44,6 +44,38 @@ classdef CreateQPTable
                 end
                 fclose(fid);
             end
+
+            if intra == true && CIF == false
+                I_Period = 21;
+                %Creating I Frame QP table
+                for QP = 0: 1 : 11
+                    e = EncoderBuildQPTable(inputvideo,block_width, block_height,r , QP, I_Period,nRefFrame, FEMEnable, FastME, VBSEnable);
+                    obj = obj.computeAverage( e.bitCountVideo, QP+1, intra);
+                end
+                % writing to the QP table to file
+                filename = ".\result\QCIFQPTableIntra.txt";
+                fid=fopen(filename,'w');
+                for i=1:1: size(obj.QP_table, 2)
+                    fprintf(fid,"%d\n",int16(obj.QP_table(i)));
+                end
+                fclose(fid);
+            end
+            
+            if intra == false && CIF == false
+                I_Period = 21;
+                %Creating I Frame QP table
+                for QP = 0: 1 : 11
+                    e = EncoderBuildQPTable(inputvideo,block_width, block_height,r , QP, I_Period,nRefFrame, FEMEnable, FastME, VBSEnable);
+                    obj = obj.computeAverage( e.bitCountVideo, QP+1, intra);
+                end
+                % writing to the QP table to file
+                filename = ".\result\QCIFQPTableInter.txt";
+                fid=fopen(filename,'w');
+                for i=1:1: size(obj.QP_table, 2)
+                    fprintf(fid,"%d\n",int16(obj.QP_table(i)));
+                end
+                fclose(fid);
+            end
             
             
          end

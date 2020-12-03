@@ -215,13 +215,13 @@ classdef Encoder
                                         min_value = ME_result.differenceForBestMatchBlock;
                                         bestMatchBlock = ME_result.bestMatchBlock;
                                         bestMatchBlock.referenceFrameIndex = i - referenceframe_index;
-
+                                        bestMatchBlock.split=0;
                                     end
                                 else
                                     ME_result = MotionEstimationEngine(obj.r,block_list(index), uint8(obj.reconstructedVideo.Y(:,:,referenceframe_index)), obj.block_width, obj.block_height,obj.FEMEnable, obj.FastME, previousMV);
                                     bestMatchBlockNoSplit = ME_result.bestMatchBlock;
                                     bestMatchBlockNoSplit.referenceFrameIndex = i - referenceframe_index;
-                                    
+                                    bestMatchBlockNoSplit.split = 0;
                                     % variable block size
                                     SAD4=zeros( 1 ,4);
                                     SubBlockList = [];
@@ -284,6 +284,9 @@ classdef Encoder
                                 tempPreviousFrameIndex = bestMatchBlock(bestMatchBlockIndex).referenceFrameIndex;
                                 bestMatchBlock(bestMatchBlockIndex).referenceFrameIndex = previousFrameIndex - bestMatchBlock(bestMatchBlockIndex).referenceFrameIndex;
                                 previousFrameIndex = tempPreviousFrameIndex;
+                                if bestMatchBlock(bestMatchBlockIndex).top_height_index == 289
+                                    a=1;
+                                end
                                 
                                 obj.predictionVideo(processedBlock.top_height_index:processedBlock.top_height_index + bestMatchBlock(bestMatchBlockIndex).block_height-1,processedBlock.left_width_index:processedBlock.left_width_index + bestMatchBlock(bestMatchBlockIndex).block_width-1,i) = uint8(bestMatchBlock(bestMatchBlockIndex).data);
 
