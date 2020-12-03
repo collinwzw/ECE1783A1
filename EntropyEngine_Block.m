@@ -33,7 +33,7 @@ classdef EntropyEngine_Block
             B_bitStream=B.bitStream;
             B_referenceFrameIndex=B.referenceFrameIndex;
             B_split=B.split;
-            
+
             %Type
             obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_frameType)];
             %   Mode /   RefF+Mv
@@ -51,9 +51,18 @@ classdef EntropyEngine_Block
             else 
                 obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_split)];
             end
-
+            
             %QP
-            obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_QP)];
+            if B_left_width_index == 1
+                if B_split ==1 %The Block is a sub block
+                    if mod((B_top_height_index+15)/(obj.block_height*2),1)==0 % 1st or 3rd sub block? 
+                        obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_QP)];
+                    end
+                else %First Block is big block, encode QP directly
+                    obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_QP)];
+                end
+            end
+            %obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_QP)];
 
             %Data
             currentBlock=double(B_data);
@@ -158,12 +167,10 @@ classdef EntropyEngine_Block
             obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_frameType)];
             %   Mode /   RefF+Mv
             if B_frameType==0
-                %inter
                 obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_referenceFrameIndex)];
                 obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_MotionVector.x)];
                 obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_MotionVector.y)];
             else
-                %intra
                 obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_Mode)];
             end
 

@@ -38,15 +38,22 @@ framePerSecond = 30;
 createQPTable = false;
 if createQPTable == 1
     %creating QP table
-    QPinputFilename = '.\data\CIF.yuv';
-    QPouputFilename = '.\data\CIFY.yuv';
-    video = YUVVideo(QPinputFilename, 352, 288 , 420);
+%     QPinputFilename = '.\data\CIF.yuv';
+%     QPouputFilename = '.\data\CIFY.yuv';
+%     video = YUVVideo(QPinputFilename, 352, 288 , 420);
+%     y_only = true;
+%     video.writeToFile(QPouputFilename, y_only);
+%     video = YOnlyVideo(QPouputFilename, 352, 288);
+%     CIF = true;
+    QPinputFilename = '.\data\QCIF.yuv';
+    QPouputFilename = '.\data\QCIFY.yuv';
+    video = YUVVideo(QPinputFilename, 176, 144 , 420);
     y_only = true;
     video.writeToFile(QPouputFilename, y_only);
-    video = YOnlyVideo(QPouputFilename, 352, 288);
+    video = YOnlyVideo(QPouputFilename, 176, 144);
     [videoWithPadding,v1Averaged] = video.block_creation(video.Y,block_width,block_height);
     intra = false;
-    CIF = true;
+    CIF = false;
     c = CreateQPTable(videoWithPadding,block_width, block_height,r,nRefFrame, FEMEnable, FastME, VBSEnable, intra, CIF);
     return;
 end
@@ -107,6 +114,7 @@ for k=1:1:d.numberOfFrames
             if(SplitList(p)==1)
                 plot([matrixWidth+(block_width/2),matrixWidth+(block_width/2)],[matrixHeight,matrixHeight+block_height],'Color','k')
                 plot([matrixWidth,matrixWidth+block_width],[matrixHeight+(block_height/2),matrixHeight+(block_height/2)],'Color','k')
+                
                 p = p + 3;
             end
 
