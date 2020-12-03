@@ -16,9 +16,11 @@ classdef ReverseEntropyEngine_Block
         count1 = 0;
         Split_block_width; %type int
         Split_block_height;%type int
-
-
         
+        NumofBlockinARow;
+        NumofBlockinACol
+        FirstBlockCounter;
+        SubBlockCounter;
         BlockList;
         TypeLi;
         ModeLi;
@@ -42,7 +44,9 @@ classdef ReverseEntropyEngine_Block
             %%%%%%%%%%%
             obj.video_width = video_width;
             obj.video_height = video_height;
-       
+            %%%%%%%%%%%%%%%%%%
+            obj.NumofBlockinARow = obj.video_width/obj.block_width;
+            obj.NumofBlockinACol = obj.video_height/obj.block_height;
             %%%%%%%%%%%%%%%%%%%
             obj = obj.decodeBitstream();
             obj = obj.invRLE();
@@ -127,8 +131,10 @@ classdef ReverseEntropyEngine_Block
             
             %Temp Frame for generating temp block
             ReferenceFrame(1:obj.video_width,1:obj.video_height) = uint8(127);
-            
+            obj.FirstBlockCounter = 0;
+            obj.SubBlockCounter = 0;
             obj.BlockList = [];
+            PreviousQP = 0;
             while(isempty(obj.decodedList)~=1)
                 obj.count1 = obj.count1 + 1;
                 obj.TypeLi = 0;
@@ -136,31 +142,53 @@ classdef ReverseEntropyEngine_Block
                 obj.MotionVectorLi = 0;
                 obj.RefLi = 0;
                 obj.SplitLi = 0;
-                obj.QPLi = 0;
+                %obj.QPLi = 0;
                 obj.DataLi = 0;
                 
                 obj.TypeLi=obj.decodedList(1);
                 if obj.TypeLi==1
                 obj.ModeLi=obj.decodedList(2);
-                ind = 2;
+                ind = 3;
                 else
                 obj.RefLi=obj.decodedList(2);
                 obj.xLi=obj.decodedList(3);
                 obj.yLi=obj.decodedList(4);
-                ind = 4;
+                ind = 5;
                 end
           
-                obj.SplitLi=obj.decodedList(ind+1);
-                obj.QPLi=obj.decodedList(ind+2);
-                obj.decodedList=obj.decodedList(ind+3:end);
+                obj.SplitLi=obj.decodedList(ind);
+                ind = ind +1;
+                if obj.FirstBlockCounter==0 && obj.SubBlockCounter==0
+                    obj.QPLi=obj.decodedList(ind);
+                    ind = ind + 1;
+                    %obj.QPLi = PreviousQP - obj.QPLi;
+                    %PreviousQP = obj.QPLi;
+                end
+                               
+                obj.decodedList=obj.decodedList(ind:end);
                 if obj.SplitLi == 0
+                    obj.FirstBlockCounter = obj.FirstBlockCounter + 1;
+                    if obj.FirstBlockCounter == obj.NumofBlockinARow
+                        obj.FirstBlockCounter = 0;
+                    end
+                    
                     index_val=obj.block_width*obj.block_height;
                     tempBlock = Block(ReferenceFrame, 1,1, obj.block_width, obj.block_height);
+               
                 else
+                    obj.SubBlockCounter = obj.SubBlockCounter + 1;
+                    if obj.SubBlockCounter ==4
+                        obj.FirstBlockCounter = obj.FirstBlockCounter + 1;
+                        obj.SubBlockCounter = 0;
+                    end
+                    if obj.FirstBlockCounter == obj.NumofBlockinARow
+                        obj.FirstBlockCounter = 0;
+                    end
+                    
                     index_val=obj.Split_block_width*obj.Split_block_height;
                     tempBlock = Block(ReferenceFrame, 1,1, obj.Split_block_width, obj.Split_block_height);
                 end
-                
+
                index = 1;
                obj.invRLEList = [];
                count = 0;

@@ -53,9 +53,18 @@ classdef EntropyEngine_Block
             else 
                 obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_split)];
             end
-
+            
             %QP
-            obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_QP)];
+            if B_left_width_index == 1
+                if B_split ==1 %The Block is a sub block
+                    if mod(B_top_height_index/(block_height*2),1)==0 % 1st or 3rd sub block? 
+                        obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_QP)];
+                    end
+                else %First Block is big block, encode QP directly
+                    obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_QP)];
+                end
+            end
+            %obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_QP)];
 
             %Data
             currentBlock=double(B_data);

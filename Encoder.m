@@ -95,7 +95,7 @@ classdef Encoder
             %for i = 1: 1:obj.inputvideo.numberOfFrames
             % go through the each frame
             
-            for i = 1: 1:10
+            for i = 1: 1:2
                 rowIndex = 1;
                 actualBitSpentCurrentRow = 0;
                 if type(i) == 1

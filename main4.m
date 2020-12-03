@@ -31,7 +31,7 @@ VBSEnable = true;
 [v1WithPadding,v1Averaged] = v1.block_creation(v1.Y,block_width,block_height);
 
 %encode the video
-e = Encoder(v1WithPadding,block_width, block_height,r ,n, QP, I_Period,nRefFrame, FEMEnable, FastME, VBSEnable);
+e = Encoder(v1WithPadding,block_width, block_height,r ,n, QP, I_Period,nRefFrame, FEMEnable, FastME, VBSEnable, bitBudget);
 
 c=ReverseEntropyEngine_Block(e.OutputBitstream,block_width,block_height,288,352);
 BlockList = c.BlockList;
