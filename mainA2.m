@@ -27,7 +27,7 @@ nRefFrame = 1;
 FEMEnable = true;
 FastME = true;
 VBSEnable = true;
-RCflag = true;
+RCflag = false;
 targetBPPerSecond=2400000;
 framePerSecond = 30;
 % 
@@ -70,7 +70,7 @@ bitBudget = BitBudget(targetBPPerSecond, framePerSecond,v1WithPadding.height, bl
 %encode the video
 e = Encoder(v1WithPadding,block_width, block_height,r , QP, I_Period,nRefFrame, FEMEnable, FastME, VBSEnable,RCflag, bitBudget);
 %%
-c=ReverseEntropyEngine_Block(e.OutputBitstream,block_width,block_height,288,352);
+c=ReverseEntropyEngine_Block(e.OutputBitstream,block_width,block_height,288,352,RCflag);
 BlockList = c.BlockList;
 
 %%
