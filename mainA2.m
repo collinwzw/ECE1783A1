@@ -23,13 +23,13 @@ block_width = 16;
 block_height = block_width;
 r = 3;
 n = 3;
-QP = 1;
-I_Period = 21;
+QP = 4;
+I_Period = 8;
 nRefFrame = 1;
-FEMEnable = true;
-FastME = true;
+FEMEnable = false;
+FastME = false;
 VBSEnable = true;
-RCflag = 2;
+RCflag = 0;
 targetBPPerSecond=2400000;
 framePerSecond = 30;
 ParallelMode = 0;
@@ -90,7 +90,7 @@ end
 %encode the video
 e = Encoder(v1WithPadding,block_width, block_height,r , QP, I_Period,nRefFrame, FEMEnable, FastME, VBSEnable,RCflag, bitBudget, ParallelMode);
 %%
-c=ReverseEntropyEngine_Block(e.OutputBitstream,block_width,block_height,288,352);
+c=ReverseEntropyEngine_Block(e.OutputBitstream,block_width,block_height,288,352, RCflag);
 BlockList = c.BlockList;
 
 %%

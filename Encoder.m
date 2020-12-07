@@ -57,7 +57,7 @@ classdef Encoder
             
             %call entropy engine to encode the quantized transformed frame
             %and save it.
-            en = EntropyEngine_Block(processedBlock);
+            en = EntropyEngine_Block(processedBlock,obj.QP,obj.RCflag);
             
 
 %             if (rem(frameIndex - 1,obj.I_Period)) == 0
