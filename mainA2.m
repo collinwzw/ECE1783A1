@@ -3,13 +3,15 @@ clear all;
 systemSetUp();
 
 tic
-inputFilename = '.\data\foreman_cif.yuv';
-outputFilename = '.\data\foremanY_cif.yuv';
+% inputFilename = '.\data\foreman_cif.yuv';
+% outputFilename = '.\data\foremanY_cif.yuv';
+inputFilename = '.\data\CIF.yuv';
+outputFilename = '.\data\CIFY.yuv';
 v1 = YUVVideo(inputFilename, 352, 288 , 420);
 y_only = true;
 v1.writeToFile(outputFilename, y_only);
 
-inputFilename = '.\data\foremanY_cif.yuv';
+inputFilename = outputFilename;
 v1 = YOnlyVideo(inputFilename, 352, 288);
 
 %I frame is 1
@@ -21,16 +23,17 @@ block_width = 16;
 block_height = block_width;
 r = 16;
 n = 3;
-QP = 1;
+QP = 4;
 I_Period = 8;
 nRefFrame = 1;
 FEMEnable = true;
 FastME = true;
 VBSEnable = true;
-RCflag = false;
+RCflag = 1;
 targetBPPerSecond=2400000;
 framePerSecond = 30;
-% 
+ParallelMode = 0;
+%
 %pad the video if necessary
 [v1WithPadding,v1Averaged] = v1.block_creation(v1.Y,block_width,block_height);
 
@@ -63,14 +66,31 @@ QPTableInterFilename = '.\result\CIFQPTableInter.txt';
 QPTableIntraFilename = '.\result\CIFQPTableIntra.txt';
 bitBudget = BitBudget(targetBPPerSecond, framePerSecond,v1WithPadding.height, block_height, QPTableInterFilename, QPTableIntraFilename );
 
+if RCflag == 2
+    QP = 6;
+    e = EncoderBuildQPTable(v1WithPadding,block_width, block_height,r , QP, 21,nRefFrame, FEMEnable, FastME, VBSEnable );
+    bitCountRowsVideo = zeros(v1WithPadding.width/block_width, v1WithPadding.numberOfFrames);
+    TotalBitInCurrentFrame = zeros(v1WithPadding.width/block_width, v1WithPadding.numberOfFrames);
+    TotalBitInCurrentFrame = zeros(v1WithPadding.numberOfFrames);
+    for i = 1:1:v1WithPadding.numberOfFrames
+        for row=1:1:v1WithPadding.width/block_width
+            bitCountRowsVideo(row,i) = sum(e.bitCountVideo(row,:,i));
+        end
+        TotalBitInCurrentFrame(i) = sum(bitCountRowsVideo(:,i));
+        for row=1:1:v1WithPadding.width/block_width
+            bitCountRowsVideo(row,i) = bitCountRowsVideo(row,i)/TotalBitInCurrentFrame(i);
+        end
+    end
+end
+
 
 
 %* (v1WithPadding.width/block_width);
 
 %encode the video
-e = Encoder(v1WithPadding,block_width, block_height,r , QP, I_Period,nRefFrame, FEMEnable, FastME, VBSEnable,RCflag, bitBudget);
+e = Encoder(v1WithPadding,block_width, block_height,r , QP, I_Period,nRefFrame, FEMEnable, FastME, VBSEnable,RCflag, bitBudget, ParallelMode);
 %%
-c=ReverseEntropyEngine_Block(e.OutputBitstream,block_width,block_height,288,352,RCflag);
+c=ReverseEntropyEngine_Block(e.OutputBitstream,block_width,block_height,288,352, RCflag);
 BlockList = c.BlockList;
 
 %%
