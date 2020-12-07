@@ -285,12 +285,13 @@ classdef Encoder
                                 %set the frame type for the block
                                 bestMatchBlock(bestMatchBlockIndex) = bestMatchBlock(bestMatchBlockIndex).setframeType(type(i));
                                 
+                                %set QP for the block
                                 if (size(bestMatchBlock,2) > 1) && obj.QP >= 1
                                     bestMatchBlock(bestMatchBlockIndex) = bestMatchBlock(bestMatchBlockIndex).setQP(obj.QP - 1);
                                 else
-                                    bestMatchBlock(bestMatchBlockIndex) = bestMatchBlock(bestMatchBlockIndex).setQP(obj.QP - 1);
+                                    bestMatchBlock(bestMatchBlockIndex) = bestMatchBlock(bestMatchBlockIndex).setQP(obj.QP);
                                 end
-                                %set QP for the block
+
                                 if obj.ParallelMode == 0
                                     %differential encoding for motion vector
                                     tempPreviousMV = bestMatchBlock(bestMatchBlockIndex).MotionVector;

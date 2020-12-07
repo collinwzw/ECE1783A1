@@ -24,7 +24,7 @@ block_height = block_width;
 r = 16;
 n = 3;
 QP = 4;
-I_Period = 8;
+I_Period = 1;
 nRefFrame = 1;
 FEMEnable = true;
 FastME = true;
@@ -64,7 +64,7 @@ end
 %calculating budget
 QPTableInterFilename = '.\result\CIFQPTableInter.txt';
 QPTableIntraFilename = '.\result\CIFQPTableIntra.txt';
-bitBudget = BitBudget(targetBPPerSecond, framePerSecond,v1WithPadding.height, block_height, QPTableInterFilename, QPTableIntraFilename );
+bitBudget = BitBudget(targetBPPerSecond, framePerSecond,v1WithPadding.width, block_width, QPTableInterFilename, QPTableIntraFilename );
 
 if RCflag == 2
     QP = 6;

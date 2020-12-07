@@ -36,7 +36,7 @@ classdef BitBudget
         
         function obj = computeQP(obj,intra,actualBitSpentCurrentRow)
              obj.actualBitSpent = obj.actualBitSpent + actualBitSpentCurrentRow;
-             remainRow = obj.numberOfRow - 1;
+             remainRow = obj.numberOfRow - obj.curentRow;
              obj.curentRow = obj.curentRow + 1;
              bitBudgetPerRowForRemainRow = (obj.bitBudgetPerFrame - obj.actualBitSpent) /remainRow;
              obj.QP = obj.lookUpQPTable(intra, bitBudgetPerRowForRemainRow);
