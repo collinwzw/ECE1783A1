@@ -52,7 +52,7 @@ classdef EncoderBuildQPTable
             
             %call entropy engine to encode the quantized transformed frame
             %and save it.
-            en = EntropyEngine_Block(processedBlock);
+            en = EntropyEngine_Block(processedBlock, obj.QP);
             
 
 %             if (rem(frameIndex - 1,obj.I_Period)) == 0
@@ -266,7 +266,7 @@ classdef EncoderBuildQPTable
                                 bestMatchBlock(bestMatchBlockIndex).referenceFrameIndex = previousFrameIndex - bestMatchBlock(bestMatchBlockIndex).referenceFrameIndex;
                                 previousFrameIndex = tempPreviousFrameIndex;
                                 
-                                obj.predictionVideo(processedBlock.top_height_index:processedBlock.top_height_index + bestMatchBlock(bestMatchBlockIndex).block_height-1,processedBlock.left_width_index:processedBlock.left_width_index + bestMatchBlock(bestMatchBlockIndex).block_width-1,i) = uint8(bestMatchBlock(bestMatchBlockIndex).data);
+                                obj.predictionVideo(bestMatchBlock(bestMatchBlockIndex).top_height_index:bestMatchBlock(bestMatchBlockIndex).top_height_index + bestMatchBlock(bestMatchBlockIndex).block_height-1,bestMatchBlock(bestMatchBlockIndex).left_width_index:bestMatchBlock(bestMatchBlockIndex).left_width_index + bestMatchBlock(bestMatchBlockIndex).block_width-1,i) = uint8(bestMatchBlock(bestMatchBlockIndex).data);
 
                                 [processedBlock, en] = obj.generateReconstructedFrame(i,bestMatchBlock(bestMatchBlockIndex) );
                                 obj.reconstructedVideo.Y(processedBlock.top_height_index:processedBlock.top_height_index + bestMatchBlock(bestMatchBlockIndex).block_height-1,processedBlock.left_width_index:processedBlock.left_width_index + bestMatchBlock(bestMatchBlockIndex).block_width-1,i) = uint8(processedBlock.data);

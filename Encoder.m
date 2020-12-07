@@ -18,10 +18,11 @@ classdef Encoder
         RCflag;
         bitBudget;
         blockList;
+        ParallelMode;
     end
     
     methods (Access = 'public')
-        function obj = Encoder(inputvideo,block_width, block_height,r , QP, I_Period,nRefFrame,FEMEnable,FastME, VBSEnable, RCflag, bitBudget)
+        function obj = Encoder(inputvideo,block_width, block_height,r , QP, I_Period,nRefFrame,FEMEnable,FastME, VBSEnable, RCflag, bitBudget, ParallelMode)
             %UNTITLED2 Construct an instance of this class
             %   Detailed explanation goes here
             obj.inputvideo = inputvideo;
@@ -37,6 +38,7 @@ classdef Encoder
             obj.RCflag = RCflag;
             obj.bitBudget = bitBudget;
             obj.SADPerFrame = [];
+            obj.ParallelMode = ParallelMode;
             obj = obj.encodeVideo();
         end
     
@@ -113,7 +115,7 @@ classdef Encoder
                     block_list = obj.truncateFrameToBlocks(i);
                     length = size(block_list,2);
                     for index=1:1:length
-                        if obj.RCflag == true
+                        if obj.RCflag == 1
                             if block_list(index).top_height_index == rowIndex
                                 obj.bitBudget = obj.bitBudget.computeQP(intra,actualBitSpentCurrentRow );
                                 obj.QP = obj.bitBudget.QP;
@@ -206,7 +208,7 @@ classdef Encoder
                     previousFrameIndex = 0;
                     %for loop to go through all blocks
                     for index=1:1:length
-                        if obj.RCflag == true
+                        if obj.RCflag == 1
                             if block_list(index).top_height_index == rowIndex
                                 obj.bitBudget = obj.bitBudget.computeQP(intra,actualBitSpentCurrentRow );
                                 obj.QP = obj.bitBudget.QP;
@@ -289,21 +291,22 @@ classdef Encoder
                                     bestMatchBlock(bestMatchBlockIndex) = bestMatchBlock(bestMatchBlockIndex).setQP(obj.QP - 1);
                                 end
                                 %set QP for the block
+                                if obj.ParallelMode == 0
+                                    %differential encoding for motion vector
+                                    tempPreviousMV = bestMatchBlock(bestMatchBlockIndex).MotionVector;
+                                    bestMatchBlock(bestMatchBlockIndex) = bestMatchBlock(bestMatchBlockIndex).setbitMotionVector( MotionVector(previousMV.x - bestMatchBlock(bestMatchBlockIndex).MotionVector.x, previousMV.y - bestMatchBlock(bestMatchBlockIndex).MotionVector.y));
+                                    previousMV = tempPreviousMV;
 
-                                %differential encoding for motion vector
-                                tempPreviousMV = bestMatchBlock(bestMatchBlockIndex).MotionVector;
-                                bestMatchBlock(bestMatchBlockIndex) = bestMatchBlock(bestMatchBlockIndex).setbitMotionVector( MotionVector(previousMV.x - bestMatchBlock(bestMatchBlockIndex).MotionVector.x, previousMV.y - bestMatchBlock(bestMatchBlockIndex).MotionVector.y));
-                                previousMV = tempPreviousMV;
-
-                                %differential encoding for reference frame index
-                                tempPreviousFrameIndex = bestMatchBlock(bestMatchBlockIndex).referenceFrameIndex;
-                                bestMatchBlock(bestMatchBlockIndex).referenceFrameIndex = previousFrameIndex - bestMatchBlock(bestMatchBlockIndex).referenceFrameIndex;
-                                previousFrameIndex = tempPreviousFrameIndex;
+                                    %differential encoding for reference frame index
+                                    tempPreviousFrameIndex = bestMatchBlock(bestMatchBlockIndex).referenceFrameIndex;
+                                    bestMatchBlock(bestMatchBlockIndex).referenceFrameIndex = previousFrameIndex - bestMatchBlock(bestMatchBlockIndex).referenceFrameIndex;
+                                    previousFrameIndex = tempPreviousFrameIndex;
+                                end
                                 if bestMatchBlock(bestMatchBlockIndex).top_height_index == 289
                                     a=1;
                                 end
                                 
-                                obj.predictionVideo(processedBlock.top_height_index:processedBlock.top_height_index + bestMatchBlock(bestMatchBlockIndex).block_height-1,processedBlock.left_width_index:processedBlock.left_width_index + bestMatchBlock(bestMatchBlockIndex).block_width-1,i) = uint8(bestMatchBlock(bestMatchBlockIndex).data);
+                                obj.predictionVideo(bestMatchBlock(bestMatchBlockIndex).top_height_index:bestMatchBlock(bestMatchBlockIndex).top_height_index + bestMatchBlock(bestMatchBlockIndex).block_height-1,bestMatchBlock(bestMatchBlockIndex).left_width_index:bestMatchBlock(bestMatchBlockIndex).left_width_index + bestMatchBlock(bestMatchBlockIndex).block_width-1,i) = uint8(bestMatchBlock(bestMatchBlockIndex).data);
 
                                 [processedBlock, en] = obj.generateReconstructedFrame(i,bestMatchBlock(bestMatchBlockIndex) );
                                 obj.blockList = [obj.blockList bestMatchBlock(bestMatchBlockIndex)];
