@@ -57,7 +57,7 @@ classdef Encoder
             
             %call entropy engine to encode the quantized transformed frame
             %and save it.
-            en = EntropyEngine_Block(processedBlock, obj.QP);
+            en = EntropyEngine_Block(processedBlock);
             
 
 %             if (rem(frameIndex - 1,obj.I_Period)) == 0
@@ -71,7 +71,7 @@ classdef Encoder
 %                 entropyQTCBlock = entropyFrame.bitstream;
 %                 entropyPredictionInfoBlock = entropyFrame.predictionInfoBitstream;
 %             end
-            
+
             %input quantized transformed frame to rescaling engine    
             processedBlock.data = RescalingEngine(processedBlock).rescalingResult;
             %input rescal transformed frame to inverse transformation engine    
@@ -185,7 +185,7 @@ classdef Encoder
                                  obj.reconstructedVideo.Y(predicted_block.top_height_index:predicted_block.top_height_index + obj.block_height-1,predicted_block.left_width_index:predicted_block.left_width_index + obj.block_width-1,i) = reference_frame1(predicted_block.top_height_index:predicted_block.top_height_index + obj.block_height-1,predicted_block.left_width_index:predicted_block.left_width_index + obj.block_width-1);
                                  obj.OutputBitstream = [obj.OutputBitstream temp_bitstream1];
                                  actualBitSpentCurrentRow = actualBitSpentCurrentRow + size(temp_bitstream1,2);
-                                 actualBitSpentCurrentRow = actualBitSpentCurrentRow + size(temp_bitstream4,2);%obj.predictionVideo(1:processedBlock.top_height_index + 16-1,processedBlock.left_width_index:processedBlock.left_width_index + 16-1,i) = uint8(predictedblock_4); 
+                                 actualBitSpentCurrentRow = actualBitSpentCurrentRow + size(temp_bitstream4,2);%obj.predictionVideo(1:processedBlock.top_height_index + 16-1,processedBlock.left_width_index:processedBlock.left_width_index + 16-1,i) = uint8(predictedblock_4);
                                  obj.blockList = [obj.blockList predicted_block];
                                  %obj.predictionVideo(processedBlock.top_height_index:processedBlock.top_height_index + 16-1,processedBlock.left_width_index:processedBlock.left_width_index + 16-1,i) = uint8(predicted_block.data);
                             else

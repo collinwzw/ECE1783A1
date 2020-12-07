@@ -33,7 +33,7 @@ RCflag = 2;
 targetBPPerSecond=2400000;
 framePerSecond = 30;
 ParallelMode = 0;
-% 
+%
 %pad the video if necessary
 [v1WithPadding,v1Averaged] = v1.block_creation(v1.Y,block_width,block_height);
 

@@ -36,7 +36,7 @@ classdef ReverseEntropyEngine_Block
     end
     
     methods(Access = 'public')
-        function obj = ReverseEntropyEngine_Block(bitstream,block_width,block_height,video_width,video_height)
+        function obj = ReverseEntropyEngine_Block(bitstream,block_width,block_height,video_width,video_height,RCflag)
             obj.bitstream = bitstream;
             obj.block_width = block_width;
             obj.block_height = block_height;
@@ -51,7 +51,11 @@ classdef ReverseEntropyEngine_Block
             obj.NumofBlockinACol = obj.video_height/obj.block_height;
             %%%%%%%%%%%%%%%%%%%
             obj = obj.decodeBitstream();
-            obj = obj.invRLE();
+            if RCflag == 0
+                obj = obj.invRLERCflagOFF();
+            else
+                obj = obj.invRLERCflagON();
+            end
             obj = obj.generateFrameResInv();  
             %obj = obj.BlockIndex();
             %%%%%%%%%%%%%%%%%%%%%%%%
@@ -130,7 +134,7 @@ classdef ReverseEntropyEngine_Block
             end
         end
         
-        function obj = invRLE(obj )
+        function obj = invRLERCflagON(obj )
             
             %Temp Frame for generating temp block
             ReferenceFrame(1:obj.video_width,1:obj.video_height) = uint8(127);
@@ -243,6 +247,74 @@ classdef ReverseEntropyEngine_Block
                 tempBlock = 0;
             end
             
+        end
+        
+        function obj = invRLERCflagOFF(obj )
+            %Temp Frame for generating temp block
+            ReferenceFrame(1:obj.video_width,1:obj.video_height) = uint8(127);
+            
+            obj.BlockList = [];
+            while(isempty(obj.decodedList)~=1)
+                obj.count1 = obj.count1 + 1;
+                obj.TypeLi = 0;
+                obj.ModeLi = 0;
+                obj.MotionVectorLi = 0;
+                obj.RefLi = 0;
+                obj.SplitLi = 0;
+                obj.QPLi = 0;
+                obj.DataLi = 0;
+                
+                obj.TypeLi=obj.decodedList(1);
+                if obj.TypeLi==1
+                obj.ModeLi=obj.decodedList(2);
+                ind = 2;
+                else
+                obj.RefLi=obj.decodedList(2);
+                obj.xLi=obj.decodedList(3);
+                obj.yLi=obj.decodedList(4);
+                ind = 4;
+                end
+          
+                obj.SplitLi=obj.decodedList(ind+1);
+                obj.QPLi=obj.decodedList(ind+2);
+                obj.decodedList=obj.decodedList(ind+3:end);
+                if obj.SplitLi == 0
+                    index_val=obj.block_width*obj.block_height;
+                    tempBlock = Block(ReferenceFrame, 1,1, obj.block_width, obj.block_height);
+                else
+                    index_val=obj.Split_block_width*obj.Split_block_height;
+                    tempBlock = Block(ReferenceFrame, 1,1, obj.Split_block_width, obj.Split_block_height);
+                end
+                
+               index = 1;
+               obj.invRLEList = [];
+               count = 0;
+
+                while size(obj.invRLEList,2)<index_val
+                    [invReorderedPatialList, index, count] = obj.invReorderValue(obj.decodedList,index, count);
+                    obj.invRLEList = [obj.invRLEList,invReorderedPatialList];
+                end
+                
+                if obj.SplitLi == 0
+                    obj.DataLi=obj.invReorder(obj.invRLEList);
+                else
+                    obj.DataLi=obj.invReorder_Split(obj.invRLEList);
+                end
+                
+                obj.decodedList=obj.decodedList(index:end);
+                
+                tempBlock.frameType = obj.TypeLi;
+                tempBlock.Mode = obj.ModeLi;
+                tempBlock.MotionVector.x = obj.xLi;
+                tempBlock.MotionVector.y = obj.yLi;
+                tempBlock.referenceFrameIndex = obj.RefLi;
+                tempBlock.split = obj.SplitLi;
+                tempBlock.QP = obj.QPLi;
+                tempBlock.data = obj.DataLi;
+                
+                obj.BlockList = [obj.BlockList tempBlock];
+                tempBlock = 0;
+            end
         end
             
         function [invRLEList,index, count] = invReorderValue(obj,decodedlist, index,count )
