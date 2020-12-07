@@ -16,10 +16,11 @@ classdef EncoderBuildQPTable
         VBSEnable;
         SADPerFrame;
         bitCountVideo;
+        RCflag;
     end
     
     methods (Access = 'public')
-        function obj = EncoderBuildQPTable(inputvideo,block_width, block_height,r , QP, I_Period,nRefFrame,FEMEnable,FastME, VBSEnable)
+        function obj = EncoderBuildQPTable(inputvideo,block_width, block_height,r , QP, I_Period,nRefFrame,FEMEnable,FastME, VBSEnable,RCflag)
             %UNTITLED2 Construct an instance of this class
             %   Detailed explanation goes here
             obj.inputvideo = inputvideo;
@@ -28,6 +29,7 @@ classdef EncoderBuildQPTable
             obj.block_height=block_height;
             obj.r=r;
             obj.QP = QP;
+            obj.RCflag = RCflag;
             obj.nRefFrame=nRefFrame;
             obj.FEMEnable=FEMEnable;
             obj.FastME = FastME;
@@ -52,7 +54,7 @@ classdef EncoderBuildQPTable
             
             %call entropy engine to encode the quantized transformed frame
             %and save it.
-            en = EntropyEngine_Block(processedBlock, obj.QP);
+            en = EntropyEngine_Block(processedBlock, obj.QP, obj.RCflag);
             
 
 %             if (rem(frameIndex - 1,obj.I_Period)) == 0

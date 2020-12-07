@@ -68,7 +68,7 @@ bitBudget = BitBudget(targetBPPerSecond, framePerSecond,v1WithPadding.height, bl
 
 if RCflag == 2
     QP = 6;
-    e = EncoderBuildQPTable(v1WithPadding,block_width, block_height,r , QP, 21,nRefFrame, FEMEnable, FastME, VBSEnable );
+    e = EncoderBuildQPTable(v1WithPadding,block_width, block_height,r , QP, 21,nRefFrame, FEMEnable, FastME, VBSEnable, RCflag );
     bitCountRowsVideo = zeros(v1WithPadding.width/block_width, v1WithPadding.numberOfFrames);
     TotalBitInCurrentFrame = zeros(v1WithPadding.width/block_width, v1WithPadding.numberOfFrames);
     TotalBitInCurrentFrame = zeros(v1WithPadding.numberOfFrames);
