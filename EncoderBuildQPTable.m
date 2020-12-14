@@ -92,9 +92,9 @@ classdef EncoderBuildQPTable
             %generating the type list according to input parameter I_Period
             type = obj.generateTypeMatrix();
             
-            for i = 1: 1:obj.inputvideo.numberOfFrames
+            %for i = 1: 1:obj.inputvideo.numberOfFrames
             % go through the each frame
-            %for i = 1: 1:
+            for i = 1: 21
                 if type(i) == 1
                     %if intra frame
                     %initialized the empty reconstructed frame for current
@@ -163,13 +163,13 @@ classdef EncoderBuildQPTable
                             if(cost.flag==0)
                                  obj.reconstructedVideo.Y(predicted_block.top_height_index:predicted_block.top_height_index + obj.block_height-1,predicted_block.left_width_index:predicted_block.left_width_index + obj.block_width-1,i) = reference_frame1(predicted_block.top_height_index:predicted_block.top_height_index + obj.block_height-1,predicted_block.left_width_index:predicted_block.left_width_index + obj.block_width-1);
                                  obj.bitCountVideo(int16(block_list(index).top_height_index/obj.block_height) + 1, int16(block_list(index).left_width_index/obj.block_width) + 1, i ) = size(temp_bitstream1,2);
-                                 %obj.OutputBitstream = [obj.OutputBitstream temp_bitstream1];
+                                 obj.OutputBitstream = [obj.OutputBitstream temp_bitstream1];
                                  %obj.predictionVideo(processedBlock.top_height_index:processedBlock.top_height_index + 16-1,processedBlock.left_width_index:processedBlock.left_width_index + 16-1,i) = uint8(predicted_block.data);
                             else
                                  obj.reconstructedVideo.Y(predicted_block.top_height_index:predicted_block.top_height_index + obj.block_height-1,predicted_block.left_width_index:predicted_block.left_width_index + obj.block_width-1,i) = reference_frame4(predicted_block.top_height_index:predicted_block.top_height_index + obj.block_height-1,predicted_block.left_width_index:predicted_block.left_width_index + obj.block_width-1);
                                  obj.bitCountVideo(int16(block_list(index).top_height_index/obj.block_height) + 1, int16(block_list(index).left_width_index/obj.block_width) + 1, i ) = size(temp_bitstream4,2);
 
-                                 %obj.OutputBitstream = [obj.OutputBitstream temp_bitstream4];
+                                 obj.OutputBitstream = [obj.OutputBitstream temp_bitstream4];
                                  %obj.predictionVideo(1:processedBlock.top_height_index + 16-1,processedBlock.left_width_index:processedBlock.left_width_index + 16-1,i) = uint8(predictedblock_4); 
                             end
                         end
@@ -257,7 +257,12 @@ classdef EncoderBuildQPTable
                          for bestMatchBlockIndex = 1:1:size(bestMatchBlock,2)
                                 %set the frame type for the block
                                 bestMatchBlock(bestMatchBlockIndex) = bestMatchBlock(bestMatchBlockIndex).setframeType(type(i));
-
+                                %set QP for the block
+                                if (size(bestMatchBlock,2) > 1) && obj.QP >= 1
+                                    bestMatchBlock(bestMatchBlockIndex) = bestMatchBlock(bestMatchBlockIndex).setQP(obj.QP - 1);
+                                else
+                                    bestMatchBlock(bestMatchBlockIndex) = bestMatchBlock(bestMatchBlockIndex).setQP(obj.QP);
+                                end
                                 %differential encoding for motion vector
                                 tempPreviousMV = bestMatchBlock(bestMatchBlockIndex).MotionVector;
                                 bestMatchBlock(bestMatchBlockIndex) = bestMatchBlock(bestMatchBlockIndex).setbitMotionVector( MotionVector(previousMV.x - bestMatchBlock(bestMatchBlockIndex).MotionVector.x, previousMV.y - bestMatchBlock(bestMatchBlockIndex).MotionVector.y));
@@ -272,7 +277,7 @@ classdef EncoderBuildQPTable
 
                                 [processedBlock, en] = obj.generateReconstructedFrame(i,bestMatchBlock(bestMatchBlockIndex) );
                                 obj.reconstructedVideo.Y(processedBlock.top_height_index:processedBlock.top_height_index + bestMatchBlock(bestMatchBlockIndex).block_height-1,processedBlock.left_width_index:processedBlock.left_width_index + bestMatchBlock(bestMatchBlockIndex).block_width-1,i) = uint8(processedBlock.data);
-                                %obj.OutputBitstream = [obj.OutputBitstream en.bitstream];
+                                obj.OutputBitstream = [obj.OutputBitstream en.bitstream];
                                 obj.bitCountVideo(int16(block_list(index).top_height_index/obj.block_height) + 1, int16(block_list(index).left_width_index/obj.block_width) + 1, i ) = size(en.bitstream,2);
 
                          end

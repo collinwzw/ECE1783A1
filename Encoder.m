@@ -19,6 +19,7 @@ classdef Encoder
         bitBudget;
         blockList;
         ParallelMode;
+        bitCountVideo;
     end
     
     methods (Access = 'public')
@@ -36,6 +37,7 @@ classdef Encoder
             obj.FastME = FastME;
             obj.VBSEnable=VBSEnable;
             obj.RCflag = RCflag;
+            obj.bitCountVideo = zeros(obj.inputvideo.width/block_width,obj.inputvideo.height/block_height, obj.inputvideo.numberOfFrames);
             obj.bitBudget = bitBudget;
             obj.SADPerFrame = [];
             obj.ParallelMode = ParallelMode;
@@ -93,7 +95,9 @@ classdef Encoder
             %initialize parameter for memorize the lastIFrame
             lastIFrame=-1;
             %generating the type list according to input parameter I_Period
+
             type = obj.generateTypeMatrix();
+
             
             for i = 1: 1:obj.inputvideo.numberOfFrames
             % go through the each frame
@@ -117,7 +121,7 @@ classdef Encoder
                     for index=1:1:length
                         if obj.RCflag == 1
                             if block_list(index).top_height_index == rowIndex
-                                obj.bitBudget = obj.bitBudget.computeQP(intra,actualBitSpentCurrentRow );
+                                obj.bitBudget = obj.bitBudget.computeQP(intra,actualBitSpentCurrentRow, i );
                                 obj.QP = obj.bitBudget.QP;
                                 rowIndex = rowIndex + obj.block_height;
                                 actualBitSpentCurrentRow = 0;
@@ -185,14 +189,16 @@ classdef Encoder
                                  obj.reconstructedVideo.Y(predicted_block.top_height_index:predicted_block.top_height_index + obj.block_height-1,predicted_block.left_width_index:predicted_block.left_width_index + obj.block_width-1,i) = reference_frame1(predicted_block.top_height_index:predicted_block.top_height_index + obj.block_height-1,predicted_block.left_width_index:predicted_block.left_width_index + obj.block_width-1);
                                  obj.OutputBitstream = [obj.OutputBitstream temp_bitstream1];
                                  actualBitSpentCurrentRow = actualBitSpentCurrentRow + size(temp_bitstream1,2);
-                                 actualBitSpentCurrentRow = actualBitSpentCurrentRow + size(temp_bitstream4,2);%obj.predictionVideo(1:processedBlock.top_height_index + 16-1,processedBlock.left_width_index:processedBlock.left_width_index + 16-1,i) = uint8(predictedblock_4);
-%                                  obj.blockList = [obj.blockList predicted_block];
+                                 %obj.predictionVideo(1:processedBlock.top_height_index + 16-1,processedBlock.left_width_index:processedBlock.left_width_index + 16-1,i) = uint8(predictedblock_4);
+                                 obj.bitCountVideo(int16(block_list(index).top_height_index/obj.block_height) + 1, int16(block_list(index).left_width_index/obj.block_width) + 1, i ) = size(temp_bitstream1,2);
+                                 %                                  obj.blockList = [obj.blockList predicted_block];
                                  %obj.predictionVideo(processedBlock.top_height_index:processedBlock.top_height_index + 16-1,processedBlock.left_width_index:processedBlock.left_width_index + 16-1,i) = uint8(predicted_block.data);
                             else
                                  obj.reconstructedVideo.Y(predicted_block.top_height_index:predicted_block.top_height_index + obj.block_height-1,predicted_block.left_width_index:predicted_block.left_width_index + obj.block_width-1,i) = reference_frame4(predicted_block.top_height_index:predicted_block.top_height_index + obj.block_height-1,predicted_block.left_width_index:predicted_block.left_width_index + obj.block_width-1);
                                  obj.OutputBitstream = [obj.OutputBitstream temp_bitstream4];
-
-%                                  obj.blockList = [obj.blockList predicted_sub_block];
+                                 obj.bitCountVideo(int16(block_list(index).top_height_index/obj.block_height) + 1, int16(block_list(index).left_width_index/obj.block_width) + 1, i ) = size(temp_bitstream4,2);
+                                 actualBitSpentCurrentRow = actualBitSpentCurrentRow + size(temp_bitstream4,2);
+                                 %                                  obj.blockList = [obj.blockList predicted_sub_block];
 %                                  obj.blockList = [obj.blockList predicted_sub_block];
 %                                  obj.blockList = [obj.blockList predicted_sub_block];
 %                                  obj.blockList = [obj.blockList predicted_sub_block];
@@ -210,7 +216,7 @@ classdef Encoder
                     for index=1:1:length
                         if obj.RCflag == 1
                             if block_list(index).top_height_index == rowIndex
-                                obj.bitBudget = obj.bitBudget.computeQP(intra,actualBitSpentCurrentRow );
+                                obj.bitBudget = obj.bitBudget.computeQP(intra,actualBitSpentCurrentRow, i );
                                 obj.QP = obj.bitBudget.QP;
                                 rowIndex = rowIndex + obj.block_height;
                                 actualBitSpentCurrentRow = 0;
@@ -315,6 +321,7 @@ classdef Encoder
                                 obj.reconstructedVideo.Y(processedBlock.top_height_index:processedBlock.top_height_index + bestMatchBlock(bestMatchBlockIndex).block_height-1,processedBlock.left_width_index:processedBlock.left_width_index + bestMatchBlock(bestMatchBlockIndex).block_width-1,i) = uint8(processedBlock.data);
                                 obj.OutputBitstream = [obj.OutputBitstream en.bitstream];
                                 actualBitSpentCurrentRow = actualBitSpentCurrentRow + size(en.bitstream,2);
+                                obj.bitCountVideo(int16(block_list(index).top_height_index/obj.block_height) + 1, int16(block_list(index).left_width_index/obj.block_width) + 1, i ) = size(temp_bitstream,2);
                          end
                     end
                 end

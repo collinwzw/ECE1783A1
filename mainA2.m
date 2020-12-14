@@ -3,8 +3,11 @@ clear all;
 systemSetUp();
 
 tic
+
 % inputFilename = '.\data\foreman_cif.yuv';
 % outputFilename = '.\data\foremanY_cif.yuv';
+% inputFilename = '.\data\akiyo_cif.yuv';
+% outputFilename = '.\data\akiyoY_cif.yuv';
 inputFilename = '.\data\CIF.yuv';
 outputFilename = '.\data\CIFY.yuv';
 v1 = YUVVideo(inputFilename, 352, 288 , 420);
@@ -23,8 +26,8 @@ block_width = 16;
 block_height = block_width;
 r = 16;
 n = 3;
-QP = 4;
-I_Period = 1;
+QP = 6;
+I_Period = 4;
 nRefFrame = 1;
 FEMEnable = true;
 FastME = true;
@@ -38,7 +41,7 @@ ParallelMode = 0;
 [v1WithPadding,v1Averaged] = v1.block_creation(v1.Y,block_width,block_height);
 
 %creating QP table section
-createQPTable = false;
+createQPTable = 0;
 if createQPTable == 1
     %creating QP table
 %     QPinputFilename = '.\data\CIF.yuv';
@@ -48,57 +51,52 @@ if createQPTable == 1
 %     video.writeToFile(QPouputFilename, y_only);
 %     video = YOnlyVideo(QPouputFilename, 352, 288);
 %     CIF = true;
-    QPinputFilename = '.\data\QCIF.yuv';
-    QPouputFilename = '.\data\QCIFY.yuv';
-    video = YUVVideo(QPinputFilename, 176, 144 , 420);
+    QPinputFilename = '.\data\CIF.yuv';
+    QPouputFilename = '.\data\CIFY.yuv';
+    %video = YUVVideo(QPinputFilename, 176, 144 , 420);
+    video = YUVVideo(QPinputFilename, 352, 288 , 420);
     y_only = true;
     video.writeToFile(QPouputFilename, y_only);
-    video = YOnlyVideo(QPouputFilename, 176, 144);
+    %video = YOnlyVideo(QPouputFilename, 176, 144);
+    video = YOnlyVideo(QPouputFilename, 352, 288);
     [videoWithPadding,v1Averaged] = video.block_creation(video.Y,block_width,block_height);
     intra = false;
-    CIF = false;
-    c = CreateQPTable(videoWithPadding,block_width, block_height,r,nRefFrame, FEMEnable, FastME, VBSEnable, intra, CIF);
+    CIF = true;
+    c = CreateQPTable(videoWithPadding,block_width, block_height,r,nRefFrame, FEMEnable, FastME, VBSEnable, intra, CIF, RCflag);
     return;
 end
 
 %calculating budget
 QPTableInterFilename = '.\result\CIFQPTableInter.txt';
 QPTableIntraFilename = '.\result\CIFQPTableIntra.txt';
-bitBudget = BitBudget(targetBPPerSecond, framePerSecond,v1WithPadding.width, block_width, QPTableInterFilename, QPTableIntraFilename );
+
+bitCountRowsVideo = zeros(v1WithPadding.width/block_width, v1WithPadding.numberOfFrames);
+typelist = zeros(v1WithPadding.numberOfFrames);
+
+bitBudget = BitBudget(targetBPPerSecond, framePerSecond,v1WithPadding.width, block_width, QPTableInterFilename, QPTableIntraFilename,RCflag, bitCountRowsVideo );
 
 if RCflag == 2
-    QP = 6;
-    e = EncoderBuildQPTable(v1WithPadding,block_width, block_height,r , QP, 21,nRefFrame, FEMEnable, FastME, VBSEnable, RCflag );
-    bitCountRowsVideo = zeros(v1WithPadding.width/block_width, v1WithPadding.numberOfFrames);
-    TotalBitInCurrentFrame = zeros(v1WithPadding.width/block_width, v1WithPadding.numberOfFrames);
-    TotalBitInCurrentFrame = zeros(v1WithPadding.numberOfFrames);
-    for i = 1:1:v1WithPadding.numberOfFrames
-        for row=1:1:v1WithPadding.width/block_width
-            bitCountRowsVideo(row,i) = sum(e.bitCountVideo(row,:,i));
-        end
-        TotalBitInCurrentFrame(i) = sum(bitCountRowsVideo(:,i));
-        for row=1:1:v1WithPadding.width/block_width
-            bitCountRowsVideo(row,i) = bitCountRowsVideo(row,i)/TotalBitInCurrentFrame(i);
-        end
-    end
+    e = TwoPassEncoder(v1WithPadding,block_width, block_height,r ,  6, I_Period,nRefFrame, FEMEnable, FastME, VBSEnable, RCflag,bitBudget );
 end
 
 
 
 %* (v1WithPadding.width/block_width);
 
+
 %encode the video
 e = Encoder(v1WithPadding,block_width, block_height,r , QP, I_Period,nRefFrame, FEMEnable, FastME, VBSEnable,RCflag, bitBudget, ParallelMode);
-%%
+
 c=ReverseEntropyEngine_Block(e.OutputBitstream,block_width,block_height,288,352, RCflag);
 BlockList = c.BlockList;
 
-%%
+
 d=MotionCompensationEngine_Block(BlockList,block_width,block_height,288,352,FEMEnable,nRefFrame);
 
 toc 
+
 acc_PSNR = 0;
-for k=1:1:10
+for k=1:1:21
     acc_PSNR = acc_PSNR + psnr(d.DecodedRefVideo(:,:,k),double(v1WithPadding.Y(:,:,k)));
 end
 
