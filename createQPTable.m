@@ -7,7 +7,7 @@ classdef CreateQPTable
     end
     
     methods (Access = 'public')
-         function obj = CreateQPTable(inputvideo,block_width, block_height,r,nRefFrame,FEMEnable,FastME, VBSEnable, intra, CIF)
+         function obj = CreateQPTable(inputvideo,block_width, block_height,r,nRefFrame,FEMEnable,FastME, VBSEnable, intra, CIF, RCflag)
             obj.QP_table = zeros(1,12);
             obj.inputvideo = inputvideo;
             obj.block_width = block_width;
@@ -17,7 +17,7 @@ classdef CreateQPTable
                 I_Period = 1;
                 %Creating I Frame QP table
                 for QP = 0: 1 : 11
-                    e = EncoderBuildQPTable(inputvideo,block_width, block_height,r , QP, I_Period,nRefFrame, FEMEnable, FastME, VBSEnable);
+                    e = EncoderBuildQPTable(inputvideo,block_width, block_height,r , QP, I_Period,nRefFrame, FEMEnable, FastME, VBSEnable, RCflag);
                     obj = obj.computeAverage( e.bitCountVideo, QP+1, intra);
                 end
                 % writing to the QP table to file
@@ -33,7 +33,7 @@ classdef CreateQPTable
                 I_Period = 21;
                 %Creating I Frame QP table
                 for QP = 0: 1 : 11
-                    e = EncoderBuildQPTable(inputvideo,block_width, block_height,r , QP, I_Period,nRefFrame, FEMEnable, FastME, VBSEnable);
+                    e = EncoderBuildQPTable(inputvideo,block_width, block_height,r , QP, I_Period,nRefFrame, FEMEnable, FastME, VBSEnable, RCflag);
                     obj = obj.computeAverage( e.bitCountVideo, QP+1, intra);
                 end
                 % writing to the QP table to file
@@ -49,7 +49,7 @@ classdef CreateQPTable
                 I_Period = 21;
                 %Creating I Frame QP table
                 for QP = 0: 1 : 11
-                    e = EncoderBuildQPTable(inputvideo,block_width, block_height,r , QP, I_Period,nRefFrame, FEMEnable, FastME, VBSEnable);
+                    e = EncoderBuildQPTable(inputvideo,block_width, block_height,r , QP, I_Period,nRefFrame, FEMEnable, FastME, VBSEnable, RCflag);
                     obj = obj.computeAverage( e.bitCountVideo, QP+1, intra);
                 end
                 % writing to the QP table to file
@@ -65,7 +65,7 @@ classdef CreateQPTable
                 I_Period = 21;
                 %Creating I Frame QP table
                 for QP = 0: 1 : 11
-                    e = EncoderBuildQPTable(inputvideo,block_width, block_height,r , QP, I_Period,nRefFrame, FEMEnable, FastME, VBSEnable);
+                    e = EncoderBuildQPTable(inputvideo,block_width, block_height,r , QP, I_Period,nRefFrame, FEMEnable, FastME, VBSEnable, RCflag);
                     obj = obj.computeAverage( e.bitCountVideo, QP+1, intra);
                 end
                 % writing to the QP table to file

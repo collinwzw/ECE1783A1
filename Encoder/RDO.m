@@ -30,7 +30,12 @@ classdef RDO
             obj.SAD=SAD;
             obj.SAD_4=SAD_4;
             obj.Qp=Qp;
-            obj.lambda=2^((Qp-12)/3);%used a random lambda value
+            if (Qp - 12) < 0
+                obj.lambda=1;
+            else
+                obj.lambda=2^((Qp-12)/3);%used a random lambda value
+            end
+            
             obj=obj.RDO_calculation();
         end
     end
