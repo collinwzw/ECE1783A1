@@ -26,13 +26,13 @@ block_width = 16;
 block_height = block_width;
 r = 16;
 n = 3;
-QP = 6;
+QP = 3;
 I_Period = 4;
 nRefFrame = 1;
 FEMEnable = true;
 FastME = true;
 VBSEnable = true;
-RCflag = 1;
+RCflag =2;
 targetBPPerSecond=2400000;
 framePerSecond = 30;
 ParallelMode = 0;
@@ -75,22 +75,20 @@ typelist = zeros(v1WithPadding.numberOfFrames);
 
 bitBudget = BitBudget(targetBPPerSecond, framePerSecond,v1WithPadding.width, block_width, QPTableInterFilename, QPTableIntraFilename,RCflag, bitCountRowsVideo );
 
-if RCflag == 2
-    e = TwoPassEncoder(v1WithPadding,block_width, block_height,r ,  6, I_Period,nRefFrame, FEMEnable, FastME, VBSEnable, RCflag,bitBudget );
-end
-
-
-
-%* (v1WithPadding.width/block_width);
-
 
 %encode the video
-e = Encoder(v1WithPadding,block_width, block_height,r , QP, I_Period,nRefFrame, FEMEnable, FastME, VBSEnable,RCflag, bitBudget, ParallelMode);
+if RCflag >= 2
+    fprintf(" starting two pass encoding \n" );
+    e = TwoPassEncoder(v1WithPadding,block_width, block_height,r ,  6, I_Period,nRefFrame, FEMEnable, FastME, VBSEnable, RCflag,bitBudget );
+else
+    fprintf(" starting normal encoding \n" );
+    e = Encoder(v1WithPadding,block_width, block_height,r , QP, I_Period,nRefFrame, FEMEnable, FastME, VBSEnable,RCflag, bitBudget, ParallelMode);
+end
 
 c=ReverseEntropyEngine_Block(e.OutputBitstream,block_width,block_height,288,352, RCflag);
 BlockList = c.BlockList;
 
-
+%%
 d=MotionCompensationEngine_Block(BlockList,block_width,block_height,288,352,FEMEnable,nRefFrame);
 
 toc 

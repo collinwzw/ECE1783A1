@@ -286,7 +286,7 @@ classdef Encoder
                                 end
                              end
                          end
-
+                        sumBitSize = 0;
                          for bestMatchBlockIndex = 1:1:size(bestMatchBlock,2)
                                 %set the frame type for the block
                                 bestMatchBlock(bestMatchBlockIndex) = bestMatchBlock(bestMatchBlockIndex).setframeType(type(i));
@@ -321,8 +321,10 @@ classdef Encoder
                                 obj.reconstructedVideo.Y(processedBlock.top_height_index:processedBlock.top_height_index + bestMatchBlock(bestMatchBlockIndex).block_height-1,processedBlock.left_width_index:processedBlock.left_width_index + bestMatchBlock(bestMatchBlockIndex).block_width-1,i) = uint8(processedBlock.data);
                                 obj.OutputBitstream = [obj.OutputBitstream en.bitstream];
                                 actualBitSpentCurrentRow = actualBitSpentCurrentRow + size(en.bitstream,2);
-                                obj.bitCountVideo(int16(block_list(index).top_height_index/obj.block_height) + 1, int16(block_list(index).left_width_index/obj.block_width) + 1, i ) = size(temp_bitstream,2);
+                                sumBitSize =  sumBitSize + size(en.bitstream,2);
                          end
+                        obj.bitCountVideo(int16(block_list(index).top_height_index/obj.block_height) + 1, int16(block_list(index).left_width_index/obj.block_width) + 1, i ) = sumBitSize;
+
                     end
                 end
                 obj.bitBudget.curentRow = 0;
