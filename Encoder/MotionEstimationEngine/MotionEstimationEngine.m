@@ -423,7 +423,8 @@ classdef MotionEstimationEngine
 %                     end
 %                 end
 %             end
-
+         bestBlock.left_width_index = currentBlock.left_width_index;
+         bestBlock.top_height_index = currentBlock.top_height_index;
          end
 
         function result = calculateBlockSumValue(obj, frame)

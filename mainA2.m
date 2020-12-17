@@ -8,15 +8,20 @@ tic
 % outputFilename = '.\data\foremanY_cif.yuv';
 % inputFilename = '.\data\akiyo_cif.yuv';
 % outputFilename = '.\data\akiyoY_cif.yuv';
-inputFilename = '.\data\CIF.yuv';
-outputFilename = '.\data\CIFY.yuv';
-v1 = YUVVideo(inputFilename, 352, 288 , 420);
+
+% inputFilename = '.\data\CIF.yuv';
+% outputFilename = '.\data\CIFY.yuv';
+% v1 = YUVVideo(inputFilename, 352, 288 , 420);
+
+inputFilename = '.\data\QCIF.yuv';
+outputFilename = '.\data\QCIFY.yuv';
+v1 = YUVVideo(inputFilename, 176, 144 , 420);
 y_only = true;
 v1.writeToFile(outputFilename, y_only);
 
 inputFilename = outputFilename;
-v1 = YOnlyVideo(inputFilename, 352, 288);
-
+%v1 = YOnlyVideo(inputFilename, 352, 288);
+v1 = YOnlyVideo(inputFilename, 176, 144);
 %I frame is 1
 %P frame is 0
 
@@ -26,14 +31,14 @@ block_width = 16;
 block_height = block_width;
 r = 16;
 n = 3;
-QP = 3;
-I_Period = 4;
+QP = 6;
+I_Period = 21;
 nRefFrame = 1;
 FEMEnable = true;
 FastME = true;
 VBSEnable = true;
-RCflag =2;
-targetBPPerSecond=2400000;
+RCflag =1;
+targetBPPerSecond=360000;
 framePerSecond = 30;
 ParallelMode = 0;
 %
@@ -84,7 +89,7 @@ else
     fprintf(" starting normal encoding \n" );
     e = Encoder(v1WithPadding,block_width, block_height,r , QP, I_Period,nRefFrame, FEMEnable, FastME, VBSEnable,RCflag, bitBudget, ParallelMode);
 end
-
+%%
 c=ReverseEntropyEngine_Block(e.OutputBitstream,block_width,block_height,288,352, RCflag);
 BlockList = c.BlockList;
 

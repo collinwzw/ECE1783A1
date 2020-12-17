@@ -172,7 +172,7 @@ classdef EntropyEngine_Block
             if B_left_width_index == 1
                 if B_split ==1 %The Block is a sub block
                     if mod((B_top_height_index+15)/(obj.block_height*2),1)==0 % 1st or 3rd sub block?
-                        obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(rowQP)];
+                        obj.bitstream = [obj.bitstream obj.encodeExpGolombValue(B_QP + 1)];
                         % i pass 1 to you, in reverse you should realized
                         % this is row QP and if the sub block, you should
                         % -1 for split block;
