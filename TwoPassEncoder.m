@@ -33,6 +33,8 @@ classdef TwoPassEncoder
         blockList;
         splitList1;
         splitList2;
+        motionVectorList1;
+        searchRangeRC3;
     end
     
     methods (Access = 'public')
@@ -53,7 +55,9 @@ classdef TwoPassEncoder
             obj.VBSEnable=VBSEnable;
             obj.bitBudget = bitBudget;
             obj.SADPerFrame1 = [];
+            obj.motionVectorList1 = [];
             obj.SADPerFrame2 = [];
+            obj.searchRangeRC3 = 2;
             obj.bitCountVideo1 = zeros(obj.inputvideo.width/block_width,obj.inputvideo.height/block_height, obj.inputvideo.numberOfFrames);
             obj.bitCountVideo2 = zeros(obj.inputvideo.width/block_width,obj.inputvideo.height/block_height, obj.inputvideo.numberOfFrames);
             obj.typelist = zeros( obj.inputvideo.numberOfFrames);
@@ -73,7 +77,7 @@ classdef TwoPassEncoder
                 else
                     intra = false;
                 end
-                e1 = obj.encodeFrameFirstPass(i,QP, reconstructedVideo1);
+                e1 = obj.encodeFrameFirstPass(i,QP, reconstructedVideo1,  obj.bitBudget.RCflag);
                 obj.bitPerFrame = e1.bitPerFrame;
                 reconstructedVideo1 = e1.reconstructedVideo1;
                 % compute sum bit count for each row 
@@ -97,18 +101,18 @@ classdef TwoPassEncoder
                         diffference(i,1) = TotalBitFirstPass(i)/TotalBitFirstPass(i-1);
                         diffference(i,2) = 1;
                     else
-                        if ((TotalBitFirstPass(i) - TotalBitFirstPass(i-1))* (bitBudget.QPTableInter(lastQP)/bitBudget.QPTableInter(QP)) / TotalBitFirstPass(i-1) >7)
+                        if ((TotalBitFirstPass(i) - TotalBitFirstPass(i-1))* (bitBudget.QPTableInter(lastQP+1)/bitBudget.QPTableInter(QP+1)) / TotalBitFirstPass(i-1) >7)
                             intra = true;
                             obj.typelist(i) = 1;
                         end
-                        diffference(i,1) = (TotalBitFirstPass(i) - TotalBitFirstPass(i-1))* (bitBudget.QPTableInter(lastQP)/bitBudget.QPTableInter(QP)) / TotalBitFirstPass(i-1);
+                        diffference(i,1) = (TotalBitFirstPass(i) - TotalBitFirstPass(i-1))* (bitBudget.QPTableInter(lastQP+1)/bitBudget.QPTableInter(QP+1)) / TotalBitFirstPass(i-1);
                         diffference(i,2) = 0;
                     end
                 end
                 
                 obj.bitBudget = obj.bitBudget.rescalQPTable(intra, QP,average );
                 obj.bitBudget.bitCountRowsVideo = bitCountRowsVideo;
-                e2 = obj.encodeFrameSecondPass(i,intra, obj.bitBudget,obj.reconstructedVideo2,lastIFrame,e1.splitList1);
+                e2 = obj.encodeFrameSecondPass(i,intra, obj.bitBudget,obj.reconstructedVideo2,lastIFrame,e1.splitList1, e1.motionVectorList1);
 %                 obj.blockList = [obj.blockList e2.blockList];
                 obj.OutputBitstream = [obj.OutputBitstream e2.OutputBitstream2];
                 lastQP = QP;
@@ -156,7 +160,7 @@ classdef TwoPassEncoder
             end
         end
         
-        function obj = encodeFrameFirstPass(obj,i,QP,reconstructedVideo)
+        function obj = encodeFrameFirstPass(obj,i,QP,reconstructedVideo,RCflag)
             %initialize parameter for memorize the lastIFrame
             lastIFrame=1;
             %generating the type list according to input parameter I_Period
@@ -234,7 +238,9 @@ classdef TwoPassEncoder
                              obj.OutputBitstream1 = [obj.OutputBitstream1 temp_bitstream1];
                              obj.bitPerFrame(i) = obj.bitPerFrame(i) + size(temp_bitstream1,2);
                              %obj.blockList = [obj.blockList predicted_block];
-                             obj.splitList1 = [obj.splitList1 0];
+                             if RCflag == 3
+                                obj.splitList1 = [obj.splitList1 0];
+                             end
                              %obj.predictionVideo(processedBlock.top_height_index:processedBlock.top_height_index + 16-1,processedBlock.left_width_index:processedBlock.left_width_index + 16-1,i) = uint8(predicted_block.data);
                         else
                              obj.reconstructedVideo1(predicted_block.top_height_index:predicted_block.top_height_index + obj.block_height-1,predicted_block.left_width_index:predicted_block.left_width_index + obj.block_width-1,i) = reference_frame4(predicted_block.top_height_index:predicted_block.top_height_index + obj.block_height-1,predicted_block.left_width_index:predicted_block.left_width_index + obj.block_width-1);
@@ -245,7 +251,9 @@ classdef TwoPassEncoder
 %                              obj.blockList = [obj.blockList predicted_sub_block];
 %                              obj.blockList = [obj.blockList predicted_sub_block];
 %                              obj.blockList = [obj.blockList predicted_sub_block];
-                             obj.splitList1 = [obj.splitList1 1];
+                             if RCflag == 3
+                                obj.splitList1 = [obj.splitList1 1];
+                             end
                              %obj.predictionVideo(1:processedBlock.top_height_index + 16-1,processedBlock.left_width_index:processedBlock.left_width_index + 16-1,i) = uint8(predictedblock_4); 
                         end
                     end
@@ -256,6 +264,7 @@ classdef TwoPassEncoder
                 length = size(block_list,2);
                 previousMV = MotionVector(0,0);
                 previousFrameIndex = 0;
+
                 %for loop to go through all blocks
                 for index=1:1:length
                      %RDO computation of block_list(index)
@@ -317,14 +326,18 @@ classdef TwoPassEncoder
                                     if cost.RDO_cost4 < min_value
                                         min_value = cost.RDO_cost4;
                                         bestMatchBlock = SubBlockList;
-                                        obj.splitList1 = [obj.splitList1 1];
+                                        if RCflag == 3
+                                            obj.splitList1 = [obj.splitList1 1];
+                                        end
                                     end
                                 else
                                     % no split has smaller RDO
                                     if cost.RDO_cost1 < min_value
                                         min_value = cost.RDO_cost1;
                                         bestMatchBlock = bestMatchBlockNoSplit;
-                                        obj.splitList1 = [obj.splitList1 0];
+                                        if RCflag == 3
+                                            obj.splitList1 = [obj.splitList1 0];
+                                        end
                                     end
                                 end
                             end
@@ -341,7 +354,11 @@ classdef TwoPassEncoder
                                 bestMatchBlock(bestMatchBlockIndex) = bestMatchBlock(bestMatchBlockIndex).setQP(QP);
                             end
                             %differential encoding for motion vector
+
                             tempPreviousMV = bestMatchBlock(bestMatchBlockIndex).MotionVector;
+                            if RCflag == 3
+                                obj.motionVectorList1 = [obj.motionVectorList1 tempPreviousMV];
+                            end
                             bestMatchBlock(bestMatchBlockIndex) = bestMatchBlock(bestMatchBlockIndex).setbitMotionVector( MotionVector(previousMV.x - bestMatchBlock(bestMatchBlockIndex).MotionVector.x, previousMV.y - bestMatchBlock(bestMatchBlockIndex).MotionVector.y));
                             previousMV = tempPreviousMV;
 
@@ -349,7 +366,7 @@ classdef TwoPassEncoder
                             tempPreviousFrameIndex = bestMatchBlock(bestMatchBlockIndex).referenceFrameIndex;
                             bestMatchBlock(bestMatchBlockIndex).referenceFrameIndex = previousFrameIndex - bestMatchBlock(bestMatchBlockIndex).referenceFrameIndex;
                             previousFrameIndex = tempPreviousFrameIndex;
-
+                            
                             obj.predictionVideo1(bestMatchBlock(bestMatchBlockIndex).top_height_index:bestMatchBlock(bestMatchBlockIndex).top_height_index + bestMatchBlock(bestMatchBlockIndex).block_height-1,bestMatchBlock(bestMatchBlockIndex).left_width_index:bestMatchBlock(bestMatchBlockIndex).left_width_index + bestMatchBlock(bestMatchBlockIndex).block_width-1,i) = uint8(bestMatchBlock(bestMatchBlockIndex).data);
 %                             obj.blockList = [obj.blockList bestMatchBlock(bestMatchBlockIndex)];
                             [processedBlock, en] = obj.generateReconstructedFrame(i,bestMatchBlock(bestMatchBlockIndex) );
@@ -366,7 +383,7 @@ classdef TwoPassEncoder
 
         end
         
-        function obj = encodeFrameSecondPass(obj, i, intra, bitBudget, reconstructedVideo,lastIFrame, splitList)
+        function obj = encodeFrameSecondPass(obj, i, intra, bitBudget, reconstructedVideo,lastIFrame, splitList,motionVectorList)
             %initialize parameter for memorize the lastIFrame
             obj.reconstructedVideo2 = reconstructedVideo;
             obj.lastIFrame = lastIFrame;
@@ -546,6 +563,7 @@ classdef TwoPassEncoder
                 length = size(block_list,2);
                 previousMV = MotionVector(0,0);
                 previousFrameIndex = 0;
+                count = 1;
                 %for loop to go through all blocks
                 for index=1:1:length
                     if block_list(index).top_height_index == rowIndex
@@ -626,9 +644,16 @@ classdef TwoPassEncoder
                                 else
                                     %RCflag = 3
                                     if (splitList(index) == 0)
-                                        ME_result = MotionEstimationEngine(obj.r,block_list(index), uint8(obj.reconstructedVideo2(:,:,referenceframe_index)), obj.block_width, obj.block_height,obj.FEMEnable, obj.FastME, previousMV);
+                                        motionVectorFirstPass = motionVectorList(count);
+                                        originalBlock = block_list(index);
+                                        originalBlock.left_width_index = originalBlock.left_width_index + motionVectorFirstPass.x;
+                                        originalBlock.top_height_index = originalBlock.top_height_index + motionVectorFirstPass.y;
+                                        ME_result = MotionEstimationEngine(obj.searchRangeRC3,originalBlock, uint8(obj.reconstructedVideo2(:,:,referenceframe_index)), obj.block_width, obj.block_height,obj.FEMEnable, obj.FastME, previousMV);
                                         bestMatchBlock = ME_result.bestMatchBlock;
+                                        bestMatchBlock.left_width_index = originalBlock.left_width_index;
+                                        bestMatchBlock.top_height_index = originalBlock.top_height_index;
                                         bestMatchBlock.referenceFrameIndex = i - referenceframe_index;
+                                        count = count + 1;
                                     else
                                         % variable block size
                                         SAD4=zeros( 1 ,4);
@@ -643,16 +668,24 @@ classdef TwoPassEncoder
                                         for subBlockIndex = 1:1:size(subBlock_list,2)
                                             %for each block, doing the Motion
                                             %Estimation
-                                            SubBlockME_result = MotionEstimationEngine(obj.r,subBlock_list(subBlockIndex), uint8(obj.reconstructedVideo2(:,:,referenceframe_index)), obj.block_width/2, obj.block_height/2,obj.FEMEnable, obj.FastME, previousMVSubBlock);
+                                            motionVectorFirstPass = motionVectorList(count);
+                                            originalBlock = subBlock_list(subBlockIndex);
+                                            originalBlock.left_width_index = originalBlock.left_width_index + motionVectorFirstPass.x;
+                                            originalBlock.top_height_index = originalBlock.top_height_index + motionVectorFirstPass.y;
+                                            SubBlockME_result = MotionEstimationEngine(obj.searchRangeRC3,originalBlock, uint8(obj.reconstructedVideo2(:,:,referenceframe_index)), obj.block_width/2, obj.block_height/2,obj.FEMEnable, obj.FastME, previousMVSubBlock);
+                                            
                                             SAD4(col_i + (row_i - 1) * 2)= SubBlockME_result.differenceForBestMatchBlock;
                                             SubBlockME_result.bestMatchBlock.referenceFrameIndex = i - referenceframe_index;
                                             SubBlockME_result.bestMatchBlock.split=1;
+                                            SubBlockME_result.bestMatchBlock.left_width_index = originalBlock.left_width_index;
+                                            SubBlockME_result.bestMatchBlock.top_height_index = originalBlock.top_height_index;
                                             previousMVSubBlock = SubBlockME_result.bestMatchBlock.MotionVector;    
                                             curr_row=1+((row_i-1)*obj.block_height/2):(row_i)*obj.block_height/2;
                                             curr_col=1+((col_i-1)*obj.block_width/2):(col_i)*obj.block_width/2;
                                             predictedblock_4(curr_row,curr_col)=SubBlockME_result.bestMatchBlock.data;
                                             bestMatchBlock = [bestMatchBlock SubBlockME_result.bestMatchBlock];
                                             col_i = col_i + 1;
+                                            count = count + 1;
                                             if col_i > 2
                                                 row_i = row_i + 1;
                                                 col_i = 1;

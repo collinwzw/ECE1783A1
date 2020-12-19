@@ -9,19 +9,19 @@ tic
 % inputFilename = '.\data\akiyo_cif.yuv';
 % outputFilename = '.\data\akiyoY_cif.yuv';
 
-% inputFilename = '.\data\CIF.yuv';
-% outputFilename = '.\data\CIFY.yuv';
-% v1 = YUVVideo(inputFilename, 352, 288 , 420);
+inputFilename = '.\data\CIF.yuv';
+outputFilename = '.\data\CIFY.yuv';
+v1 = YUVVideo(inputFilename, 352, 288 , 420);
 
-inputFilename = '.\data\QCIF.yuv';
-outputFilename = '.\data\QCIFY.yuv';
-v1 = YUVVideo(inputFilename, 176, 144 , 420);
+% inputFilename = '.\data\QCIF.yuv';
+% outputFilename = '.\data\QCIFY.yuv';
+% v1 = YUVVideo(inputFilename, 176, 144 , 420);
 y_only = true;
 v1.writeToFile(outputFilename, y_only);
 
 inputFilename = outputFilename;
-%v1 = YOnlyVideo(inputFilename, 352, 288);
-v1 = YOnlyVideo(inputFilename, 176, 144);
+v1 = YOnlyVideo(inputFilename, 352, 288);
+% v1 = YOnlyVideo(inputFilename, 176, 144);
 %I frame is 1
 %P frame is 0
 
@@ -37,8 +37,8 @@ nRefFrame = 1;
 FEMEnable = true;
 FastME = true;
 VBSEnable = true;
-RCflag =1;
-targetBPPerSecond=360000;
+RCflag =3;
+targetBPPerSecond=2400000;
 framePerSecond = 30;
 ParallelMode = 0;
 %
@@ -91,11 +91,12 @@ else
 end
 %%
 c=ReverseEntropyEngine_Block(e.OutputBitstream,block_width,block_height,288,352, RCflag);
+% c=ReverseEntropyEngine_Block(e.OutputBitstream,block_width,block_height,144,176, RCflag);
 BlockList = c.BlockList;
 
 %%
 d=MotionCompensationEngine_Block(BlockList,block_width,block_height,288,352,FEMEnable,nRefFrame);
-
+% d=MotionCompensationEngine_Block(BlockList,block_width,block_height,144,176,FEMEnable,nRefFrame);
 toc 
 
 acc_PSNR = 0;
@@ -109,7 +110,7 @@ fprintf(" PSNR = %d \n",acc_PSNR );
 fprintf(" number of bits for 10 frame = %d \n",totalBit );
 
 %%
-Blocks = c.BlockList;
+ Blocks = c.BlockList;
 SplitList = [];
 for p = 1:1:size (Blocks,2)
     SplitList = [SplitList BlockList(1, p).split];
