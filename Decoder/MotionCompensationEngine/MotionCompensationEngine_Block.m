@@ -293,7 +293,9 @@ classdef MotionCompensationEngine_Block
                                         obj.BlockList(index).top_height_index = matrixHeight;
                                         obj.BlockList(index).left_width_index = matrixWidth;
                                         index = index +1;
-
+                                        if Blockcount == 146
+                                            a=1;
+                                        end
                                         matrixWidth = matrixWidth + obj.Split_block_width;
                                         obj.residualFrame(matrixHeight:matrixHeight+obj.Split_block_height - 1, matrixWidth:matrixWidth + obj.Split_block_width - 1) = BlockList1(4).data;
                                         obj.BlockList(index).top_height_index = matrixHeight;

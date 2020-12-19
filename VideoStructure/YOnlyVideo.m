@@ -42,8 +42,8 @@ classdef YOnlyVideo
                 ME = MException('the number of frames is not integer according to input size');
                 throw(ME)
             end
-            obj.numberOfFrames = nFrames;
-            %obj.numberOfFrames = 2;
+            %obj.numberOfFrames = nFrames;
+            obj.numberOfFrames = 2;
         end
 
         function obj = yOnlyRead(obj,filename)
