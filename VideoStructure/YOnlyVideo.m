@@ -43,6 +43,7 @@ classdef YOnlyVideo
                 throw(ME)
             end
             obj.numberOfFrames = nFrames;
+            %obj.numberOfFrames = 4;
         end
 
         function obj = yOnlyRead(obj,filename)

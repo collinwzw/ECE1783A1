@@ -30,7 +30,12 @@ classdef RDO
             obj.SAD=SAD;
             obj.SAD_4=SAD_4;
             obj.Qp=Qp;
-            obj.lambda=2^((Qp-12)/3);%used a random lambda value
+            if (Qp - 12) < 0
+                obj.lambda=1;
+            else
+                obj.lambda=2^((Qp-12)/3);%used a random lambda value
+            end
+            
             obj=obj.RDO_calculation();
         end
     end
@@ -56,7 +61,7 @@ classdef RDO
                     bits=[bits dec2bin(s(i,j))];
                 end
             end
-            bitsize=size(bits);
+            bitsize=size(bits,2);
             %obj.RDO_cost1=obj.SAD+obj.lambda*bytes1.bytes;
             %bits used for testing
             obj.RDO_cost1=obj.SAD+obj.lambda*bitsize;
@@ -77,9 +82,9 @@ classdef RDO
                             bits=[bits dec2bin(block(l,m))];
                         end
                     end
-                    bitsize4=size(bits);
+                    bitsize4=size(bits,2);
                     %obj.RDO_cost4=obj.RDO_cost4+obj.SAD_4(k)+obj.lambda*bytes4.bytes;
-                    cost4=cost4+obj.SAD_4(k)+obj.lambda*bitsize4;;
+                    cost4=cost4+obj.SAD_4(k)+obj.lambda*bitsize4;
                 end
             end
             obj.RDO_cost4=cost4;
