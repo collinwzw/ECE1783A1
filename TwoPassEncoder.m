@@ -651,6 +651,8 @@ classdef TwoPassEncoder
                                         bestMatchBlock.split=0;
                                         bestMatchBlock.left_width_index = originalBlock.left_width_index;
                                         bestMatchBlock.top_height_index = originalBlock.top_height_index;
+                                        bestMatchBlock.MotionVector.x = bestMatchBlock.MotionVector.x + motionVectorFirstPass.x;
+                                        bestMatchBlock.MotionVector.y = bestMatchBlock.MotionVector.y + motionVectorFirstPass.y;
                                         bestMatchBlock.referenceFrameIndex = i - referenceframe_index;
                                         count = count + 1;
                                     else
@@ -678,6 +680,8 @@ classdef TwoPassEncoder
                                             SAD4(col_i + (row_i - 1) * 2)= SubBlockME_result.differenceForBestMatchBlock;
                                             SubBlockME_result.bestMatchBlock.referenceFrameIndex = i - referenceframe_index;
                                             SubBlockME_result.bestMatchBlock.split=1;
+                                            SubBlockME_result.bestMatchBlock.MotionVector.x = SubBlockME_result.bestMatchBlock.MotionVector.x + motionVectorFirstPass.x;
+                                            SubBlockME_result.bestMatchBlock.MotionVector.y = SubBlockME_result.bestMatchBlock.MotionVector.y + motionVectorFirstPass.y;
                                             SubBlockME_result.bestMatchBlock.left_width_index = originalBlock.left_width_index;
                                             SubBlockME_result.bestMatchBlock.top_height_index = originalBlock.top_height_index;
                                             previousMVSubBlock = SubBlockME_result.bestMatchBlock.MotionVector;    

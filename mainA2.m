@@ -37,8 +37,8 @@ nRefFrame = 1;
 FEMEnable = true;
 FastME = true;
 VBSEnable = true;
-RCflag =3;
-targetBPPerSecond=2400000;
+RCflag =1;
+targetBPPerSecond=360000;
 framePerSecond = 30;
 ParallelMode = 0;
 %
@@ -99,14 +99,14 @@ d=MotionCompensationEngine_Block(BlockList,block_width,block_height,288,352,FEME
 % d=MotionCompensationEngine_Block(BlockList,block_width,block_height,144,176,FEMEnable,nRefFrame);
 toc 
 
-acc_PSNR = 0;
+acc_PSNR = zeros(21,1);
 for k=1:1:21
-    acc_PSNR = acc_PSNR + psnr(d.DecodedRefVideo(:,:,k),double(v1WithPadding.Y(:,:,k)));
+    acc_PSNR(k) =  psnr(d.DecodedRefVideo(:,:,k),double(v1WithPadding.Y(:,:,k)));
 end
 
 totalBit = size(e.OutputBitstream);
 fprintf(" configuration: i = %d, r = %d, QP = %d, IP = %d \n",block_width, r, QP, I_Period);
-fprintf(" PSNR = %d \n",acc_PSNR );
+fprintf(" PSNR = %d \n",sum(acc_PSNR,'ALL'));
 fprintf(" number of bits for 10 frame = %d \n",totalBit );
 
 %%
